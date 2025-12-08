@@ -59,9 +59,8 @@
         .light .text-base { color: #1e293b; }
         .light .text-muted { color: #64748b; }
         .light .border-base { border-color: #e2e8f0; }
-        /* Overlay ajustado para funcionar bem tanto no mobile quanto desktop */
         .light .hero-overlay { 
-            background: linear-gradient(135deg, rgba(248,250,252,0.98) 0%, rgba(248,250,252,0.92) 50%, rgba(248,250,252,0.7) 100%); 
+            background: linear-gradient(135deg, rgba(248,250,252,0.98) 0%, rgba(248,250,252,0.85) 40%, rgba(248,250,252,0.4) 100%); 
         }
         .light .glass { 
             background: rgba(255, 255, 255, 0.8);
@@ -75,9 +74,8 @@
         .dark .text-base { color: #f1f5f9; }
         .dark .text-muted { color: #94a3b8; }
         .dark .border-base { border-color: #1e293b; }
-        /* Overlay ajustado para o modo escuro */
         .dark .hero-overlay { 
-            background: linear-gradient(135deg, rgba(10,15,26,0.98) 0%, rgba(10,15,26,0.92) 50%, rgba(10,15,26,0.7) 100%); 
+            background: linear-gradient(135deg, rgba(10,15,26,0.98) 0%, rgba(10,15,26,0.9) 40%, rgba(10,15,26,0.5) 100%); 
         }
         .dark .glass { 
             background: rgba(17, 24, 39, 0.8);
@@ -223,18 +221,18 @@
             box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
         }
         
-        /* Hero Section - BANNER UNIFICADO */
+        /* Hero Section */
         .hero-section {
-            background-image: url('https://raw.githubusercontent.com/creativethb/SITE/main/img/painelv6.webp');
-            background-position: center; /* Centraliza no mobile */
+            background-position: center right;
             background-repeat: no-repeat;
             background-size: cover;
             position: relative;
             overflow: hidden;
         }
+        /* CORREÇÃO: Caminho da imagem usando "img%20site" */
         @media (min-width: 768px) {
             .hero-section { 
-                background-position: center right; /* Ajuste fino para desktop */
+                background-image: url('https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp');
             }
         }
         .hero-section::before {
@@ -557,7 +555,8 @@
         <div class="h-full flex flex-col p-6">
             <div class="flex justify-between items-center mb-8">
                 <div class="flex items-center gap-3">
-                    <img src="https://raw.githubusercontent.com/creativethb/SITE/main/img/atomiclogo.webp" alt="Logo" class="h-12 w-12 rounded-full shadow-lg bg-black">
+                    <!-- LOGO ATUALIZADA (img site) -->
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo" class="h-12 w-12 rounded-full shadow-lg bg-black">
                     <span class="font-bold text-xl brand-font">ATOMIC</span>
                 </div>
                 <button onclick="toggleMobileMenu()" class="p-3 rounded-full bg-base hover:bg-card-alt transition" aria-label="Fechar menu">
@@ -672,8 +671,9 @@
                 </button>
                 
                 <a href="#" onclick="location.reload()" class="flex items-center gap-3 hover:opacity-90 transition transform hover:scale-105 duration-300">
-                    <img src="https://raw.githubusercontent.com/creativethb/SITE/main/img/atomiclogo.webp" alt="Logo Atomic Games" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50">
-                    <img src="https://raw.githubusercontent.com/creativethb/SITE/main/img/Atomic%20frase.webp" alt="Atomic Games" class="h-7 w-auto hidden sm:block">
+                    <!-- LOGO ATUALIZADA (img site) -->
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo Atomic Games" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic Games" class="h-7 w-auto hidden sm:block">
                 </a>
             </div>
 
@@ -702,24 +702,26 @@
         </div>
     </nav>
 
-    <!-- Hero Section - ATUALIZADO (Banner Unificado e Vídeo Mobile) -->
+    <!-- Hero Section -->
     <header class="relative border-b border-base overflow-hidden hero-section" style="min-height: 650px;">
-        <!-- Overlay sempre visível para garantir leitura no mobile -->
-        <div class="absolute inset-0 z-0 hero-overlay block"></div>
+        <div class="absolute inset-0 z-0 hero-overlay hidden md:block"></div>
 
-        <div class="container mx-auto px-4 lg:px-8 h-full relative z-10 flex flex-col md:flex-row items-center justify-center py-16 md:py-24 gap-10 md:gap-16">
+        <div class="container mx-auto px-4 lg:px-8 h-full relative z-10 flex flex-col md:flex-row items-center justify-center py-8 md:py-24 gap-10 md:gap-16">
             <div class="md:w-1/2 space-y-6 flex flex-col items-center md:items-start text-center md:text-left reveal-on-scroll">
-                
-                <!-- Tag de Localização -->
+                <!-- MOBILE BANNER (ATUALIZADO img site) -->
+                <div class="block md:hidden w-[calc(100%+2rem)] -mx-4 -mt-8 mb-4 overflow-hidden shadow-xl">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/baner%20mobile.webp" alt="Atomic Games Banner" class="w-full h-auto object-cover">
+                </div>
+
                 <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full text-xs font-bold uppercase tracking-wider shadow-lg transform hover:scale-105 transition cursor-default">
                     <i class="ph-fill ph-map-pin animate-pulse"></i> Madureira - RJ
                 </div>
                 
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-base drop-shadow-sm">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-base">
                     O Quartel General do <span class="text-gradient">Gamer Carioca</span>
                 </h1>
                 
-                <p class="text-lg md:text-xl text-muted font-medium max-w-lg leading-relaxed drop-shadow-sm">
+                <p class="text-lg md:text-xl text-muted font-medium max-w-lg leading-relaxed">
                     Console quebrado? PC lento? Ou procurando aquele upgrade? 
                     Somos <strong class="text-base">especialistas em assistência técnica</strong> e a loja mais completa da região.
                 </p>
@@ -737,29 +739,28 @@
                 
                 <!-- Trust Badges -->
                 <div class="flex flex-wrap justify-center md:justify-start gap-6 pt-4">
-                    <div class="flex items-center gap-2 text-sm text-muted font-medium">
+                    <div class="flex items-center gap-2 text-sm text-muted">
                         <i class="ph-fill ph-shield-check text-green-500 text-xl"></i>
                         <span>Garantia Real</span>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-muted font-medium">
+                    <div class="flex items-center gap-2 text-sm text-muted">
                         <i class="ph-fill ph-star text-yellow-500 text-xl"></i>
                         <span>4.9 no Google</span>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-muted font-medium">
+                    <div class="flex items-center gap-2 text-sm text-muted">
                         <i class="ph-fill ph-users text-blue-500 text-xl"></i>
                         <span>+5000 Clientes</span>
                     </div>
                 </div>
             </div>
 
-            <!-- VÍDEO AGORA VISÍVEL NO MOBILE -->
-            <div class="md:w-1/2 w-full flex justify-center reveal-on-scroll mt-4 md:mt-0" style="transition-delay: 200ms;">
-                <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-slate-700 block group float-animation glow-yellow">
+            <div class="md:w-1/2 w-full flex justify-center reveal-on-scroll" style="transition-delay: 200ms;">
+                <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-slate-700 hidden md:block group float-animation glow-yellow">
                     <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="bDAR4bkn0mY">
                         <img src="https://img.youtube.com/vi/bDAR4bkn0mY/maxresdefault.jpg" alt="Video thumbnail" 
                              onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'">
-                        <div class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl z-20 cursor-pointer">
-                            <i class="ph-fill ph-play text-2xl md:text-3xl text-black ml-1"></i>
+                        <div class="play-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl z-20 cursor-pointer">
+                            <i class="ph-fill ph-play text-3xl text-black ml-1"></i>
                         </div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                         <div class="absolute bottom-4 left-4 right-4 flex items-center gap-3">
@@ -820,11 +821,6 @@
 
             <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 reveal-on-scroll" id="productGrid" style="transition-delay: 200ms;">
                 <!-- JS Populates this -->
-                <!-- Adicionado um estado inicial de carregamento -->
-                <div id="loadingIndicator" class="col-span-full text-center py-12 text-muted animate-pulse">
-                    <i class="ph ph-spinner text-4xl animate-spin"></i>
-                    <p>Carregando catálogo...</p>
-                </div>
             </div>
             
             <div id="loadMoreContainer" class="hidden text-center mt-12 reveal-on-scroll">
@@ -981,8 +977,7 @@
     <section id="dashboard" class="py-20 bg-base border-t border-b border-base">
         <div class="container mx-auto px-4 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-14 reveal-on-scroll">
-                <!-- Tag corrigida para o estilo amarelo/preto solicitado -->
-                <span class="inline-block px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full text-xs font-bold uppercase tracking-wider mb-4 shadow-lg shadow-yellow-500/20">
+                <span class="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
                     Nossa Reputação
                 </span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Aprovado pelos <span class="text-gradient">Gamers</span></h2>
@@ -1236,7 +1231,8 @@
         <div class="container mx-auto px-4 lg:px-8">
             <div class="text-center">
                 <a href="#" onclick="location.reload()" class="inline-block hover:opacity-90 transition transform hover:scale-110 duration-300 mb-6">
-                    <img src="https://raw.githubusercontent.com/creativethb/SITE/main/img/atomiclogo.webp" 
+                    <!-- LOGO ATUALIZADA (img site) -->
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" 
                          class="h-20 w-20 mx-auto rounded-full shadow-2xl bg-black ring-4 ring-yellow-400/30"
                          alt="Logo Atomic Games">
                 </a>
@@ -1275,23 +1271,18 @@
 
     <!-- JavaScript -->
     <script>
-        // CONFIGURAÇÃO DOS REPOSITÓRIOS
-        const PRODUCTS_REPO_USER = 'creativethb';
-        const PRODUCTS_REPO_NAME = 'Atomic-produtos';
-        // URL Raw do JSON de produtos (Gerado pelo Admin) - ATENÇÃO: VERIFIQUE SE O NOME DO ARQUIVO É PRODUTOS.JSON
-        const PRODUCTS_URL = `https://raw.githubusercontent.com/${PRODUCTS_REPO_USER}/${PRODUCTS_REPO_NAME}/main/produtos.json`;
+        // --- CONFIGURAÇÃO DO REPOSITÓRIO NOVO ---
+        // ATUALIZADO: Usando 'img site' no caminho base
+        const repoBaseUrl = "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/";
+        const productsUrl = repoBaseUrl + "produtos.json";
         
-        // IMAGE CONFIG (Você está puxando imagens de outro repo)
-        const IMAGE_REPO_USER = 'creativethb';
-        const IMAGE_REPO_NAME = 'SITE';
-        const repoUrl = `https://raw.githubusercontent.com/${IMAGE_REPO_USER}/${IMAGE_REPO_NAME}/main/img/`;
-
-        // PRODUTOS DE BACKUP (Caso o fetch do JSON falhe)
+        // --- PRODUTOS INICIAIS (FALLBACK) ---
+        // CORREÇÃO: Usando 'img%20site' para o fallback
         const initialProducts = [
-            { id: 1, name: "PlayStation 5 Slim (Backup)", category: "console", price: "R$ 3.799,00", image: repoUrl + "console-ps5.webp", desc: "Digital Edition, 1TB SSD" },
-            { id: 2, name: "Xbox Series S (Backup)", category: "console", price: "R$ 2.699,00", image: repoUrl + "console-xbox-s.webp", desc: "512GB SSD, Compacto" },
-            { id: 6, name: "God of War Ragnarok (Backup)", category: "games", price: "R$ 299,00", image: repoUrl + "game-gow.webp", desc: "PS5 Mídia Física" },
-            { id: 12, name: "Controle DualSense (Backup)", category: "acessorios", price: "R$ 449,00", image: repoUrl + "acessorio-dualsense.webp", desc: "Original Sony" },
+            { id: 1, name: "PlayStation 5 Slim", category: "console", price: "R$ 3.799,00", image: repoBaseUrl + "img%20site/console-ps5.webp", desc: "Digital Edition, 1TB SSD" },
+            { id: 2, name: "Xbox Series S", category: "console", price: "R$ 2.699,00", image: repoBaseUrl + "img%20site/console-xbox-s.webp", desc: "512GB SSD, Compacto" },
+            { id: 6, name: "God of War Ragnarok", category: "games", price: "R$ 299,00", image: repoBaseUrl + "img%20site/game-gow.webp", desc: "PS5 Mídia Física" },
+            { id: 12, name: "Controle DualSense", category: "acessorios", price: "R$ 449,00", image: repoBaseUrl + "img%20site/acessorio-dualsense.webp", desc: "Original Sony" }
         ];
 
         const faqs = [
@@ -1305,36 +1296,7 @@
         let cart = [];
         let currentFilter = 'all';
 
-        // --- NOVO SISTEMA DE LOAD VIA FETCH (MODIFICADO) ---
-        async function loadProducts() {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            
-            // 1. Tentar buscar o JSON gerado pelo Admin
-            try {
-                const response = await fetch(PRODUCTS_URL);
-                if (response.ok) {
-                    const githubProducts = await response.json();
-                    if (Array.isArray(githubProducts) && githubProducts.length > 0) {
-                        allProducts = githubProducts; // Usa os produtos do Admin
-                        console.log("Catálogo carregado do produtos.json com sucesso.");
-                    } else {
-                        console.log("produtos.json vazio ou inválido. Usando catálogo de backup.");
-                    }
-                } else {
-                    console.log(`Falha ao carregar produtos.json. Status: ${response.status}. Usando catálogo de backup.`);
-                }
-            } catch (e) {
-                console.error("Erro ao buscar produtos.json:", e);
-                console.log("Usando catálogo de backup.");
-            } finally {
-                // 2. Renderizar e remover indicador de loading
-                renderProducts(currentFilter, "");
-                if(loadingIndicator) loadingIndicator.remove();
-                refreshAnimations();
-            }
-        }
-
-        // Toast Notification
+        // --- SISTEMA DE NOTIFICAÇÃO (TOAST) ---
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -1344,22 +1306,76 @@
                 ${message}
             `;
             container.appendChild(toast);
+            // Animação de entrada
             setTimeout(() => {
-                // Adicionando animação de saída
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(100px)';
-                setTimeout(() => toast.remove(), 400);
+                // Animação de saída
+                toast.style.animation = 'slide-up 0.3s ease reverse forwards';
+                setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // Mobile Menu
+        // --- MENU MOBILE ---
         window.toggleMobileMenu = () => {
-            document.getElementById('mobileMenu').classList.toggle('open');
-            document.getElementById('mobileMenuOverlay').classList.toggle('open');
-            document.body.style.overflow = document.getElementById('mobileMenu').classList.contains('open') ? 'hidden' : '';
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileMenuOverlay');
+            menu.classList.toggle('open');
+            overlay.classList.toggle('open');
+            document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
         }
 
-        // Animations Observer
+        // --- CARREGAMENTO DO GITHUB (NOVO) ---
+        async function loadGamesFromGitHub() {
+            try {
+                // Tenta buscar o JSON atualizado direto do GitHub
+                const response = await fetch(productsUrl);
+                if (response.ok) {
+                    const productsFromRepo = await response.json();
+                    
+                    // Normaliza os dados para garantir compatibilidade
+                    const normalizedProducts = productsFromRepo.map(p => {
+                        let img = p.image;
+                        // Correção automática de URLs antigas se necessário
+                        if (img && img.includes('/img/') && !img.includes('img%20site')) {
+                             img = img.replace('/img/', '/img%20site/');
+                        }
+
+                        return {
+                            id: p.id,
+                            name: p.name || "Produto Sem Nome",
+                            category: mapCategory(p.category),
+                            price: formatPrice(p.price),
+                            image: img || "https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC",
+                            desc: p.desc || "Sem descrição."
+                        };
+                    });
+                    
+                    if(normalizedProducts.length > 0) {
+                        allProducts = normalizedProducts;
+                    }
+                }
+            } catch (error) {
+                console.warn("Usando catálogo de fallback. Erro ao conectar GitHub:", error);
+            } finally {
+                renderProducts(currentFilter, document.getElementById('searchInput').value);
+            }
+        }
+
+        function formatPrice(price) {
+            if (typeof price === 'number') return `R$ ${price.toFixed(2).replace('.', ',')}`;
+            if (price.toString().includes('R$')) return price;
+            return `R$ ${price}`;
+        }
+
+        function mapCategory(cat) {
+            if(!cat) return 'games';
+            const c = cat.toLowerCase();
+            if(c.includes('console')) return 'console';
+            if(c.includes('acess')) return 'acessorios';
+            if(c.includes('pc') || c.includes('hardware')) return 'hardware';
+            return 'games';
+        }
+
+        // --- INTERSECTION OBSERVER (ANIMAÇÕES) ---
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1373,7 +1389,7 @@
             document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
         }
 
-        // Scroll Logic
+        // --- LÓGICA DE SCROLL NAVBAR ---
         const backToTopBtn = document.getElementById('backToTop');
         let lastScrollY = window.scrollY;
         const navbar = document.getElementById('navbar');
@@ -1381,6 +1397,7 @@
         window.addEventListener('scroll', () => {
             backToTopBtn.classList.toggle('show', window.scrollY > 400);
             const currentScrollY = window.scrollY;
+            // Esconde navbar ao rolar para baixo, mostra ao subir
             if (currentScrollY > lastScrollY && currentScrollY > 80) {
                 navbar.classList.add('nav-hidden');
             } else {
@@ -1389,10 +1406,10 @@
             lastScrollY = currentScrollY;
         });
 
-        // Cart Functions
+        // --- CARRINHO DE COMPRAS ---
         window.addToCart = (id) => {
-            // Usando ID como string, pois JSON pode salvar como string
-            const product = allProducts.find(p => p.id == id);
+            // Conversão de ID para string para garantir match
+            const product = allProducts.find(p => p.id.toString() === id.toString());
             if (!product) return;
             cart.push(product);
             updateCartUI();
@@ -1430,8 +1447,8 @@
                 `;
             } else {
                 cart.forEach((item, index) => {
-                    // Limpeza de preço robusta: remove R$, remove . de milhar e troca , por . para float
-                    let priceString = item.price.toString().replace('R$ ', '').replace(/\./g, '').replace(',', '.').trim();
+                    // Limpeza do preço para cálculo
+                    let priceString = item.price.toString().replace('R$ ', '').replace('.', '').replace(',', '.');
                     const priceNumber = parseFloat(priceString) || 0;
                     total += priceNumber;
                     
@@ -1458,9 +1475,11 @@
         }
 
         window.toggleCart = () => {
-            document.getElementById('cartModal').classList.toggle('open');
-            document.getElementById('cartOverlay').classList.toggle('open');
-            document.body.style.overflow = document.getElementById('cartModal').classList.contains('open') ? 'hidden' : '';
+            const modal = document.getElementById('cartModal');
+            const overlay = document.getElementById('cartOverlay');
+            modal.classList.toggle('open');
+            overlay.classList.toggle('open');
+            document.body.style.overflow = modal.classList.contains('open') ? 'hidden' : '';
         }
 
         window.checkoutWhatsApp = () => {
@@ -1475,26 +1494,33 @@
             window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        // Render Products
+        // --- RENDERIZAÇÃO DE PRODUTOS ---
         function renderProducts(filter, searchTerm = "", forceAll = false) {
             const grid = document.getElementById('productGrid');
             const noRes = document.getElementById('noResults');
             const loadMoreContainer = document.getElementById('loadMoreContainer');
-            
-            // Não limpa o grid aqui se o loading ainda estiver visível.
-            // A remoção do loading é feita no loadProducts().
-            if (document.getElementById('loadingIndicator') === null) {
-                grid.innerHTML = '';
-            }
-
+            grid.innerHTML = '';
 
             let filtered = allProducts;
-            if (filter !== 'all') filtered = filtered.filter(p => p.category === filter);
+            
+            // Filtro por Categoria
+            if (filter !== 'all') {
+                filtered = filtered.filter(p => {
+                    const cat = (p.category || 'games').toLowerCase();
+                    return cat.includes(filter);
+                });
+            }
+            
+            // Busca
             if (searchTerm) {
                 const lowerTerm = searchTerm.toLowerCase();
-                filtered = filtered.filter(p => p.name.toLowerCase().includes(lowerTerm) || p.desc.toLowerCase().includes(lowerTerm));
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(lowerTerm) || 
+                    (p.desc && p.desc.toLowerCase().includes(lowerTerm))
+                );
             }
 
+            // Paginação Simples
             const isMobile = window.innerWidth < 768;
             const initialLimit = isMobile ? 6 : 10;
             let productsToShow = filtered;
@@ -1509,10 +1535,8 @@
             if (filtered.length === 0) {
                 noRes.classList.remove('hidden');
                 loadMoreContainer.classList.add('hidden');
-                grid.innerHTML = ''; // Limpa o grid se não houver resultados
             } else {
                 noRes.classList.add('hidden');
-                grid.innerHTML = ''; // Limpa antes de renderizar os cards
                 
                 const categoryColors = {
                     console: 'category-console',
@@ -1525,10 +1549,6 @@
                     const card = document.createElement('div');
                     card.style.animationDelay = `${index * 60}ms`;
                     card.className = 'product-card bg-card rounded-2xl overflow-hidden border border-base flex flex-col h-full group animate-[pop-in_0.5s_ease-out_both]';
-                    
-                    // Garante que o ID é uma string para usar na função addToCart
-                    const productId = p.id;
-
                     card.innerHTML = `
                         <div class="product-img-box">
                             <img src="${p.image}" alt="${p.name}" loading="lazy" 
@@ -1540,7 +1560,7 @@
                             <p class="text-xs text-muted mb-4 flex-grow line-clamp-2">${p.desc}</p>
                             <div class="mt-auto flex items-center justify-between gap-2">
                                 <span class="font-bold text-base md:text-lg text-gradient">${p.price}</span>
-                                <button onclick="addToCart('${productId}')" 
+                                <button onclick="addToCart('${p.id}')" 
                                         class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-yellow-500/20 transform active:scale-90"
                                         aria-label="Adicionar ao carrinho">
                                     <i class="ph-bold ph-plus text-lg"></i>
@@ -1553,6 +1573,7 @@
             }
         }
         
+        // --- VÍDEO ---
         window.loadVideo = () => {
             const facade = document.getElementById('videoFacade');
             const container = document.getElementById('videoContainer');
@@ -1562,6 +1583,7 @@
             container.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Video Atomic Games"></iframe>`;
         }
 
+        // --- FAQ ---
         function renderFAQs() {
             const container = document.getElementById('faqContainer');
             container.innerHTML = '';
@@ -1584,18 +1606,23 @@
             });
         }
 
-        // Init
+        // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Tema
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.className = savedTheme;
             
+            // Inicializa componentes
             initCharts(savedTheme);
             renderFAQs();
             
-            // CHAMA A FUNÇÃO DE CARREGAR PRODUTOS DO JSON
-            loadProducts(); 
-            // O refreshAnimations será chamado dentro de loadProducts (finally)
+            // Carrega produtos do GitHub
+            loadGamesFromGitHub();
+            
+            // Configura observador de animações
+            refreshAnimations();
 
+            // Event Listeners
             document.getElementById('btnLoadMore').addEventListener('click', () => {
                 const searchInput = document.getElementById('searchInput');
                 renderProducts(currentFilter, searchInput.value, true);
@@ -1606,17 +1633,22 @@
             
             buttons.forEach(btn => {
                 btn.addEventListener('click', (e) => {
+                    // Reset estilos botões
                     buttons.forEach(b => {
                         b.classList.remove('bg-gradient-to-r', 'from-yellow-400', 'to-orange-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/20');
                         b.classList.add('border-2', 'border-base', 'bg-card', 'text-muted');
                     });
-                    e.target.classList.remove('border-2', 'border-base', 'bg-card', 'text-muted');
-                    e.target.classList.add('bg-gradient-to-r', 'from-yellow-400', 'to-orange-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/20');
-                    currentFilter = e.target.dataset.category;
+                    // Ativa botão clicado
+                    const target = e.currentTarget;
+                    target.classList.remove('border-2', 'border-base', 'bg-card', 'text-muted');
+                    target.classList.add('bg-gradient-to-r', 'from-yellow-400', 'to-orange-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/20');
+                    
+                    currentFilter = target.dataset.category;
                     renderProducts(currentFilter, searchInput.value);
                 });
             });
             
+            // Debounce na busca
             let debounceTimer;
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(debounceTimer);
@@ -1625,20 +1657,24 @@
                 }, 300);
             });
 
+            // Formulário de Serviço
             document.getElementById('serviceForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('clientName').value;
                 const phone = document.getElementById('clientPhone').value;
                 const dev = document.getElementById('deviceSelect').value;
                 const iss = document.getElementById('issueSelect').value;
+                
                 if(!name || !phone || !dev || !iss) {
                     showToast('Preencha todos os campos!', 'error');
                     return;
                 }
+                
                 const message = `*SOLICITAÇÃO DE REPARO (SITE)*\n\n👤 *Nome:* ${name}\n📱 *Tel:* ${phone}\n🎮 *Aparelho:* ${dev}\n⚠️ *Problema:* ${iss}\n\n_Vim pelo site e gostaria de um orçamento._`;
                 window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank');
             });
 
+            // Estimativa dinâmica
             const form = document.getElementById('serviceForm');
             form.addEventListener('change', () => {
                 const dev = document.getElementById('deviceSelect').value;
@@ -1650,6 +1686,7 @@
                 }
             });
 
+            // Toggle Tema
             document.getElementById('themeToggle').addEventListener('click', () => {
                 const html = document.documentElement;
                 const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
@@ -1658,16 +1695,18 @@
                 initCharts(newTheme);
             });
 
-            // Close modals on escape
+            // Fechar modais com ESC
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    if (document.getElementById('cartModal').classList.contains('open')) toggleCart();
-                    if (document.getElementById('mobileMenu').classList.contains('open')) toggleMobileMenu();
+                    const cartModal = document.getElementById('cartModal');
+                    const menu = document.getElementById('mobileMenu');
+                    if (cartModal.classList.contains('open')) toggleCart();
+                    if (menu.classList.contains('open')) toggleMobileMenu();
                 }
             });
         });
 
-        // Charts
+        // --- GRÁFICOS (CHART.JS) ---
         function initCharts(theme) {
             const isDark = theme === 'dark';
             const textColor = isDark ? '#f1f5f9' : '#1e293b';
@@ -1683,7 +1722,7 @@
                     labels: ['Atendimento', 'Preço', 'Rapidez', 'Variedade', 'Confiança'],
                     datasets: [{
                         label: 'Nota Média',
-                        data: [4.9, 4.1, 4.5, 4.2, 5.0], /* Dados ajustados para parecerem mais realistas */
+                        data: [4.9, 4.7, 4.5, 4.8, 5.0],
                         backgroundColor: 'rgba(255, 215, 0, 0.2)',
                         borderColor: '#FFD700',
                         borderWidth: 3,
