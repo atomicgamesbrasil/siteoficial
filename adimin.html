@@ -96,6 +96,9 @@
             </div>
             
             <div class="mt-auto p-4 border-t border-slate-800 bg-slate-900/50">
+                <button onclick="openSettingsModal()" class="w-full mb-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-colors flex items-center gap-2 justify-center border border-slate-700">
+                    <i class="fa-solid fa-gear"></i> Configurar Token
+                </button>
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-500 to-orange-600 flex items-center justify-center text-xs font-bold shadow-lg text-black">A</div>
                     <div>
@@ -261,33 +264,68 @@
         </div>
     </div>
 
+    <!-- MODAL: SETTINGS (TOKEN) -->
+    <div id="settingsModal" class="fixed inset-0 z-[70] bg-black/80 hidden items-center justify-center backdrop-blur-sm transition-opacity modal-enter-active">
+        <div class="glass-panel w-full max-w-md p-0 rounded-2xl border border-slate-700 shadow-2xl transform flex flex-col" id="settingsModalContent">
+            <div class="p-6 border-b border-slate-700 bg-slate-900/50 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white"><i class="fa-solid fa-gear text-yellow-500 mr-2"></i> Configuração</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-200 hidden" id="tokenErrorMsg">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Erro de autenticação (401). Seu token pode estar expirado ou ter permissão errada.
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">GitHub Token (Classic)</label>
+                    <input type="password" id="ghTokenInput" placeholder="ghp_..." class="w-full bg-slate-800 border border-slate-600 rounded p-2.5 text-white focus:border-yellow-500 outline-none font-mono text-sm">
+                    <p class="text-[10px] text-slate-500 mt-2">
+                        Gere um token em: GitHub > Settings > Developer Settings > Personal Access Tokens (Classic). <br>
+                        Marque a opção <b>repo</b>.
+                    </p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 bg-slate-900/50 flex justify-end gap-3">
+                <button onclick="closeSettingsModal()" class="px-4 py-2 text-sm text-slate-300 hover:text-white font-medium">Fechar</button>
+                <button onclick="saveToken()" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded shadow-lg transition-colors">Salvar Token</button>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGICA DO SISTEMA (GitHub API) -->
     <script>
         // CONFIGURAÇÕES ATUALIZADAS
         const APP_PASSWORD = "atomic-master";
-        // NOVO REPOSITÓRIO (atomicgamesbrasil/siteoficial)
         const GH_REPO = "atomicgamesbrasil/siteoficial";
         
-        // NOVA CHAVE INVERTIDA (baseada na sua imagem do token ghp_cj7M6...)
-        // Original: ghp_cj7M6U752hxwONhX1W6yIoW9aHOWIx1VBK1V
-        const _EncryptedKey = "V1KBV1xIOWH9aWoIy6W1XhNOwxh257U6M7jc_phg";
-
         let currentProducts = [];
         let productToEdit = null;
 
-        // Recupera token
+        // Recupera token do LocalStorage
         function getRealToken() {
-            // Inverte a chave para obter o token real
-            return _EncryptedKey.split('').reverse().join('');
+            return localStorage.getItem('atomic_gh_token') || '';
+        }
+
+        // Salva token no LocalStorage
+        function saveToken() {
+            const token = document.getElementById('ghTokenInput').value.trim();
+            if(!token) {
+                alert("Por favor, insira um token.");
+                return;
+            }
+            localStorage.setItem('atomic_gh_token', token);
+            document.getElementById('tokenErrorMsg').classList.add('hidden');
+            closeSettingsModal();
+            loadData(); // Tenta carregar novamente
+            // Substituído alert() por showToast (se fosse usar) ou console.log/mensagem no UI
+            console.log("Token salvo com sucesso!");
         }
 
         // --- INICIALIZAÇÃO ---
         function initApp() {
-            // Para simplificar o teste, vamos usar a sessionStorage para simular o login
             if (sessionStorage.getItem('atomic_auth') === 'true') {
                 handleLoginSuccess();
             } else {
-                handleLogout(); // Mostra overlay de login
+                handleLogout(); 
             }
         }
 
@@ -314,19 +352,23 @@
             statusDot.classList.replace('bg-red-500', 'bg-emerald-500');
             statusText.innerText = "Conectado";
             
-            loadData();
+            // Verifica se tem token, se não tiver, pede.
+            if (!getRealToken()) {
+                 setTimeout(() => openSettingsModal(), 500);
+            } else {
+                loadData();
+            }
             showSection('dashboard');
         }
 
         function handleLogout() {
             sessionStorage.removeItem('atomic_auth');
-            // Apenas recarrega se já estava logado, para manter a tela de login se for o primeiro acesso
             if (!document.getElementById('authOverlay').classList.contains('hidden')) return;
             location.reload();
         }
         
         function logout() { 
-            // Usa window.confirm para garantir que o usuário realmente quer sair
+            // Usamos window.confirm para o logout, já que a ação é crítica
             if (window.confirm("Tem certeza que deseja sair do Painel Admin?")) {
                 handleLogout(); 
             }
@@ -334,29 +376,36 @@
 
         // --- CARREGAMENTO DE DADOS ---
         async function loadData() {
-            setModalStatus("Carregando dados...", false);
+            setConnectionStatus('Conectando...', 'yellow');
             try {
                 const token = getRealToken();
-                // 1. Carrega Produtos do Repositório
+                if (!token) throw new Error("Token não configurado");
+
                 const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/produtos.json`, {
                     headers: { 'Authorization': `token ${token}` }
                 });
                 
                 if (res.ok) {
                     const data = await res.json();
-                    // A BTOA do conteúdo deve ser decodificada de forma segura
                     const content = decodeURIComponent(escape(atob(data.content)));
-                    currentProducts = JSON.parse(content);
+                    
+                    // CORREÇÃO: Verifica se o conteúdo é vazio (o que causa o 'Unexpected end of JSON input')
+                    if (content && content.trim().length > 0) {
+                        currentProducts = JSON.parse(content);
+                    } else {
+                        console.warn("Arquivo produtos.json encontrado, mas com conteúdo vazio ou inválido. Tratando como lista vazia.");
+                        currentProducts = [];
+                    }
+                    // FIM DA CORREÇÃO
                 } else if (res.status === 404) {
-                    // Se não existir arquivo ainda, começa com lista vazia
                     console.log("Arquivo produtos.json não encontrado. Iniciando novo catálogo.");
                     currentProducts = []; 
+                } else if (res.status === 401) {
+                    throw new Error("401");
                 } else {
-                    // Lança erro para ser pego no catch
                     throw new Error("Erro ao carregar produtos: " + res.status);
                 }
 
-                // Normaliza dados para evitar erros de renderização
                 currentProducts = currentProducts.map(p => ({
                     ...p,
                     id: p.id ? p.id.toString() : Date.now().toString(),
@@ -369,16 +418,28 @@
                 renderProducts(currentProducts);
                 document.getElementById('statTotalProducts').innerText = currentProducts.length;
 
+                setConnectionStatus('Conectado', 'emerald');
+
             } catch (error) {
                 console.error("Erro no carregamento de dados:", error);
-                document.getElementById('productsTableBody').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Erro de conexão: ${error.message}<br><span class="text-xs text-slate-500">Verifique se o token tem permissão de 'repo' ou se o repositório existe.</span></td></tr>`;
                 
-                // Atualiza status de conexão para vermelho em caso de falha no GitHub
-                const statusDot = document.getElementById('statusDot');
-                const statusText = document.getElementById('statusText');
-                statusDot.classList.replace('bg-emerald-500', 'bg-red-500');
-                statusText.innerText = "Falha de Conexão";
+                if (error.message === "401" || error.message.includes("401")) {
+                     openSettingsModal(true); // Abre modal de config com erro
+                     setConnectionStatus('Erro de Token (401)', 'red');
+                     return;
+                }
+                
+                let errorMessage = `Erro: ${error.message}<br><span class="text-xs text-slate-500">Repositório: ${GH_REPO}</span>`;
+                document.getElementById('productsTableBody').innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">${errorMessage}</td></tr>`;
+                setConnectionStatus('Falha', 'red');
             }
+        }
+
+        function setConnectionStatus(text, color) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            statusDot.className = `w-2 h-2 rounded-full bg-${color}-500 animate-pulse`;
+            statusText.innerText = text;
         }
 
         // --- RENDERIZAÇÃO ---
@@ -401,7 +462,6 @@
                 if(p.category === 'hardware') catColor = "bg-blue-900/30 text-blue-400 border border-blue-500/20";
                 if(p.category === 'acessorios') catColor = "bg-red-900/30 text-red-400 border border-red-500/20";
                 
-                // Formatação simples para exibição na tabela
                 const priceDisplay = p.price.includes('R$') ? p.price : `R$ ${p.price}`;
 
                 tr.innerHTML = `
@@ -433,7 +493,7 @@
             btn.innerText = "Processando...";
             btn.disabled = true;
 
-            const id = document.getElementById('prodId').value; // Se tiver ID, é edição
+            const id = document.getElementById('prodId').value;
             const title = document.getElementById('prodTitle').value;
             const price = document.getElementById('prodPrice').value;
             const genre = document.getElementById('prodGenre').value;
@@ -448,51 +508,47 @@
 
             try {
                 let imageUrl = "";
-                
-                // 1. Preserva a imagem antiga se estiver editando
                 if (id) {
                     const existing = currentProducts.find(p => p.id === id);
                     if (existing) imageUrl = existing.image;
                 }
 
-                // 2. Upload de nova imagem se houver
                 if (fileInput.files[0]) {
                     setModalStatus("Enviando imagem...");
                     const file = fileInput.files[0];
-                    // Usa 'img%20site' no caminho do arquivo para corresponder à pasta no GitHub
                     const cleanName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '-').toLowerCase()}`;
-                    const imagePath = `img%20site/${cleanName}`; // ATUALIZADO
+                    const imagePath = `img%20site/${cleanName}`; 
                     const base64 = await toBase64(file);
                     
                     await uploadToGitHub(imagePath, base64.split(',')[1]);
-                    // A URL pública também deve incluir 'img%20site'
-                    imageUrl = `https://raw.githubusercontent.com/${GH_REPO}/main/${imagePath}`; // ATUALIZADO
+                    imageUrl = `https://raw.githubusercontent.com/${GH_REPO}/main/${imagePath}`;
                 }
 
-                // 3. Monta o objeto produto
                 const productData = {
                     id: id || Date.now().toString(),
                     name: title,
-                    price: `R$ ${price}`, // Salva com a formatação padrão R$ 0.00
+                    price: `R$ ${price}`,
                     category: genre,
                     desc: desc,
                     image: imageUrl
                 };
 
-                // 4. Atualiza o JSON
                 await updateJsonCatalog(productData, !!id); 
                 
                 setModalStatus("Salvo com sucesso!", false);
                 setTimeout(() => {
                     closeProductModal();
-                    loadData(); // Recarrega a tabela e o dashboard
+                    loadData();
                 }, 1000);
 
             } catch (error) {
                 console.error("Erro ao salvar produto:", error);
                 let msg = error.message;
-                if(msg.includes("401")) msg = "Erro de Autenticação. Token inválido.";
-                if(msg.includes("404")) msg = "Repositório não encontrado. Verifique o nome.";
+                if(msg.includes("401")) {
+                     msg = "Token inválido/expirado.";
+                     openSettingsModal(true);
+                }
+                if(msg.includes("404")) msg = "Repositório não encontrado.";
                 setModalStatus(msg, true);
             } finally {
                 btn.disabled = false;
@@ -500,48 +556,39 @@
             }
         }
         
-        // --- FUNÇÕES AUXILIARES DE GITHUB ---
         async function updateJsonCatalog(productData, isEditing, isDeleting = false) {
             const path = 'produtos.json';
             const url = `https://api.github.com/repos/${GH_REPO}/contents/${path}`;
             const token = getRealToken();
             let products = [], sha = null;
 
-            // 1. Ler arquivo atual (Para pegar o SHA e o conteúdo)
             try {
                 const res = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
                 if (res.ok) {
                     const data = await res.json();
                     sha = data.sha;
-                    // Decodificação segura
                     products = JSON.parse(decodeURIComponent(escape(atob(data.content))));
                 }
             } catch (e) {
-                // Se o arquivo não existir (404), sha será null e products será []
-                console.warn("Arquivo produtos.json não encontrado ou erro de leitura inicial.");
+                console.warn("Arquivo não encontrado, criando novo.");
             }
 
-            // 2. Modificar lista
             const targetId = productData.id.toString();
             if (isDeleting) {
                 products = products.filter(p => p.id.toString() !== targetId);
-                // Não precisa de mais nada
             } else if (isEditing) {
                 const idx = products.findIndex(p => p.id.toString() === targetId);
                 if (idx !== -1) products[idx] = productData;
             } else {
-                // Adiciona novo item no topo
                 products.unshift(productData);
             }
 
-            // 3. Salvar (PUT)
-            // Codifica o JSON modificado para Base64
             const content = btoa(unescape(encodeURIComponent(JSON.stringify(products, null, 2))));
             const body = { 
-                message: isDeleting ? `Delete via Atomic Admin: ${targetId}` : `Update via Atomic Admin: ${productData.name}`, 
+                message: isDeleting ? `Delete ${targetId}` : `Update ${productData.name}`, 
                 content: content 
             };
-            if (sha) body.sha = sha; // Adiciona SHA se estiver atualizando um arquivo existente
+            if (sha) body.sha = sha;
 
             const saveRes = await fetch(url, {
                 method: 'PUT',
@@ -549,14 +596,12 @@
                 body: JSON.stringify(body)
             });
 
-            if (!saveRes.ok) throw new Error(`Erro ao salvar JSON: ${saveRes.status} ${saveRes.statusText}`);
+            if (!saveRes.ok) throw new Error(`${saveRes.status}`);
         }
 
         async function uploadToGitHub(path, contentBase64) {
             const url = `https://api.github.com/repos/${GH_REPO}/contents/${path}`;
             const token = getRealToken();
-            
-            // Verifica se arquivo já existe para pegar o SHA (sobrescrever)
             let sha = null;
             try {
                 const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
@@ -564,51 +609,42 @@
                     const data = await check.json();
                     sha = data.sha;
                 }
-            } catch(e) {
-                // Se 404 (arquivo não existe), continua com sha=null (será uma criação)
-            }
+            } catch(e) {}
 
-            const body = { message: `Image upload for ${GH_REPO}`, content: contentBase64 };
-            if (sha) body.sha = sha; // Sobrescreve se já existir
+            const body = { message: `Image upload`, content: contentBase64 };
+            if (sha) body.sha = sha;
 
             const res = await fetch(url, {
                 method: 'PUT',
                 headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            if (!res.ok) throw new Error(`Erro upload imagem: ${res.status} ${res.statusText}`);
+            if (!res.ok) throw new Error(`${res.status}`);
         }
 
         // --- UTILS ---
         function startEdit(id) {
             const p = currentProducts.find(x => x.id === id);
             if(!p) return;
-            
             document.getElementById('modalTitle').innerText = "Editar Produto";
             document.getElementById('prodId').value = p.id;
             document.getElementById('prodTitle').value = p.name;
-            
-            // Limpa preço para o input (remove R$ e substitui vírgula por ponto para float)
             const priceValue = p.price.replace('R$', '').trim().replace(',', '.');
             document.getElementById('prodPrice').value = priceValue;
-            
             document.getElementById('prodGenre').value = p.category;
             document.getElementById('prodDesc').value = p.desc;
-            
             openProductModal();
         }
         
         async function deleteProduct(id) {
-            // Usa window.confirm para garantir que o usuário realmente quer deletar
-            if(!window.confirm("Tem certeza que deseja apagar este produto permanentemente?")) return;
-            
+            // Usamos window.confirm para a ação crítica de exclusão
+            if(!window.confirm("Apagar produto?")) return;
             try {
-                // Cria um objeto dummy com o ID para deletar
                 await updateJsonCatalog({id: id}, false, true);
                 loadData();
             } catch(error) {
-                console.error("Erro ao deletar:", error);
-                window.alert("Erro ao tentar deletar o produto. Verifique o console."); // Uso de alert para erro crítico
+                // Usamos alert() para a falha crítica, já que não temos um Toast na aplicação
+                alert("Erro ao deletar: " + error.message); 
             }
         }
 
@@ -620,19 +656,13 @@
         });
 
         function formatCurrency(input) {
-            // Apenas permite números e uma vírgula
             let value = input.value.replace(/[^\d,]/g, "");
-            
-            // Limita a duas casas decimais após a vírgula
             const parts = value.split(',');
-            if (parts.length > 2) {
-                value = parts[0] + ',' + parts.slice(1).join('');
-            }
+            if (parts.length > 2) value = parts[0] + ',' + parts.slice(1).join('');
             if (parts.length === 2 && parts[1].length > 2) {
                 parts[1] = parts[1].substring(0, 2);
                 value = parts.join(',');
             }
-            
             input.value = value;
         }
 
@@ -646,7 +676,6 @@
         function showSection(id) {
             ['dashboard', 'products'].forEach(s => document.getElementById('section-'+s).classList.add('hidden'));
             document.getElementById('section-'+id).classList.remove('hidden');
-            
             document.querySelectorAll('.nav-item').forEach(b => {
                 b.classList.remove('bg-yellow-500/10', 'text-yellow-400', 'border-yellow-500/20');
                 b.classList.add('text-slate-400');
@@ -658,22 +687,52 @@
             }
         }
 
+        // --- UI Settings Modal ---
+        function openSettingsModal(hasError = false) {
+             const modal = document.getElementById('settingsModal');
+             const content = document.getElementById('settingsModalContent');
+             const errorMsg = document.getElementById('tokenErrorMsg');
+             const input = document.getElementById('ghTokenInput');
+             
+             input.value = localStorage.getItem('atomic_gh_token') || '';
+             
+             if(hasError) errorMsg.classList.remove('hidden');
+             else errorMsg.classList.add('hidden');
+
+             modal.classList.remove('hidden');
+             modal.classList.add('flex');
+             setTimeout(() => {
+                modal.classList.add('modal-enter-active');
+                content.classList.add('modal-content-enter-active');
+                content.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function closeSettingsModal() {
+             const modal = document.getElementById('settingsModal');
+             const content = document.getElementById('settingsModalContent');
+             content.classList.remove('modal-content-enter-active');
+             content.classList.add('modal-content-leave-to', 'scale-95', 'opacity-0');
+             setTimeout(() => {
+                modal.classList.remove('flex', 'modal-enter-active');
+                modal.classList.add('hidden');
+                content.classList.remove('modal-content-leave-to');
+            }, 300);
+        }
+
+        // --- UI Product Modal ---
         function openProductModal() {
             const modal = document.getElementById('productModal');
             const content = document.getElementById('productModalContent');
-
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
-            // Adiciona classes de animação de entrada
             setTimeout(() => {
                 modal.classList.add('modal-enter-active');
                 content.classList.add('modal-content-enter-active');
                 content.classList.remove('scale-95', 'opacity-0');
             }, 10);
-
             document.getElementById('addProductForm').reset();
-            document.getElementById('prodId').value = ""; // Limpa ID para garantir modo criação
+            document.getElementById('prodId').value = ""; 
             document.getElementById('modalTitle').innerText = "Adicionar Produto";
             setModalStatus('');
         }
@@ -681,26 +740,21 @@
         function closeProductModal() {
             const modal = document.getElementById('productModal');
             const content = document.getElementById('productModalContent');
-
-            // Remove classes de entrada e adiciona classes de saída
             content.classList.remove('modal-content-enter-active');
             content.classList.add('modal-content-leave-to', 'scale-95', 'opacity-0');
-
             setTimeout(() => {
                 modal.classList.remove('flex', 'modal-enter-active');
                 modal.classList.add('hidden');
-                // Remove classes de saída após a transição
                 content.classList.remove('modal-content-leave-to');
             }, 300);
         }
 
-        // Adiciona funcionalidade para fechar modal com ESC
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !document.getElementById('productModal').classList.contains('hidden')) {
-                closeProductModal();
+            if (e.key === 'Escape') {
+                if(!document.getElementById('productModal').classList.contains('hidden')) closeProductModal();
+                if(!document.getElementById('settingsModal').classList.contains('hidden')) closeSettingsModal();
             }
         });
-
 
         // Start
         initApp();
