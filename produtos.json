@@ -1,5 +1,13 @@
 [
   {
+    "id": "1765228903298",
+    "name": "mouse red dragon teste",
+    "price": "R$ 79,99",
+    "category": "acessorios",
+    "desc": "teste",
+    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1765228902173-imagem-do-whatsapp-de-2025-12-02---s--16.13.27-d421c983.jpg"
+  },
+  {
     "id": "1765226496514",
     "name": "teste",
     "price": "R$ 50,00",
