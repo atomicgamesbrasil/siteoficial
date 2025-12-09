@@ -117,6 +117,13 @@
             backdrop-filter: blur(var(--blur)) saturate(180%);
             -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
         }
+        
+        /* === CORREÇÃO CRÍTICA PARA SELECTS NO MODO ESCURO === */
+        /* Garante que o fundo das opções seja escuro quando o tema for dark */
+        .dark select option {
+            background-color: #111827; /* Fundo escuro */
+            color: #f1f5f9; /* Texto claro */
+        }
 
         /* === GRADIENT MESH BACKGROUNDS === */
         .mesh-gradient {
@@ -1041,7 +1048,6 @@
                         <i class="ph-bold ph-plus text-xl"></i> Adicionar
                     </button>
                 </div>
-                <!-- Fix 1: Added rel="noopener noreferrer" -->
                 <a id="modalWhatsappBtn" href="#" target="_blank" rel="noopener noreferrer"
                    class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all hover:-translate-y-1">
                     <i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp
@@ -1106,14 +1112,12 @@
             </div>
             
             <div class="mt-auto space-y-4">
-                <!-- Fix 2: Added rel="noopener noreferrer" -->
                 <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer"
                    class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition">
                     <i class="ph-bold ph-whatsapp-logo text-2xl"></i>
                     Fale Conosco
                 </a>
                 <div class="flex justify-center gap-4 pt-4">
-                    <!-- Fix 3: Added rel="noopener noreferrer" to social links -->
                     <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition" aria-label="Instagram">
                         <i class="ph-fill ph-instagram-logo text-xl"></i>
                     </a>
@@ -1196,7 +1200,6 @@
                     <i class="ph-bold ph-shopping-cart text-2xl group-hover:text-yellow-500 transition"></i>
                     <span id="cartCount" class="badge hidden" aria-live="polite">0</span>
                 </button>
-                <!-- Fix 4: Added rel="noopener noreferrer" -->
                 <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer"
                    class="hidden lg:flex items-center gap-2 btn-primary text-sm">
                     <i class="ph-bold ph-whatsapp-logo text-lg"></i>
@@ -1361,7 +1364,6 @@
                         </div>
                         <h3 class="text-2xl md:text-3xl font-bold mb-3">Não encontrou o que procura?</h3>
                         <p class="text-muted mb-8 max-w-md mx-auto text-lg">Temos muito mais itens na loja física. Fale direto com um <strong class="text-base">atendente humano</strong>.</p>
-                        <!-- Fix 5: Added rel="noopener noreferrer" -->
                         <a href="https://wa.me/5521995969378?text=Ol%C3%A1%2C%20n%C3%A3o%20achei%20o%20produto%20que%20eu%20queria%20no%20site.%20Pode%20me%20ajudar%3F" 
                            target="_blank" rel="noopener noreferrer"
                            class="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-1">
@@ -1544,7 +1546,6 @@
                             <h3 id="reviews-title" class="text-2xl md:text-3xl font-bold">O que falam da Atomic?</h3>
                             <p class="text-muted mt-1">Baseado em avaliações reais do Google Maps</p>
                         </div>
-                        <!-- Fix 6: Added rel="noopener noreferrer" -->
                         <a href="https://www.google.com/maps/place/Atomic+Games" target="_blank" rel="noopener noreferrer"
                            class="flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
                             <i class="ph-fill ph-google-logo"></i>
@@ -1687,9 +1688,9 @@
                                 <div>
                                     <h3 class="font-bold text-xl mb-2">Endereço</h3>
                                     <p class="text-muted leading-relaxed">
-                                        Av. Ministro Edgard Romero, 81<br>
-                                        Loja 3 - Madureira<br>
-                                        Rio de Janeiro - RJ
+                                         Av. Ministro Edgard Romero, 81<br>
+                                         Loja 3 - Madureira<br>
+                                         Rio de Janeiro - RJ
                                     </p>
                                 </div>
                             </div>
@@ -1709,7 +1710,6 @@
                             </div>
                         </div>
 
-                        <!-- Fix 7: Added rel="noopener noreferrer" -->
                         <a href="https://www.google.com/maps/place/Atomic+Games" target="_blank" rel="noopener noreferrer"
                            class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1">
                             <i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota
@@ -1758,7 +1758,6 @@
                 <p class="text-muted mb-8">Madureira - Rio de Janeiro</p>
                 
                 <nav class="flex justify-center gap-4 mb-8" aria-label="Redes sociais">
-                    <!-- Fix 8: Added rel="noopener noreferrer" to all footer social links -->
                     <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer"
                        class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"
                        aria-label="Siga-nos no Instagram">
@@ -2001,7 +2000,7 @@
                 div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
                 div.innerHTML = `
                     <img src="${item.image}" class="w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow" 
-                         onerror="this.src='https://placehold.co/100?text=ATOMIC'" alt="${item.name}" loading="lazy">
+                          onerror="this.src='https://placehold.co/100?text=ATOMIC'" alt="${item.name}" loading="lazy">
                     <div class="flex-grow min-w-0">
                         <p class="font-bold text-sm line-clamp-1">${item.name}</p>
                         <p class="text-xs text-muted line-clamp-1">${item.desc}</p>
@@ -2028,7 +2027,6 @@
             document.body.style.overflow = isOpen ? 'hidden' : '';
         }
 
-        // Fix 9: Security for JS window.open
         window.checkoutWhatsApp = () => {
             if (cart.length === 0) {
                 showToast('Seu carrinho está vazio!', 'error');
@@ -2038,8 +2036,8 @@
             cart.forEach(item => message += `• ${item.name} - ${item.price}\n`);
             message += `\n*Total: ${document.getElementById('cartTotal').textContent}*`;
             message += "\n\nComo prosseguir com pagamento/entrega?";
-            
-            // SECURITY FIX: Added 'noopener,noreferrer'
+            // Correção de Segurança: window.open já abre em nova aba, mas aqui garantimos o comportamento padrão.
+            // Para maior segurança, como é disparado por usuário, é seguro.
             window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
         }
 
@@ -2318,8 +2316,7 @@
                 }
                 
                 const message = `*SOLICITAÇÃO DE REPARO (SITE)*\n\n👤 *Nome:* ${name}\n📱 *Tel:* ${phone}\n🎮 *Aparelho:* ${dev}\n⚠️ *Problema:* ${iss}\n\n_Vim pelo site e gostaria de um orçamento._`;
-                
-                // Fix 10: Security for JS window.open
+                // Correção de Segurança: window.open com noopener,noreferrer
                 window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
             });
 
