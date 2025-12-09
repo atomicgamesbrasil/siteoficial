@@ -1,5 +1,13 @@
 [
   {
+    "id": "1765314977305",
+    "name": "nintendo teste",
+    "price": "R$ 1.378,00",
+    "category": "acessorios",
+    "desc": "esse é um teste",
+    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1765314976296-PlayStation-5-Slim.jpg"
+  },
+  {
     "id": "1765232384192",
     "name": "teste3",
     "price": "R$ 1.378,00",
