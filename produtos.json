@@ -5,7 +5,7 @@
     "price": "R$ 4.599,00",
     "category": "hardware",
     "desc": "Performance de ponta para jogos 4K e trabalho profissional.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Placa+de+Vdeo+RTX+4070+12GB"
   },
   {
     "id": 1765402139133,
@@ -13,7 +13,7 @@
     "price": "R$ 1.950,00",
     "category": "hardware",
     "desc": "8 núcleos e 16 threads de puro poder, socket AM5.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Processador+AMD+Ryzen+7+7700X"
   },
   {
     "id": 1765402139134,
@@ -21,7 +21,7 @@
     "price": "R$ 489,90",
     "category": "hardware",
     "desc": "Velocidades de leitura/escrita ultrarrápidas, ideal para games.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=SSD+NVMe+M2+Kingston+Fury+1TB"
   },
   {
     "id": 1765402139135,
@@ -29,7 +29,7 @@
     "price": "R$ 890,00",
     "category": "hardware",
     "desc": "Alta frequência para máximo desempenho.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Memria+RAM+DDR5+Corsair+Vengeance+32GB+2x16GB"
   },
   {
     "id": 1765402139136,
@@ -37,7 +37,7 @@
     "price": "R$ 1.250,00",
     "category": "hardware",
     "desc": "Suporte a PCIe 5.0 e DDR5 para a próxima geração.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Placa+Me+Gigabyte+B650+Gaming+X+AX"
   },
   {
     "id": 1765402139137,
@@ -45,7 +45,7 @@
     "price": "R$ 799,00",
     "category": "hardware",
     "desc": "Eficiência Gold e totalmente modular para organização.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Fonte+ATX+Corsair+RM850x+850W+80+Gold"
   },
   {
     "id": 1765402139138,
@@ -53,7 +53,7 @@
     "price": "R$ 650,00",
     "category": "hardware",
     "desc": "Excelente fluxo de ar com painel lateral em vidro temperado.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Gabinete+Gamer+Cooler+Master+MasterBox+TD500"
   },
   {
     "id": 1765402139139,
@@ -61,7 +61,7 @@
     "price": "R$ 920,00",
     "category": "hardware",
     "desc": "Refrigeração líquida com RGB para CPUs de alto desempenho.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Water+Cooler+Lian+Li+Galahad+II+360mm"
   },
   {
     "id": 1765402139140,
@@ -69,7 +69,7 @@
     "price": "R$ 1.899,00",
     "category": "hardware",
     "desc": "Curvatura 1500R, 1ms de resposta e tecnologia FreeSync.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Monitor+Gamer+Curvo+AOC+Hero+32+144Hz"
   },
   {
     "id": 1765402139141,
@@ -77,7 +77,7 @@
     "price": "R$ 1.700,00",
     "category": "hardware",
     "desc": "Excelente ponto de partida para um PC gamer de entrada/médio.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Kit+Upgrade+i513400F++H610++16GB+RAM"
   },
   {
     "id": 1765402139142,
@@ -85,7 +85,7 @@
     "price": "R$ 49,90",
     "category": "hardware",
     "desc": "Alta condutividade térmica, não condutiva eletricamente.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Pasta+Trmica+Arctic+MX4+4g"
   },
   {
     "id": 1765402139143,
@@ -93,7 +93,7 @@
     "price": "R$ 130,00",
     "category": "hardware",
     "desc": "HDMI 4K, 2x USB 3.0, SD/MicroSD, PD 100W.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Hub+USBC+para+7+Portas+MultiFuno"
   },
   {
     "id": 1765402139144,
@@ -101,7 +101,7 @@
     "price": "R$ 399,00",
     "category": "hardware",
     "desc": "Áudio 7.1 de alta fidelidade para PC.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Placa+de+Som+Externa+USB+Creative+Sound+Blaster"
   },
   {
     "id": 1765402139145,
@@ -109,7 +109,7 @@
     "price": "R$ 89,90",
     "category": "hardware",
     "desc": "Suporta 8K a 60Hz e 4K a 120Hz.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Cabo+DisplayPort+14+2m"
   },
   {
     "id": 1765402139146,
@@ -117,7 +117,7 @@
     "price": "R$ 1.550,00",
     "category": "hardware",
     "desc": "Proteção completa para o seu setup, senoidal puro.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Nobreak+SMS+Net4+1500VA"
   },
   {
     "id": 1765402139147,
@@ -125,7 +125,7 @@
     "price": "R$ 4.299,00",
     "category": "console",
     "desc": "Console de última geração, design compacto e elegante.",
-    "image": "https://placehold.co/1000x1000/4C1D95/EBEFFD?text=CONSOLE"
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=PlayStation+5+Slim+Edio+com+Disco"
   },
   {
     "id": 1765402139148,
@@ -133,7 +133,7 @@
     "price": "R$ 4.150,00",
     "category": "console",
     "desc": "O console mais rápido e poderoso da Microsoft.",
-    "image": "https://placehold.co/1000x1000/4C1D95/EBEFFD?text=CONSOLE"
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Xbox+Series+X"
   },
   {
     "id": 1765402139150,
@@ -141,7 +141,7 @@
     "price": "R$ 2.499,00",
     "category": "console",
     "desc": "Tela OLED vibrante e dock revisado. Perfeito para jogar em qualquer lugar.",
-    "image": "https://placehold.co/1000x1000/4C1D95/EBEFFD?text=CONSOLE"
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Nintendo+Switch+OLED++Modelo+Edio+Especial"
   },
   {
     "id": 1765402139151,
@@ -149,7 +149,7 @@
     "price": "R$ 3.800,00",
     "category": "console",
     "desc": "Seu PC Gamer de bolso para jogar a biblioteca Steam.",
-    "image": "https://placehold.co/1000x1000/4C1D95/EBEFFD?text=CONSOLE"
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Steam+Deck+LCD+512GB"
   },
   {
     "id": 1765402139152,
@@ -157,7 +157,7 @@
     "price": "R$ 4.499,00",
     "category": "console",
     "desc": "Realidade virtual de próxima geração para PS5.",
-    "image": "https://placehold.co/1000x1000/4C1D95/EBEFFD?text=CONSOLE"
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=PlayStation+VR2+PS+VR2"
   },
   {
     "id": 1765402139153,
@@ -165,7 +165,7 @@
     "price": "R$ 2.499,00",
     "category": "console",
     "desc": "Desempenho da próxima geração no console totalmente digital.",
-    "image": "https://placehold.co/1000x1000/4C1D95/EBEFFD?text=CONSOLE"
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Xbox+Series+S+Carbon+Black+1TB"
   },
   {
     "id": 1765402139154,
@@ -173,7 +173,7 @@
     "price": "R$ 499,90",
     "category": "console",
     "desc": "Reviva clássicos do PS1, GBA e mais. Design compacto.",
-    "image": "https://placehold.co/1000x1000/4C1D95/EBEFFD?text=CONSOLE"
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Console+Porttil+Retro+Anbernic+RG35XX"
   },
   {
     "id": 1765402139155,
@@ -181,7 +181,7 @@
     "price": "R$ 429,90",
     "category": "acessorios",
     "desc": "Controle sem fio com feedback tátil e gatilhos adaptáveis.",
-    "image": "https://placehold.co/1000x1000/3B82F6/EFF6FF?text=ACESSORIOS"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Controle+DualSense+PS5+Edio+Galactic+Purple"
   },
   {
     "id": 1765402139156,
@@ -189,7 +189,7 @@
     "price": "R$ 599,00",
     "category": "acessorios",
     "desc": "Áudio 3D otimizado para consoles PlayStation.",
-    "image": "https://placehold.co/1000x1000/3B82F6/EFF6FF?text=ACESSORIOS"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Headset+Sem+Fio+Pulse+3D+Midnight+Black"
   },
   {
     "id": 1765402139157,
@@ -197,7 +197,7 @@
     "price": "R$ 159,90",
     "category": "acessorios",
     "desc": "Mantenha dois controles sempre prontos para jogar.",
-    "image": "https://placehold.co/1000x1000/3B82F6/EFF6FF?text=ACESSORIOS"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Base+de+Carregamento+Dupla+para+Xbox+Series"
   },
   {
     "id": 1765402139158,
@@ -205,7 +205,7 @@
     "price": "R$ 750,00",
     "category": "acessorios",
     "desc": "Ultraleve (63g) e sem fio, o preferido dos profissionais de eSports.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=G+Pro+X+Mouse"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Mouse+Gamer+Logitech+G+Pro+X+Superlight"
   },
   {
     "id": 1765402139159,
@@ -213,7 +213,7 @@
     "price": "R$ 299,90",
     "category": "acessorios",
     "desc": "Switches Outemu Red, layout TKL, iluminação RGB vibrante.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Kumara+Teclado"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Teclado+Mecnico+Redragon+Kumara+K552+RGB"
   },
   {
     "id": 1765402139160,
@@ -221,7 +221,7 @@
     "price": "R$ 99,90",
     "category": "acessorios",
     "desc": "Superfície de tecido de alta precisão, base antiderrapante.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Mousepad+Husky"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Mousepad+Husky+Blizzard+Grande+900x400mm"
   },
   {
     "id": 1765402139161,
@@ -229,7 +229,7 @@
     "price": "R$ 420,00",
     "category": "acessorios",
     "desc": "Ideal para streaming e reuniões, com foco automático.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Webcam+C920S"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Webcam+Logitech+C920S+Pro+HD+1080p"
   },
   {
     "id": 1765402139162,
@@ -237,7 +237,7 @@
     "price": "R$ 999,00",
     "category": "acessorios",
     "desc": "Quatro padrões polares, ideal para podcast e streaming.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=QuadCast+Micro"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Microfone+Condensador+HyperX+QuadCast+S+RGB"
   },
   {
     "id": 1765402139163,
@@ -245,7 +245,7 @@
     "price": "R$ 899,90",
     "category": "acessorios",
     "desc": "Ergonomia de competição, ajuste de altura e reclínio de 180º.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Cadeira+Gamer"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Cadeira+Gamer+Pichau+Omega+PretoVermelho"
   },
   {
     "id": 1765402139164,
@@ -253,7 +253,7 @@
     "price": "R$ 1.699,00",
     "category": "acessorios",
     "desc": "Qualidade de áudio superior, 15 horas de bateria e base carregadora.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Astro+A50"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Headset+Gamer+Sem+Fio+Astro+A50+Gen+4"
   },
   {
     "id": 1765402139165,
@@ -261,7 +261,7 @@
     "price": "R$ 1.990,00",
     "category": "acessorios",
     "desc": "Force Feedback de motor duplo e pedais responsivos.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Volante+G29"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Volante+Logitech+G29+Driving+Force+PSPC"
   },
   {
     "id": 1765402139166,
@@ -269,7 +269,7 @@
     "price": "R$ 119,90",
     "category": "acessorios",
     "desc": "Suporta 4K a 120Hz e 8K a 60Hz. Largura de banda 48Gbps.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=HDMI+2.1"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Cabo+HDMI+21+Ultra+High+Speed+3m"
   },
   {
     "id": 1765402139167,
@@ -277,7 +277,7 @@
     "price": "R$ 69,90",
     "category": "acessorios",
     "desc": "Pincel anti-estático, pano microfibra e álcool isopropílico.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Kit+Limpeza"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Kit+Limpeza+Profissional+para+PCConsole"
   },
   {
     "id": 1765402139168,
@@ -285,7 +285,7 @@
     "price": "R$ 329,90",
     "category": "acessorios",
     "desc": "Design ergonômico, conexão sem fio e botões programáveis.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Controle+Switch"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Controle+Pro+para+Nintendo+Switch+PowerA"
   },
   {
     "id": 1765402139169,
@@ -293,7 +293,7 @@
     "price": "R$ 45,00",
     "category": "acessorios",
     "desc": "Conecta controles, headsets e outros dispositivos sem fio.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Bluetooth+5.0"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Adaptador+Bluetooth+50+USB+para+PC"
   },
   {
     "id": 1765402139170,
@@ -301,7 +301,7 @@
     "price": "R$ 189,00",
     "category": "acessorios",
     "desc": "Mantém o console refrigerado e organiza a área de jogo.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Suporte+PS5"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Suporte+Vertical+para+PS5+com+Cooling+Fan"
   },
   {
     "id": 1765402139171,
@@ -309,7 +309,7 @@
     "price": "R$ 79,90",
     "category": "acessorios",
     "desc": "Reduz o cansaço visual em longas sessões de jogo.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Óculos+Luz+Azul"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=culos+de+Proteo+Contra+Luz+Azul"
   },
   {
     "id": 1765402139172,
@@ -317,7 +317,7 @@
     "price": "R$ 149,00",
     "category": "acessorios",
     "desc": "Conecte até 4 dispositivos HDMI em uma única TV.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=HDMI+Switch"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Hub+HDMI+Switch+4x1+4K"
   },
   {
     "id": 1765402139173,
@@ -325,7 +325,7 @@
     "price": "R$ 159,00",
     "category": "hardware",
     "desc": "Fãs com iluminação personalizável para seu gabinete.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Fans+RGB"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Kit+3+Fans+RGB+ARGB+120mm+Com+Controladora"
   },
   {
     "id": 1765402139174,
@@ -333,7 +333,7 @@
     "price": "R$ 120,00",
     "category": "acessorios",
     "desc": "Fonte de reposição compatível com Xbox One Fat.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Fonte+Xbox+One"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Fonte+de+Alimentao+para+Xbox+One"
   },
   {
     "id": 1765402139175,
@@ -341,7 +341,7 @@
     "price": "R$ 149,90",
     "category": "acessorios",
     "desc": "Compacto e confiável, ideal para uso diário.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=MK220+Combo"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Kit+Teclado+e+Mouse+Sem+Fio+Logitech+MK220"
   },
   {
     "id": 1765402139176,
@@ -349,7 +349,7 @@
     "price": "R$ 49,90",
     "category": "acessorios",
     "desc": "Melhora a pegada e protege contra o desgaste.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Capas+PS5"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Capas+Protetoras+de+Silicone+para+Joysticks+PS5"
   },
   {
     "id": 1765402139177,
@@ -357,7 +357,7 @@
     "price": "R$ 1.599,00",
     "category": "acessorios",
     "desc": "Grave e faça stream de gameplay em 1080p60 HDR10.",
-    "image": "https://placehold.co/1000x1000/4F46E5/FDE047?text=Elgato+HD60"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Placa+de+Captura+Elgato+HD60+S"
   },
   {
     "id": 1765402139178,
@@ -365,7 +365,7 @@
     "price": "R$ 299,00",
     "category": "games",
     "desc": "Explore o vasto mundo de fantasia criado por Hidetaka Miyazaki e George R. R. Martin.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Elden+Ring+PS5"
   },
   {
     "id": 1765402139179,
@@ -373,7 +373,7 @@
     "price": "R$ 279,90",
     "category": "games",
     "desc": "A épica conclusão da saga nórdica de Kratos e Atreus.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=God+of+War+Ragnarok+PS4PS5"
   },
   {
     "id": 1765402139180,
@@ -381,7 +381,7 @@
     "price": "R$ 350,00",
     "category": "games",
     "desc": "Novas habilidades e a exploração dos céus de Hyrule.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=The+Legend+of+Zelda+Tears+of+the+Kingdom+Switch"
   },
   {
     "id": 1765402139181,
@@ -389,7 +389,7 @@
     "price": "R$ 250,00",
     "category": "games",
     "desc": "Inclui o jogo base e a expansão Phantom Liberty.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Cyberpunk+2077++Edio+Ultimate+Xbox+Series"
   },
   {
     "id": 1765402139182,
@@ -397,7 +397,7 @@
     "price": "R$ 299,00",
     "category": "games",
     "desc": "O retorno sombrio à franquia, com mundo aberto e cooperação.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Diablo+IV+PC++Cdigo+Digital"
   },
   {
     "id": 1765402139183,
@@ -405,7 +405,7 @@
     "price": "R$ 199,90",
     "category": "games",
     "desc": "Corridas radicais no México com centenas de carros.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Forza+Horizon+5+Xbox+OneSeries"
   },
   {
     "id": 1765402139184,
@@ -413,7 +413,7 @@
     "price": "R$ 319,90",
     "category": "games",
     "desc": "Peter Parker e Miles Morales enfrentam o simbionte Venom.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=SpiderMan+2+PS5"
   },
   {
     "id": 1765402139185,
@@ -421,7 +421,7 @@
     "price": "R$ 240,00",
     "category": "games",
     "desc": "O clássico de terror e sobrevivência reconstruído do zero.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Resident+Evil+4+Remake+PS5"
   },
   {
     "id": 1765402139186,
@@ -429,7 +429,7 @@
     "price": "R$ 260,00",
     "category": "games",
     "desc": "Viva sua própria história no mundo de Harry Potter, agora no Switch.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Hogwarts+Legacy+Switch"
   },
   {
     "id": 1765402139187,
@@ -437,7 +437,7 @@
     "price": "R$ 380,00",
     "category": "games",
     "desc": "A mais recente simulação de futebol com times e ligas atualizadas.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=FIFA+25+Todas+as+plataformas"
   },
   {
     "id": 1765402139188,
@@ -445,7 +445,7 @@
     "price": "R$ 150,00",
     "category": "games",
     "desc": "Aclamado épico western de mundo aberto da Rockstar Games.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Red+Dead+Redemption+2+PS4"
   },
   {
     "id": 1765402139189,
@@ -453,7 +453,7 @@
     "price": "R$ 289,90",
     "category": "games",
     "desc": "Aventura 2D com a flor maravilha que transforma o gameplay.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Super+Mario+Bros+Wonder+Switch"
   },
   {
     "id": 1765402139190,
@@ -461,7 +461,7 @@
     "price": "R$ 300,00",
     "category": "games",
     "desc": "O primeiro universo novo em 25 anos da Bethesda Game Studios.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Starfield+Xbox+Series"
   },
   {
     "id": 1765402139191,
@@ -469,7 +469,7 @@
     "price": "R$ 199,00",
     "category": "games",
     "desc": "Aloy viaja para o Oeste Proibido para enfrentar novas ameaças.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Horizon+Forbidden+West+PS5"
   },
   {
     "id": 1765402139192,
@@ -477,7 +477,7 @@
     "price": "R$ 339,00",
     "category": "games",
     "desc": "Retorno da campanha clássica com modo multiplayer aprimorado.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Call+of+Duty+Modern+Warfare+III+PS5"
   },
   {
     "id": 1765402139193,
@@ -485,7 +485,7 @@
     "price": "R$ 100,00",
     "category": "games",
     "desc": "A maior e mais ambiciosa campanha de Halo já feita.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Halo+Infinite+Xbox+Series"
   },
   {
     "id": 1765402139194,
@@ -493,7 +493,7 @@
     "price": "R$ 230,00",
     "category": "games",
     "desc": "O verdadeiro simulador de direção. Mais de 420 carros.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Gran+Turismo+7+PS5"
   },
   {
     "id": 1765402139195,
@@ -501,7 +501,7 @@
     "price": "R$ 279,00",
     "category": "games",
     "desc": "Um novo universo e sistema de Kameo Fighters.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Mortal+Kombat+1+PS5"
   },
   {
     "id": 1765402139196,
@@ -509,7 +509,7 @@
     "price": "R$ 249,00",
     "category": "games",
     "desc": "Primeiros RPGs de mundo aberto da série Pokémon.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Pokmon+Scarlet+and+Violet+Switch"
   },
   {
     "id": 1765402139197,
@@ -517,7 +517,7 @@
     "price": "R$ 220,00",
     "category": "games",
     "desc": "Volta às raízes da série com foco em furtividade e parkour.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Assassins+Creed+Mirage+PS5"
   },
   {
     "id": 1765402139198,
@@ -525,7 +525,7 @@
     "price": "R$ 360,00",
     "category": "games",
     "desc": "O sucessor do FIFA, com a tecnologia HyperMotionV.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=EA+Sports+FC+24+PS5"
   },
   {
     "id": 1765402139199,
@@ -533,7 +533,7 @@
     "price": "R$ 299,00",
     "category": "games",
     "desc": "Novo RPG de ação épico e sombrio da Square Enix.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Final+Fantasy+XVI+PS5"
   },
   {
     "id": 1765402139200,
@@ -541,7 +541,7 @@
     "price": "R$ 199,00",
     "category": "games",
     "desc": "O clássico do GameCube com gráficos e controles modernos.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Metroid+Prime+Remastered+Switch"
   },
   {
     "id": 1765402139201,
@@ -549,7 +549,7 @@
     "price": "R$ 249,00",
     "category": "games",
     "desc": "A jornada de Cal Kestis continua em uma galáxia cada vez mais sombria.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Star+Wars+Jedi+Survivor+Xbox+Series"
   },
   {
     "id": 1765402139202,
@@ -557,7 +557,7 @@
     "price": "R$ 150,00",
     "category": "games",
     "desc": "Aventure-se em Night City e torne-se uma lenda.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Cyberpunk+2077+PC++Mdia+Fsica"
   },
   {
     "id": 1765402139203,
@@ -565,7 +565,7 @@
     "price": "R$ 850,00",
     "category": "acessorios",
     "desc": "Teclado compacto de alta qualidade, switches Cherry MX.",
-    "image": "https://placehold.co/1000x1000/3B82F6/EFF6FF?text=ACESSORIOS"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Teclado+Mecnico+60+Ducky+One+3+Mini"
   },
   {
     "id": 1765402139204,
@@ -573,7 +573,7 @@
     "price": "R$ 259,00",
     "category": "hardware",
     "desc": "Ideal para notebooks e PCs de entrada. Velocidade de 545MB/s.",
-    "image": "https://placehold.co/1000x1000/DC2626/FEF2F2?text=HARDWARE"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=SSD+Interno+SATA+3+500GB+Western+Digital+Green"
   },
   {
     "id": 1765402139205,
@@ -581,7 +581,7 @@
     "price": "R$ 180,00",
     "category": "acessorios",
     "desc": "Figura colecionável do protagonista de The Witcher 3. Exclusivo.",
-    "image": "https://placehold.co/1000x1000/3B82F6/EFF6FF?text=ACESSORIOS"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Funko+Pop+Geralt+de+Rivia+150"
   },
   {
     "id": 1765402139206,
@@ -589,7 +589,7 @@
     "price": "R$ 100,00",
     "category": "games",
     "desc": "Crédito digital para a PlayStation Store.",
-    "image": "https://placehold.co/1000x1000/064E3B/D1FAE5?text=JOGOS"
+    "image": "https://placehold.co/1000x1000/064E3B/FFFFFF?text=Gift+Card+PSN+R+100"
   },
   {
     "id": 1765402139207,
@@ -597,6 +597,6 @@
     "price": "R$ 79,90",
     "category": "acessorios",
     "desc": "Leve e portátil, cores variadas.",
-    "image": "https://placehold.co/1000x1000/3B82F6/EFF6FF?text=ACESSORIOS"
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Mouse+ptico+Sem+Fio+Microsoft+Mobile+1850"
   }
 ]
