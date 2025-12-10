@@ -119,10 +119,9 @@
         }
         
         /* === CORREÇÃO CRÍTICA PARA SELECTS NO MODO ESCURO === */
-        /* Garante que o fundo das opções seja escuro quando o tema for dark */
         .dark select option {
-            background-color: #111827; /* Fundo escuro */
-            color: #f1f5f9; /* Texto claro */
+            background-color: #111827; 
+            color: #f1f5f9;
         }
 
         /* === GRADIENT MESH BACKGROUNDS === */
@@ -197,7 +196,7 @@
                 0 0 100px rgba(255, 215, 0, 0.1);
         }
 
-        /* === REVEAL ANIMATIONS (GPU Optimized) === */
+        /* === REVEAL ANIMATIONS === */
         .reveal {
             opacity: 0;
             transform: translateY(40px);
@@ -737,6 +736,8 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s;
+            white-space: nowrap; /* Essential for mobile tray */
+            flex-shrink: 0; /* Essential for mobile tray */
         }
         .filter-btn.active {
             background: var(--gradient-gold);
@@ -790,7 +791,6 @@
             .filter-btn {
                 padding: 0.625rem 1rem;
                 font-size: 0.75rem;
-                white-space: nowrap;
             }
             
             /* Larger touch targets for add to cart */
@@ -836,7 +836,7 @@
                 border-radius: 12px;
             }
             
-            /* Swipe-friendly sections */
+            /* Swipe-friendly tray (bandeja) */
             #categoryFilters {
                 overflow-x: auto;
                 flex-wrap: nowrap;
@@ -845,6 +845,8 @@
                 -ms-overflow-style: none;
                 padding-bottom: 8px;
                 margin-bottom: 1rem;
+                mask-image: linear-gradient(to right, black 85%, transparent 100%);
+                -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
             }
             #categoryFilters::-webkit-scrollbar {
                 display: none;
@@ -1118,20 +1120,14 @@
                     Fale Conosco
                 </a>
                 <div class="flex justify-center gap-4 pt-4">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer"
-                       class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"
-                       aria-label="Instagram">
-                        <i class="ph-fill ph-instagram-logo"></i>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition" aria-label="Instagram">
+                        <i class="ph-fill ph-instagram-logo text-xl"></i>
                     </a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer"
-                       class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"
-                       aria-label="Facebook">
-                        <i class="ph-fill ph-facebook-logo"></i>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition" aria-label="Facebook">
+                        <i class="ph-fill ph-facebook-logo text-xl"></i>
                     </a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer"
-                       class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:bg-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"
-                       aria-label="TikTok">
-                        <i class="ph-fill ph-tiktok-logo"></i>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition" aria-label="TikTok">
+                        <i class="ph-fill ph-tiktok-logo text-xl"></i>
                     </a>
                 </div>
             </div>
@@ -1221,14 +1217,13 @@
             <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-10 md:gap-16">
                 <div class="md:w-1/2 space-y-7 flex flex-col items-center md:items-start text-center md:text-left reveal">
                     
-                    <!-- Mobile Banner (BLOCO CORRIGIDO) -->
+                    <!-- Mobile Banner -->
                     <div class="block md:hidden w-[calc(100%+2rem)] -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-3xl shadow-2xl relative h-48">
                         <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" 
                              alt="Atomic Games - Loja de Games e Assistência Técnica" 
                              class="w-full h-full object-cover" 
                              loading="eager">
                     </div>
-                    <!-- FIM BLOCO CORRIGIDO -->
 
                     <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full text-xs font-extrabold uppercase tracking-wider shadow-lg transform hover:scale-105 transition cursor-default glow-gold">
                         <i class="ph-fill ph-map-pin icon-bounce"></i> Madureira - RJ
@@ -1277,8 +1272,8 @@
 
                 <div class="md:w-1/2 w-full flex justify-center reveal" style="transition-delay: 200ms;">
                     <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
-                        <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="bDAR4bkn0mY" role="button" tabindex="0" aria-label="Reproduzir vídeo sobre a Atomic Games" onkeydown="if(event.key==='Enter')loadVideo()">
-                            <img src="https://img.youtube.com/vi/bDAR4bkn0mY/maxresdefault.jpg" alt="Thumbnail do vídeo - Conheça a Atomic Games" 
+                        <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="BhIV8U4eZ4c" role="button" tabindex="0" aria-label="Reproduzir vídeo sobre a Atomic Games" onkeydown="if(event.key==='Enter')loadVideo()">
+                            <img src="https://img.youtube.com/vi/BhIV8U4eZ4c/hqdefault.jpg" alt="Thumbnail do vídeo - Conheça a Atomic Games" 
                                  onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
                             <div class="play-btn" aria-hidden="true">
                                 <i class="ph-fill ph-play text-3xl text-black ml-1"></i>
@@ -1323,20 +1318,23 @@
                     </div>
                 </header>
 
-                <div class="flex flex-wrap gap-3 mb-12 justify-center lg:justify-start reveal" id="categoryFilters" role="group" aria-label="Filtros de categoria">
-                    <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300" data-category="all" aria-pressed="true">
-                        <i class="ph-bold ph-squares-four mr-2"></i> Todos
+                <!-- Bandeja de Filtros (Scrollable on Mobile) -->
+                <!-- ALTERADO: Removido o select e mantida a lista de botões com scroll horizontal no mobile -->
+                <div class="flex overflow-x-auto pb-4 md:pb-0 mb-12 gap-3 snap-x hide-scrollbar reveal" id="categoryFilters" role="group" aria-label="Filtros de categoria">
+                    <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 snap-center" data-category="all" aria-pressed="true">
+                        <!-- ALTERADO: Ícone de Grade/Pasta substituído por Raio para combinar mais -->
+                        <i class="ph-fill ph-lightning mr-2"></i> Destaques
                     </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all" data-category="console" aria-pressed="false">
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all snap-center" data-category="console" aria-pressed="false">
                         <i class="ph-bold ph-game-controller mr-2"></i> Consoles
                     </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-green-400 hover:text-green-600 transition-all" data-category="games" aria-pressed="false">
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-green-400 hover:text-green-600 transition-all snap-center" data-category="games" aria-pressed="false">
                         <i class="ph-bold ph-disc mr-2"></i> Jogos
                     </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-purple-400 hover:text-purple-600 transition-all" data-category="acessorios" aria-pressed="false">
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-purple-400 hover:text-purple-600 transition-all snap-center" data-category="acessorios" aria-pressed="false">
                         <i class="ph-bold ph-headphones mr-2"></i> Acessórios
                     </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-red-400 hover:text-red-600 transition-all" data-category="hardware" aria-pressed="false">
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-red-400 hover:text-red-600 transition-all snap-center" data-category="hardware" aria-pressed="false">
                         <i class="ph-bold ph-cpu mr-2"></i> Hardware
                     </button>
                 </div>
@@ -1557,14 +1555,12 @@
                             <h3 id="reviews-title" class="text-2xl md:text-3xl font-bold">O que falam da Atomic?</h3>
                             <p class="text-muted mt-1">Baseado em avaliações reais do Google Maps</p>
                         </div>
-                        <!-- CORREÇÃO DO LINK DEPOIMENTO -->
                         <a href="https://maps.app.goo.gl/9FpRW2ztsrE3j9Rz9" target="_blank" rel="noopener noreferrer"
                            class="flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
                             <i class="ph-fill ph-google-logo"></i>
                             Ver no Google
                             <i class="ph-bold ph-arrow-square-out"></i>
                         </a>
-                        <!-- FIM CORREÇÃO -->
                     </header>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
@@ -1629,57 +1625,6 @@
             </div>
         </section>
 
-        <!-- About Section -->
-        <section id="about" class="py-24 bg-card" aria-labelledby="about-title">
-            <div class="container mx-auto px-4 lg:px-8">
-                <div class="flex flex-col lg:flex-row items-center gap-16 reveal">
-                    <div class="lg:w-1/2">
-                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                            <i class="ph-fill ph-info"></i> Nossa História
-                        </span>
-                        <h2 id="about-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-8">Quem é a <span class="text-gradient">Atomic Games?</span></h2>
-                        <div class="space-y-5 text-muted text-lg leading-relaxed">
-                            <p>
-                                Mais do que uma loja, somos uma <strong class="text-base">comunidade</strong>. Localizada no coração de <strong class="text-base">Madureira</strong>, a Atomic Games nasceu da paixão genuína por tecnologia e games.
-                            </p>
-                            <p>
-                                Com mais de <strong class="text-base">5.000 clientes satisfeitos</strong>, nossa missão é oferecer não apenas produtos, mas soluções completas: desde o console de última geração até o reparo complexo daquela placa de vídeo ou controle que ninguém mais resolve.
-                            </p>
-                            <p>
-                                Aqui, falamos a sua língua. Seja você um jogador casual ou um entusiasta de hardware high-end, nosso QG está de portas abertas.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="lg:w-1/2 grid grid-cols-2 gap-5 w-full">
-                        <div class="stat-card bento-card p-6 md:p-8 text-center">
-                            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg glow-gold">
-                                <i class="ph-fill ph-users-three text-2xl text-black"></i>
-                            </div>
-                            <p class="font-black text-3xl md:text-4xl mb-1">+5.000</p>
-                            <p class="text-muted">Clientes Atendidos</p>
-                        </div>
-                        
-                        <div class="stat-card bento-card p-6 md:p-8 text-center">
-                            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg">
-                                <i class="ph-fill ph-wrench text-2xl text-white"></i>
-                            </div>
-                            <p class="font-black text-3xl md:text-4xl mb-1">Expert</p>
-                            <p class="text-muted">Em Hardware</p>
-                        </div>
-                        
-                        <div class="stat-card bento-card p-6 md:p-8 text-center col-span-2">
-                            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center shadow-lg">
-                                <i class="ph-fill ph-heart text-2xl text-white"></i>
-                            </div>
-                            <p class="font-black text-3xl md:text-4xl mb-1">Paixão Gamer</p>
-                            <p class="text-muted">De jogador para jogador</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Location Section -->
         <section id="location" class="py-24 bg-base scroll-mt-20" aria-labelledby="location-title">
             <div class="container mx-auto px-4 lg:px-8">
@@ -1723,18 +1668,15 @@
                             </div>
                         </div>
 
-                        <!-- CORREÇÃO APLICADA: Link para traçar rota -->
                         <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" 
                            target="_blank" 
                            rel="noopener noreferrer"
                            class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1">
                             <i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota
                         </a>
-                        <!-- FIM CORREÇÃO LINK -->
                     </div>
 
                     <div class="md:w-3/5 h-64 md:h-auto bg-gray-200 map-container">
-                        <!-- IFRAME CORRIGIDO: Usando o formato de busca por nome/endereço, que é mais robusto e não usa o parâmetro 'pb' -->
                         <iframe 
                             src="https://maps.google.com/maps?q=Atomic%20Games%20Av.%20Ministro%20Edgard%20Romero%2081%20Madureira&t=&z=16&ie=UTF8&iwloc=&output=embed" 
                             allowfullscreen="" 
@@ -2165,14 +2107,22 @@
             grid.appendChild(fragment);
         }
 
-        // === VIDEO LOADER ===
+        // === VIDEO LOADER (CORRIGIDO PARA ERRO 153/PLAY) ===
         window.loadVideo = () => {
             const facade = document.getElementById('videoFacade');
             const container = document.getElementById('videoContainer');
             const videoId = facade.dataset.videoId;
             facade.style.display = 'none';
             container.classList.remove('hidden');
-            container.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="Video Atomic Games"></iframe>`;
+            
+            // CORREÇÃO CRÍTICA: Removido &origin para evitar erro 153 em preview/local
+            container.innerHTML = `<iframe class="w-full h-full" 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" 
+                title="Atomic Games Video"
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerpolicy="strict-origin-when-cross-origin" 
+                allowfullscreen></iframe>`;
         }
 
         // === FAQ RENDERER ===
@@ -2299,7 +2249,7 @@
                 renderProducts(currentFilter, document.getElementById('searchInput').value, true);
             });
 
-            // Filter Buttons
+            // Filter Buttons (Desktop & Mobile)
             const buttons = document.querySelectorAll('.filter-btn');
             const searchInput = document.getElementById('searchInput');
             
