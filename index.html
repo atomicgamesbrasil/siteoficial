@@ -53,7 +53,8 @@
         
         body { 
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            overflow-x: hidden;
+            /* CORREÇÃO 1: Garante que não haja overflow horizontal, que causa bugs no iOS */
+            overflow-x: hidden; 
             line-height: 1.6;
         }
         
@@ -491,6 +492,8 @@
             opacity: 0.8;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform: scale(1.05);
+            /* CORREÇÃO 2: Adicionada propriedade para melhor performance em mobile */
+            will-change: transform, opacity;
         }
         .video-facade:hover img {
             opacity: 0.5;
@@ -875,7 +878,9 @@
             
             /* Mobile service form */
             #serviceForm input,
-            #serviceForm select {
+            #serviceForm select,
+            /* CORREÇÃO 3: Adicionado input search para prevenir zoom no iOS */
+            #searchInput { 
                 font-size: 16px; /* Prevents zoom on iOS */
             }
             
@@ -1003,9 +1008,11 @@
             .mobile-menu > div {
                 padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
             }
+            /* CORREÇÃO 4: Aplica safe-area-inset-bottom para botão Back To Top */
             #backToTop {
                 bottom: calc(20px + env(safe-area-inset-bottom));
             }
+            /* CORREÇÃO 4: Aplica safe-area-inset-bottom para toasts */
             .toast-container {
                 bottom: calc(80px + env(safe-area-inset-bottom));
             }
@@ -1021,7 +1028,7 @@
         }
         
         /* ==================================================================== */
-        /* [BLOCO 2 - CHATBOT] CSS DO WIDGET (ALTERADO AQUI)                    */
+        /* [BLOCO 2 - CHATBOT] CSS DO WIDGET (ALTERADO AQUI)                  */
         /* ==================================================================== */
         
         /* Variáveis de Cores (Escopo Global do Chat) */
@@ -1043,6 +1050,9 @@
             left: 25px; 
             right: auto; /* Garante que não haja conflito */
             
+            /* CORREÇÃO 5: Adicionado transform: translateZ(0) para forçar aceleração por hardware e evitar jitter no iOS/Chrome */
+            transform: translateZ(0);
+            
             width: 70px;
             height: 70px;
             border-radius: 50%;
@@ -1061,6 +1071,13 @@
         .atomic-chat-toggle:hover {
             box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
         }
+        /* CORREÇÃO 6: Adicionado Safe Area Inset ao botão flutuante */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .atomic-chat-toggle {
+                bottom: calc(25px + env(safe-area-inset-bottom));
+            }
+        }
+
 
         .atomic-notification-badge {
             position: absolute;
@@ -1112,6 +1129,14 @@
             z-index: 99999;
             overflow: hidden;
         }
+        
+        /* CORREÇÃO 7: Adicionado safe-area-inset para o widget principal no mobile */
+        @media (max-width: 480px) {
+            .atomic-chat-widget {
+                bottom: calc(105px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
 
         .atomic-chat-widget * {
             box-sizing: border-box; /* Garante que padding não quebre layout */
@@ -1246,6 +1271,8 @@
             outline: none;
             font-family: 'Rajdhani', sans-serif;
             font-size: 15px;
+            /* CORREÇÃO 8: Adicionado font-size para prevenir zoom no iOS */
+            font-size: 16px; 
         }
 
         .atomic-chat-input:focus { border-color: var(--atomic-primary); }
@@ -1603,7 +1630,7 @@
                     <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
                         <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="YCsT_InlNWw" role="button" tabindex="0" aria-label="Reproduzir vídeo sobre a Atomic Games" onkeydown="if(event.key==='Enter')loadVideo()">
                             <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail do vídeo - Conheça a Atomic Games" 
-                                     onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
+                                    onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
                             <div class="play-btn" aria-hidden="true">
                                 <i class="ph-fill ph-play text-3xl text-black ml-1"></i>
                             </div>
@@ -1676,7 +1703,7 @@
                 </div>
                 
                 <div id="loadMoreContainer" class="hidden text-center mt-14 reveal">
-                     <button id="btnLoadMore" class="group px-10 py-4 border-2 border-base bg-card text-base rounded-2xl font-bold hover:border-yellow-500 hover:text-yellow-600 transition-all shadow-sm hover:shadow-lg">
+                    <button id="btnLoadMore" class="group px-10 py-4 border-2 border-base bg-card text-base rounded-2xl font-bold hover:border-yellow-500 hover:text-yellow-600 transition-all shadow-sm hover:shadow-lg">
                         Ver Todos os Produtos 
                         <i class="ph-bold ph-caret-down ml-2 group-hover:translate-y-1 transition-transform inline-block"></i>
                     </button>
@@ -2329,15 +2356,15 @@
                 div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
                 div.innerHTML = `
                     <img src="${item.image}" class="w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow" 
-                             onerror="this.src='https://placehold.co/100?text=ATOMIC'" alt="${item.name}" loading="lazy">
+                                onerror="this.src='https://placehold.co/100?text=ATOMIC'" alt="${item.name}" loading="lazy">
                     <div class="flex-grow min-w-0">
                         <p class="font-bold text-sm line-clamp-1">${item.name}</p>
                         <p class="text-xs text-muted line-clamp-1">${item.desc}</p>
                         <p class="text-sm font-bold text-gradient mt-1">${item.price}</p>
                     </div>
                     <button onclick="removeFromCart(${index})" 
-                                class="self-center p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition"
-                                aria-label="Remover ${item.name} do carrinho">
+                                 class="self-center p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition"
+                                 aria-label="Remover ${item.name} do carrinho">
                         <i class="ph-bold ph-trash text-lg"></i>
                     </button>`;
                 fragment.appendChild(div);
@@ -2450,7 +2477,7 @@
                 card.innerHTML = `
                     <div class="product-img-box" onclick="showProductDetail('${p.id}')" role="button" tabindex="0" aria-label="Ver detalhes de ${p.name}" onkeydown="if(event.key==='Enter')showProductDetail('${p.id}')">
                         <img src="${p.image}" alt="${p.name}" loading="lazy" 
-                                 onerror="this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=${encodeURIComponent(p.name.substring(0,10))}'">
+                                     onerror="this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=${encodeURIComponent(p.name.substring(0,10))}'">
                         <span class="category-tag ${categoryClasses[p.category] || ''} absolute top-3 left-3">${p.category}</span>
                     </div>
                     <div class="p-4 md:p-5 flex-grow flex flex-col">
@@ -2459,8 +2486,8 @@
                         <div class="mt-auto flex items-center justify-between gap-2">
                             <span class="font-black text-base md:text-lg text-gradient">${p.price}</span>
                             <button onclick="addToCart('${p.id}')" 
-                                         class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-yellow-500/20 transform active:scale-90 hover:scale-105"
-                                         aria-label="Adicionar ${p.name} ao carrinho">
+                                             class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-yellow-500/20 transform active:scale-90 hover:scale-105"
+                                             aria-label="Adicionar ${p.name} ao carrinho">
                                 <i class="ph-bold ph-plus text-lg"></i>
                             </button>
                         </div>
@@ -2689,7 +2716,7 @@
     </script>
     
     <!-- ==================================================================== -->
-    <!-- [BLOCO 4 - CHATBOT] SCRIPT JS (ALTERADO AQUI)                        -->
+    <!-- [BLOCO 4 - CHATBOT] SCRIPT JS (ALTERADO AQUI)                         -->
     <!-- ==================================================================== -->
     <script>
         /**
@@ -2742,7 +2769,7 @@
                     return processed;
                 } catch (e) {
                     // console.warn("⚠️ GitHub Offline (Chatbot). Usando backup.", e);
-                    return cachedData ? [...JSON.parse(cachedData), ...BACKUP_CATALOG] : this.processDataBackup(BACKUP_CATALOG);
+                    return cachedData ? [...JSON.parse(cachedData), ...BACKUP_CATALOG.filter(b => !JSON.parse(cachedData).some(g => g.nome === b.nome))] : this.processDataBackup(BACKUP_CATALOG);
                 }
             }
 
@@ -2823,16 +2850,16 @@
             }
             
             // ==========================================
-            // DRAG AND DROP FUNCTIONALITY (FIXED)
+            // DRAG AND DROP FUNCTIONALITY (FIXED for iOS)
             // ==========================================
             setupDragAndDrop() {
                 const bubble = this.elements.toggle;
                 const widget = this.elements.widget;
                 let isDragging = false;
+                let isClick = true; // Para diferenciar clique de drag
                 
                 let startX, startY;
                 let initialLeft, initialBottom; // Posição do mouse no início
-                let bubbleLeft, bubbleBottom; // Posição da bolha no início
                 
                 const getCoords = (e) => e.touches ? e.touches[0] : e;
                 
@@ -2841,14 +2868,13 @@
                     e = getCoords(e);
                     
                     isDragging = true;
+                    isClick = true;
                     bubble.style.transition = 'none'; // Desliga transições
 
-                    // 1. Sincroniza a posição visual (transform) com a posição CSS (left/bottom)
+                    // Sincroniza a posição atual da bolha no viewport
                     const rect = bubble.getBoundingClientRect();
-                    
-                    // Usa a posição atual da bolha no viewport
-                    bubbleLeft = rect.left;
-                    bubbleBottom = window.innerHeight - rect.bottom;
+                    const bubbleLeft = rect.left;
+                    const bubbleBottom = window.innerHeight - rect.bottom;
                     
                     // Aplica a posição atual como a nova posição fixa (removendo transform)
                     bubble.style.left = `${bubbleLeft}px`;
@@ -2857,11 +2883,9 @@
                     bubble.style.right = 'auto';
                     bubble.style.top = 'auto';
 
-                    // 2. Guarda a posição inicial do clique (mouse/touch)
                     startX = e.clientX;
                     startY = e.clientY;
                     
-                    // 3. Guarda a posição inicial da bolha (que já está sincronizada)
                     initialLeft = bubbleLeft;
                     initialBottom = bubbleBottom;
 
@@ -2876,6 +2900,7 @@
                     e.preventDefault();
                     
                     e = getCoords(e);
+                    isClick = (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) ? false : isClick;
 
                     const deltaX = e.clientX - startX;
                     const deltaY = startY - e.clientY; // Y é invertido (bottom)
@@ -2884,85 +2909,90 @@
                     let newBottom = initialBottom + deltaY;
                     
                     // Limites da tela
-                    const maxX = window.innerWidth - bubble.offsetWidth;
-                    const maxY = window.innerHeight - bubble.offsetHeight;
+                    const maxX = window.innerWidth - bubble.offsetWidth - 5;
+                    const maxY = window.innerHeight - bubble.offsetHeight - 5;
+                    const minX = 5;
+                    const minY = 5;
                     
-                    newLeft = Math.min(Math.max(0, newLeft), maxX);
-                    newBottom = Math.min(Math.max(0, newBottom), maxY);
+                    // Clampa a posição
+                    newLeft = Math.min(Math.max(minX, newLeft), maxX);
+                    newBottom = Math.min(Math.max(minY, newBottom), maxY);
 
                     // Aplica nova posição diretamente
                     bubble.style.left = `${newLeft}px`;
                     bubble.style.bottom = `${newBottom}px`;
+                    
+                    // Move o widget junto (para desktop, mas no mobile é melhor deixá-lo no canto)
+                    if (window.innerWidth > 480) {
+                        this.positionWidget(newLeft, newBottom, bubble.offsetWidth, widget.offsetWidth, widget.offsetHeight);
+                    }
                 };
 
-                const onEnd = () => {
+                const onEnd = (e) => {
                     if (!isDragging) return;
+                    
+                    // Verifica se o movimento foi grande o suficiente para ser considerado um 'drag'
+                    const finalX = getCoords(e).clientX;
+                    const finalY = getCoords(e).clientY;
+                    isClick = (Math.abs(finalX - startX) < 5 && Math.abs(finalY - startY) < 5);
+                    
                     isDragging = false;
                     
                     // Reativa transições
                     bubble.style.transition = 'box-shadow 0.3s ease, transform 0.1s ease'; 
                     
-                    // Posições finais da bolha
-                    const finalLeft = parseFloat(bubble.style.left.replace('px', ''));
-                    const finalBottom = parseFloat(bubble.style.bottom.replace('px', ''));
-
-                    // --- Posicionamento do Widget (Janela de Chat) ---
-                    
-                    // 1. Define a posição base do widget acima e alinhada à esquerda da bolha
-                    let widgetLeft = finalLeft;
-                    let widgetBottom = finalBottom + bubble.offsetHeight + 20;
-
-                    widget.style.right = 'auto'; // Garante reset do right
-                    widget.style.top = 'auto';   // Garante reset do top
-
-                    widget.style.left = `${widgetLeft}px`;
-                    widget.style.bottom = `${widgetBottom}px`;
-                    
-                    // 2. Verifica se o widget sai da tela (ajusta para dentro)
-                    
-                    // Reposiciona o widget para garantir que fique visível
-                    const widgetWidth = widget.offsetWidth;
-                    const widgetHeight = widget.offsetHeight;
-                    
-                    // Ajuste horizontal (se a janela sair do lado direito)
-                    if (finalLeft + widgetWidth > window.innerWidth) {
-                        widget.style.left = `${window.innerWidth - widgetWidth - 15}px`;
-                    } else if (finalLeft < 0) {
-                         // Ajuste horizontal (se a janela sair do lado esquerdo, embora já limitado pelo onMove)
-                        widget.style.left = '15px';
-                    }
-
-                    // Ajuste vertical (se a janela sair do topo)
-                    if (widgetBottom + widgetHeight > window.innerHeight) {
-                        // Flipa a janela para a parte de cima da tela
-                        widget.style.bottom = 'auto';
-                        widget.style.top = `${window.innerHeight - finalBottom - widgetHeight - bubble.offsetHeight - 30}px`; 
-                        
-                        // Garante que não fique muito colado ao topo
-                        if (widget.offsetTop < 10) {
-                            widget.style.top = '10px';
-                        }
-
-                    } else if (widgetBottom < 0) {
-                         // Se a bolha foi arrastada para baixo demais (embora já limitado pelo onMove)
-                        widget.style.bottom = '10px';
-                        widget.style.top = 'auto';
-                    }
-
                     // Remove listeners de arrasto
                     document.removeEventListener('mousemove', onMove);
                     document.removeEventListener('mouseup', onEnd);
                     document.removeEventListener('touchmove', onMove);
                     document.removeEventListener('touchend', onEnd);
+                    
+                    // Se foi um clique, abre/fecha o chat
+                    if (isClick) {
+                        this.toggleChat();
+                    }
+                    
+                    // Arredonda a posição do widget na parada (para desktop)
+                    if (window.innerWidth > 480) {
+                        const finalLeft = parseFloat(bubble.style.left.replace('px', ''));
+                        const finalBottom = parseFloat(bubble.style.bottom.replace('px', ''));
+                        this.positionWidget(finalLeft, finalBottom, bubble.offsetWidth, widget.offsetWidth, widget.offsetHeight);
+                    }
                 };
-
+                
                 bubble.addEventListener('mousedown', onDown);
                 bubble.addEventListener('touchstart', onDown, { passive: false });
+            }
+
+            positionWidget(bubbleLeft, bubbleBottom, bubbleWidth, widgetWidth, widgetHeight) {
+                // Posiciona o widget acima e alinhado à esquerda da bolha
+                let widgetLeft = bubbleLeft;
+                let widgetTop = window.innerHeight - bubbleBottom - bubbleWidth - widgetHeight - 20;
+
+                // Ajuste horizontal (se a janela sair do lado direito)
+                if (widgetLeft + widgetWidth > window.innerWidth) {
+                    widgetLeft = window.innerWidth - widgetWidth - 15;
+                } else if (widgetLeft < 15) {
+                    widgetLeft = 15;
+                }
+                
+                // Ajuste vertical (se a janela sair do topo)
+                if (widgetTop < 10) {
+                    widgetTop = 10;
+                    this.elements.widget.style.bottom = 'auto';
+                    this.elements.widget.style.top = `${widgetTop}px`;
+                } else {
+                    this.elements.widget.style.top = 'auto';
+                    this.elements.widget.style.bottom = `${bubbleBottom + bubbleWidth + 20}px`;
+                }
+                
+                this.elements.widget.style.left = `${widgetLeft}px`;
+                this.elements.widget.style.right = 'auto'; // Garante reset
             }
             // ==========================================
             
             addEventListeners() {
-                this.elements.toggle.addEventListener('click', () => this.toggleChat());
+                // Nota: O clique do toggle é tratado no setupDragAndDrop para evitar abertura no drag
                 this.elements.close.addEventListener('click', () => this.toggleChat());
                 this.elements.send.addEventListener('click', () => this.handleUserMessage());
                 this.elements.input.addEventListener('keypress', (e) => {
@@ -2976,8 +3006,22 @@
                 this.elements.badge.style.display = 'none';
                 
                 if (this.isOpen) {
+                    // Posicionamento inicial do widget (fixo para mobile)
+                    if (window.innerWidth <= 480) {
+                        this.elements.widget.style.left = '15px';
+                        this.elements.widget.style.right = '15px';
+                        this.elements.widget.style.width = 'calc(100% - 30px)';
+                        // O CSS já trata o bottom: calc(105px + env(safe-area-inset-bottom))
+                    } else {
+                        // Para desktop, reposiciona com base na posição da bolha, se foi arrastada
+                        const bubbleRect = this.elements.toggle.getBoundingClientRect();
+                        const bubbleLeft = bubbleRect.left;
+                        const bubbleBottom = window.innerHeight - bubbleRect.bottom;
+                        this.positionWidget(bubbleLeft, bubbleBottom, bubbleRect.height, this.elements.widget.offsetWidth, this.elements.widget.offsetHeight);
+                    }
+                    
                     // Corrigido para não abrir teclado se já houver outro modal aberto (boa UX)
-                    const modalOpen = document.getElementById('cartModal').classList.contains('open') || document.getElementById('productDetailModal').classList.contains('open');
+                    const modalOpen = document.getElementById('cartModal')?.classList.contains('open') || document.getElementById('productDetailModal')?.classList.contains('open');
                     if (!modalOpen) {
                         setTimeout(() => this.elements.input.focus(), 300);
                     }
