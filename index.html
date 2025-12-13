@@ -26,6 +26,16 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     
+    <!-- ==================================================================== -->
+    <!-- [BLOCO 1 - CHATBOT] DEPENDÊNCIAS (ADICIONADAS)                       -->
+    <!-- ==================================================================== -->
+    <!-- Font Awesome (Ícones do Chatbot - Certifique-se de que não há duplicatas) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Para o Chatbot) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Outros Scripts do Site Principal -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -1009,6 +1019,325 @@
                 transition-duration: 0.01ms !important;
             }
         }
+        
+        /* ==================================================================== */
+        /* [BLOCO 2 - CHATBOT] CSS DO WIDGET (ALTERADO AQUI)                    */
+        /* ==================================================================== */
+        
+        /* Variáveis de Cores (Escopo Global do Chat) */
+        :root {
+            --atomic-primary: #FFC107;
+            --atomic-bg-dark: #121212;
+            --atomic-bg-glass: rgba(18, 18, 18, 0.95);
+            --atomic-text-light: #ffffff;
+            --atomic-text-dark: #0a0a0a;
+            --atomic-border: rgba(255, 193, 7, 0.3);
+            --atomic-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 1. Botão Flutuante (Bolha) */
+        .atomic-chat-toggle {
+            position: fixed;
+            /* MUDANÇA CRÍTICA: Movido de 'right' para 'left' */
+            bottom: 25px;
+            left: 25px; 
+            right: auto; /* Garante que não haja conflito */
+            
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 2px solid var(--atomic-primary);
+            background-color: var(--atomic-bg-dark);
+            background-image: url('https://raw.githubusercontent.com/atomicgamesbrasil/chatbot/main/img/thchatbot.jpg');
+            background-size: cover;
+            background-position: center;
+            cursor: move; /* Indica que é arrastável */
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
+            transition: box-shadow 0.3s ease;
+            z-index: 99999; /* Z-Index altíssimo para ficar sobre tudo */
+            /* Removida animação de hover para melhor compatibilidade com drag */
+        }
+        /* Efeito visual de hover/drag para o botão */
+        .atomic-chat-toggle:hover {
+            box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
+        }
+
+        .atomic-notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 22px;
+            height: 22px;
+            background: #f44336;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--atomic-bg-dark);
+            animation: atomic-bounce 2s infinite;
+            font-family: sans-serif;
+        }
+
+        /* 2. Janela Principal do Chat */
+        .atomic-chat-widget {
+            /* Reset de CSS interno para não herdar estilos do seu site */
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.5;
+            
+            position: fixed;
+            bottom: 110px;
+            /* MUDANÇA CRÍTICA: Ajustado para alinhamento com a nova posição da bolha */
+            left: 25px;
+            right: auto;
+
+            width: 380px;
+            height: 600px;
+            max-height: 80vh;
+            background: var(--atomic-bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--atomic-border);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s ease;
+            box-shadow: var(--atomic-shadow);
+            z-index: 99999;
+            overflow: hidden;
+        }
+
+        .atomic-chat-widget * {
+            box-sizing: border-box; /* Garante que padding não quebre layout */
+        }
+
+        .atomic-chat-widget.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Header */
+        .atomic-chat-header {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), transparent);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .atomic-header-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--atomic-primary);
+            background-image: url('https://raw.githubusercontent.com/atomicgamesbrasil/chatbot/main/img/thchatbot.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .atomic-header-info h3 {
+            color: var(--atomic-primary);
+            margin: 0;
+            font-size: 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+
+        .atomic-header-info span {
+            color: #888;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .atomic-status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .atomic-status-dot.typing {
+            background: var(--atomic-primary);
+            animation: atomic-blink 0.5s infinite alternate;
+        }
+
+        .atomic-close-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+        
+        .atomic-close-btn:hover { color: var(--atomic-primary); }
+
+        /* Corpo (Mensagens) */
+        .atomic-chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--atomic-primary) transparent;
+        }
+
+        /* Balões de Mensagem */
+        .atomic-msg {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            position: relative;
+            word-wrap: break-word;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: atomic-popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            color: white; /* Default text color */
+        }
+
+        .atomic-msg.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--atomic-text-light);
+            border-bottom-left-radius: 2px;
+        }
+
+        .atomic-msg.user {
+            align-self: flex-end;
+            background: var(--atomic-primary);
+            color: var(--atomic-text-dark);
+            border-bottom-right-radius: 2px;
+            font-weight: 600;
+        }
+
+        /* Footer (Input) */
+        .atomic-chat-footer {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .atomic-chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: white;
+            outline: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+        }
+
+        .atomic-chat-input:focus { border-color: var(--atomic-primary); }
+
+        .atomic-send-btn {
+            background: var(--atomic-primary);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--atomic-text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .atomic-send-btn:hover { transform: scale(1.05); }
+
+        /* Card Produto */
+        .atomic-product-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            animation: atomic-popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+        }
+        
+        .atomic-product-card:hover { border-color: var(--atomic-primary); }
+
+        .atomic-product-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .ap-name { color: var(--atomic-primary); font-weight: bold; font-size: 14px; margin-bottom: 2px;}
+        .ap-price { color: white; font-weight: bold; font-size: 16px; margin: 2px 0; }
+        .ap-desc { color: #999; font-size: 12px; }
+
+        /* Loading Screen Interno */
+        .atomic-loader {
+            position: absolute;
+            inset: 0;
+            background: var(--atomic-bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .atomic-loader-spin {
+            width: 40px; height: 40px;
+            border: 3px solid #333;
+            border-top-color: var(--atomic-primary);
+            border-radius: 50%;
+            animation: atomic-spin 1s linear infinite;
+        }
+        
+        /* Animações */
+        @keyframes atomic-bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        @keyframes atomic-popIn { to { opacity: 1; transform: translateY(0); } }
+        @keyframes atomic-spin { to { transform: rotate(360deg); } }
+        @keyframes atomic-blink { from { opacity: 1; } to { opacity: 0.4; } }
+        
+        /* Responsividade Mobile */
+        @media (max-width: 480px) {
+            .atomic-chat-widget {
+                width: calc(100% - 30px);
+                height: 75vh;
+                /* Mantém o alinhamento esquerdo, que é o padrão mobile */
+                left: 15px;
+                right: auto;
+                bottom: 105px;
+            }
+
+            /* Ajusta a posição da bolha no mobile */
+            .atomic-chat-toggle {
+                left: 15px;
+                right: auto;
+                bottom: 15px;
+            }
+        }
+        
     </style>
 </head>
 <body class="antialiased bg-base text-base transition-colors duration-500" id="top">
@@ -1046,7 +1375,7 @@
                 <div class="flex items-center justify-between pt-4 border-t border-base">
                     <span id="modalProductPrice" class="font-bold text-4xl text-gradient">R$ 0,00</span>
                     <button id="modalAddToCartBtn" onclick="modalAddToCart(this.dataset.id)" 
-                            class="flex items-center gap-2 btn-primary text-base px-6 py-3">
+                                class="flex items-center gap-2 btn-primary text-base px-6 py-3">
                         <i class="ph-bold ph-plus text-xl"></i> Adicionar
                     </button>
                 </div>
@@ -1274,7 +1603,7 @@
                     <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
                         <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="YCsT_InlNWw" role="button" tabindex="0" aria-label="Reproduzir vídeo sobre a Atomic Games" onkeydown="if(event.key==='Enter')loadVideo()">
                             <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail do vídeo - Conheça a Atomic Games" 
-                                 onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
+                                     onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
                             <div class="play-btn" aria-hidden="true">
                                 <i class="ph-fill ph-play text-3xl text-black ml-1"></i>
                             </div>
@@ -1313,16 +1642,14 @@
                             </div>
                             <label for="searchInput" class="sr-only">Buscar produto</label>
                             <input type="search" id="searchInput" placeholder="Buscar produto..." 
-                                   class="w-full bg-card text-base border-2 border-base rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-yellow-500 transition-all duration-300 text-sm font-medium shadow-sm hover:border-yellow-500/50">
+                                    class="w-full bg-card text-base border-2 border-base rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-yellow-500 transition-all duration-300 text-sm font-medium shadow-sm hover:border-yellow-500/50">
                         </div>
                     </div>
                 </header>
 
                 <!-- Bandeja de Filtros (Scrollable on Mobile) -->
-                <!-- ALTERADO: Removido o select e mantida a lista de botões com scroll horizontal no mobile -->
                 <div class="flex overflow-x-auto pb-4 md:pb-0 mb-12 gap-3 snap-x hide-scrollbar reveal" id="categoryFilters" role="group" aria-label="Filtros de categoria">
                     <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 snap-center" data-category="all" aria-pressed="true">
-                        <!-- ALTERADO: Ícone de Grade/Pasta substituído por Raio para combinar mais -->
                         <i class="ph-fill ph-lightning mr-2"></i> Destaques
                     </button>
                     <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all snap-center" data-category="console" aria-pressed="false">
@@ -1374,8 +1701,8 @@
                         <h3 class="text-2xl md:text-3xl font-bold mb-3">Não encontrou o que procura?</h3>
                         <p class="text-muted mb-8 max-w-md mx-auto text-lg">Temos muito mais itens na loja física. Fale direto com um <strong class="text-base">atendente humano</strong>.</p>
                         <a href="https://wa.me/5521995969378?text=Ol%C3%A1%2C%20n%C3%A3o%20achei%20o%20produto%20que%20eu%20queria%20no%20site.%20Pode%20me%20ajudar%3F" 
-                           target="_blank" rel="noopener noreferrer"
-                           class="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-1">
+                            target="_blank" rel="noopener noreferrer"
+                            class="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-1">
                             <i class="ph-bold ph-whatsapp-logo text-2xl"></i>
                             Falar com Atendente
                         </a>
@@ -1444,12 +1771,12 @@
                             <div>
                                 <label for="clientName" class="block text-sm font-semibold mb-2 text-muted">Seu Nome</label>
                                 <input type="text" id="clientName" name="clientName" placeholder="João Silva" required autocomplete="name"
-                                       class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
+                                        class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
                             </div>
                             <div>
                                 <label for="clientPhone" class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label>
                                 <input type="tel" id="clientPhone" name="clientPhone" placeholder="(21) 99999-9999" required autocomplete="tel"
-                                       class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
+                                        class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
                             </div>
                         </div>
                         
@@ -1642,13 +1969,13 @@
                             <div class="flex items-start gap-4">
                                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center flex-shrink-0 glow-gold">
                                     <i class="ph-fill ph-map-pin text-xl text-black"></i>
-                                </div>
+                                    </div>
                                 <div>
                                     <h3 class="font-bold text-xl mb-2">Endereço</h3>
                                     <p class="text-muted leading-relaxed">
-                                         Av. Ministro Edgard Romero, 81<br>
-                                         Loja 3 - Madureira<br>
-                                         Rio de Janeiro - RJ
+                                        Av. Ministro Edgard Romero, 81<br>
+                                        Loja 3 - Madureira<br>
+                                        Rio de Janeiro - RJ
                                     </p>
                                 </div>
                             </div>
@@ -1669,9 +1996,9 @@
                         </div>
 
                         <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" 
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1">
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1">
                             <i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota
                         </a>
                     </div>
@@ -1704,6 +2031,44 @@
             </div>
         </section>
     </main>
+    
+    <!-- ==================================================================== -->
+    <!-- [BLOCO 3 - CHATBOT] HTML DO WIDGET (ADICIONADO AQUI)                  -->
+    <!-- ==================================================================== -->
+
+    <!-- Botão de Abrir -->
+    <div class="atomic-chat-toggle" id="atomicChatToggle" title="Falar com Thiago">
+        <span class="atomic-notification-badge" id="atomicChatBadge">1</span>
+    </div>
+
+    <!-- Container do Chat -->
+    <div class="atomic-chat-widget" id="atomicChatWidget">
+        <!-- Loader Inicial -->
+        <div class="atomic-loader" id="atomicChatLoader">
+            <div class="atomic-loader-spin"></div>
+            <p style="margin-top: 15px; font-size: 14px; color: #888;">Chamando <b>Thiago</b>...</p>
+        </div>
+
+        <!-- Cabeçalho -->
+        <div class="atomic-chat-header">
+            <div class="atomic-header-avatar"></div>
+            <div class="atomic-header-info">
+                <h3>Thiago</h3>
+                <span><span class="atomic-status-dot" id="atomicStatusDot"></span> Consultor Gamer</span>
+            </div>
+            <button class="atomic-close-btn" id="atomicCloseChat"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Mensagens -->
+        <div class="atomic-chat-body" id="atomicChatBody"></div>
+
+        <!-- Input -->
+        <div class="atomic-chat-footer">
+            <input type="text" class="atomic-chat-input" id="atomicChatInput" placeholder="Pergunte ao Thiago..." disabled>
+            <button class="atomic-send-btn" id="atomicSendBtn" disabled><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
 
     <!-- Footer -->
     <footer class="bg-gradient-to-b from-base to-card border-t border-base py-16">
@@ -1964,15 +2329,15 @@
                 div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
                 div.innerHTML = `
                     <img src="${item.image}" class="w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow" 
-                          onerror="this.src='https://placehold.co/100?text=ATOMIC'" alt="${item.name}" loading="lazy">
+                             onerror="this.src='https://placehold.co/100?text=ATOMIC'" alt="${item.name}" loading="lazy">
                     <div class="flex-grow min-w-0">
                         <p class="font-bold text-sm line-clamp-1">${item.name}</p>
                         <p class="text-xs text-muted line-clamp-1">${item.desc}</p>
                         <p class="text-sm font-bold text-gradient mt-1">${item.price}</p>
                     </div>
                     <button onclick="removeFromCart(${index})" 
-                            class="self-center p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition"
-                            aria-label="Remover ${item.name} do carrinho">
+                                class="self-center p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition"
+                                aria-label="Remover ${item.name} do carrinho">
                         <i class="ph-bold ph-trash text-lg"></i>
                     </button>`;
                 fragment.appendChild(div);
@@ -2085,7 +2450,7 @@
                 card.innerHTML = `
                     <div class="product-img-box" onclick="showProductDetail('${p.id}')" role="button" tabindex="0" aria-label="Ver detalhes de ${p.name}" onkeydown="if(event.key==='Enter')showProductDetail('${p.id}')">
                         <img src="${p.image}" alt="${p.name}" loading="lazy" 
-                             onerror="this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=${encodeURIComponent(p.name.substring(0,10))}'">
+                                 onerror="this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=${encodeURIComponent(p.name.substring(0,10))}'">
                         <span class="category-tag ${categoryClasses[p.category] || ''} absolute top-3 left-3">${p.category}</span>
                     </div>
                     <div class="p-4 md:p-5 flex-grow flex flex-col">
@@ -2094,8 +2459,8 @@
                         <div class="mt-auto flex items-center justify-between gap-2">
                             <span class="font-black text-base md:text-lg text-gradient">${p.price}</span>
                             <button onclick="addToCart('${p.id}')" 
-                                    class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-yellow-500/20 transform active:scale-90 hover:scale-105"
-                                    aria-label="Adicionar ${p.name} ao carrinho">
+                                         class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-yellow-500/20 transform active:scale-90 hover:scale-105"
+                                         aria-label="Adicionar ${p.name} ao carrinho">
                                 <i class="ph-bold ph-plus text-lg"></i>
                             </button>
                         </div>
@@ -2321,6 +2686,392 @@
                 }
             });
         });
+    </script>
+    
+    <!-- ==================================================================== -->
+    <!-- [BLOCO 4 - CHATBOT] SCRIPT JS (ALTERADO AQUI)                        -->
+    <!-- ==================================================================== -->
+    <script>
+        /**
+         * THIAGO CHATBOT - LÓGICA DE INTEGRAÇÃO v6.1 (Com Drag and Drop)
+         * Integrado ao site principal da Atomic Games.
+         */
+
+        const GITHUB_CATALOG_URL_CHAT = 'https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/produtos.json';
+        const CHAT_CACHE_KEY = 'atomic_catalog_v1';
+        const CHAT_CACHE_TIME_KEY = 'atomic_catalog_time';
+        const CHAT_CACHE_DURATION = 3600000; // 1 Hora
+
+        // Backup de Segurança Expandido
+        const BACKUP_CATALOG = [
+            { id: 'bak1', nome: "RTX 4060 Ti 8GB", preco: 2899.90, categoria: "GPU", tags: ["gpu", "video", "nvidia"], estoque: 5, descricao: "Placa custo-benefício (Backup)", imagem: "https://m.media-amazon.com/images/I/716173+O3IL._AC_SX679_.jpg" },
+            { id: 'bak2', nome: "Ryzen 5 5600", preco: 899.90, categoria: "CPU", tags: ["cpu", "processador"], estoque: 10, descricao: "Processador de entrada (Backup)", imagem: "https://m.media-amazon.com/images/I/61twLgeQk4L._AC_SX679_.jpg" },
+            { id: 'bak3', nome: "Controle DualSense PS5 - Branco", preco: 450.00, categoria: "Periféricos", tags: ["controle", "gamepad", "ps5", "periférico"], estoque: 8, descricao: "Controle original Sony PS5 (Backup)", imagem: "https://m.media-amazon.com/images/I/61IG46p-yHL._AC_SX679_.jpg" },
+            { id: 'bak4', nome: "Controle Xbox Series - Robot White", preco: 399.90, categoria: "Periféricos", tags: ["controle", "gamepad", "xbox", "periférico"], estoque: 12, descricao: "Compatível com Xbox e PC (Backup)", imagem: "https://m.media-amazon.com/images/I/61nvE7c+l1L._AC_SX679_.jpg" }
+        ];
+
+        const CHAT_SYNONYMS = {
+            'play 5': 'playstation 5', 'ps5': 'playstation 5', 'xbox': 'xbox series',
+            'vga': 'placa de vídeo', 'gpu': 'placa de vídeo', 'proc': 'processador',
+            'cpu': 'processador', 'mobo': 'placa mãe', 'ram': 'memória', 'zap': 'whatsapp',
+            'controle': 'gamepad', 'joystick': 'gamepad', 'manete': 'gamepad'
+        };
+
+        let chatCatalogoGlobal = [];
+
+        class GitHubIntegratorChat {
+            async fetchCatalog() {
+                const cachedData = localStorage.getItem(CHAT_CACHE_KEY);
+                const cacheTime = localStorage.getItem(CHAT_CACHE_TIME_KEY);
+                
+                if (cachedData && cacheTime) {
+                    const now = new Date().getTime();
+                    if (now - parseInt(cacheTime) < CHAT_CACHE_DURATION) {
+                        return JSON.parse(cachedData);
+                    }
+                }
+
+                try {
+                    const response = await fetch(GITHUB_CATALOG_URL_CHAT);
+                    if (!response.ok) throw new Error("Erro HTTP");
+                    const data = await response.json();
+                    const processed = this.processData(data);
+                    
+                    localStorage.setItem(CHAT_CACHE_KEY, JSON.stringify(processed));
+                    localStorage.setItem(CHAT_CACHE_TIME_KEY, new Date().getTime().toString());
+                    return processed;
+                } catch (e) {
+                    // console.warn("⚠️ GitHub Offline (Chatbot). Usando backup.", e);
+                    return cachedData ? [...JSON.parse(cachedData), ...BACKUP_CATALOG] : this.processDataBackup(BACKUP_CATALOG);
+                }
+            }
+
+            processData(items) { return items.map(item => this.normalizeItem(item)); }
+            processDataBackup(items) { return items; }
+
+            normalizeItem(item) {
+                let price = typeof item.price === 'string' 
+                    ? parseFloat(item.price.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) 
+                    : Number(item.price);
+
+                const name = item.name.toLowerCase();
+                let cat = 'Hardware';
+                let tags = ['github'];
+
+                if (name.includes('rtx') || name.includes('rx') || name.includes('gtx')) { cat = 'GPU'; tags.push('placa de vídeo', 'gpu'); }
+                else if (name.includes('ryzen') || name.includes('intel') || name.includes('core')) { cat = 'CPU'; tags.push('processador', 'cpu'); }
+                else if (name.includes('ssd') || name.includes('nvme')) { cat = 'Armazenamento'; tags.push('ssd'); }
+                else if (name.includes('memória') || name.includes('ram')) { cat = 'Hardware'; tags.push('memória'); }
+                else if (name.includes('fonte')) { cat = 'Fonte'; tags.push('fonte'); }
+                else if (name.includes('monitor')) { cat = 'Monitor'; tags.push('monitor'); }
+                else if (name.includes('teclado') || name.includes('mouse') || name.includes('headset') || name.includes('controle') || name.includes('gamepad')) {
+                    cat = 'Periféricos'; tags.push('periférico', 'gamepad');
+                }
+
+                return {
+                    id: `gh-${item.id}`, nome: item.name, preco: price, categoria: cat, tags: tags,
+                    estoque: Math.floor(Math.random() * 10) + 1, descricao: item.desc, imagem: item.image
+                };
+            }
+        }
+
+        class TextNormalizerChat {
+            static normalize(text) {
+                let normalized = text.toLowerCase();
+                for (const [slang, official] of Object.entries(CHAT_SYNONYMS)) {
+                    const regex = new RegExp(`\\b${slang}\\b`, 'gi');
+                    normalized = normalized.replace(regex, official);
+                }
+                return normalized;
+            }
+        }
+
+        class ThiagoChatbot {
+            constructor() {
+                this.elements = {
+                    widget: document.getElementById('atomicChatWidget'),
+                    toggle: document.getElementById('atomicChatToggle'),
+                    badge: document.getElementById('atomicChatBadge'),
+                    close: document.getElementById('atomicCloseChat'),
+                    body: document.getElementById('atomicChatBody'),
+                    input: document.getElementById('atomicChatInput'),
+                    send: document.getElementById('atomicSendBtn'),
+                    loader: document.getElementById('atomicChatLoader'),
+                    statusDot: document.getElementById('atomicStatusDot')
+                };
+
+                this.isOpen = false;
+                this.hasOpened = false;
+                this.integrator = new GitHubIntegratorChat();
+                this.init();
+            }
+
+            async init() {
+                this.addEventListeners();
+                this.setupDragAndDrop(); // Adiciona funcionalidade de arrastar
+                
+                try {
+                    let gitData = await this.integrator.fetchCatalog();
+                    chatCatalogoGlobal = [...gitData, ...BACKUP_CATALOG.filter(b => !gitData.some(g => g.nome === b.nome))];
+
+                    this.elements.loader.style.display = 'none';
+                    this.elements.input.disabled = false;
+                    this.elements.send.disabled = false;
+                } catch (e) {
+                    console.error("Erro init (Chatbot):", e);
+                }
+            }
+            
+            // ==========================================
+            // DRAG AND DROP FUNCTIONALITY (NOVO)
+            // ==========================================
+            setupDragAndDrop() {
+                const bubble = this.elements.toggle;
+                let isDragging = false;
+                let offset = { x: 0, y: 0 };
+                let initialX, initialY;
+                const widget = this.elements.widget;
+                
+                const onDown = (e) => {
+                    if (this.isOpen) return; // Não permite arrastar a bolha se o chat estiver aberto
+                    
+                    e = e.touches ? e.touches[0] : e;
+                    
+                    isDragging = true;
+                    initialX = e.clientX;
+                    initialY = e.clientY;
+
+                    // Calcula o offset do mouse/toque em relação à bolha
+                    offset.x = initialX - bubble.offsetLeft;
+                    offset.y = initialY - bubble.offsetTop;
+
+                    bubble.style.transition = 'none'; // Desliga transições durante o arrasto
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onEnd);
+                    document.addEventListener('touchmove', onMove, { passive: false });
+                    document.addEventListener('touchend', onEnd);
+                };
+
+                const onMove = (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault(); // Evita rolagem na tela sensível ao toque
+                    
+                    e = e.touches ? e.touches[0] : e;
+                    
+                    let newX = e.clientX - offset.x;
+                    let newY = e.clientY - offset.y;
+                    
+                    // Limita a bolha dentro da viewport
+                    const maxX = window.innerWidth - bubble.offsetWidth;
+                    const maxY = window.innerHeight - bubble.offsetHeight;
+                    
+                    newX = Math.min(Math.max(0, newX), maxX);
+                    newY = Math.min(Math.max(0, newY), maxY);
+
+                    // Aplica a nova posição via `transform` (mais performático)
+                    bubble.style.transform = `translate(${newX}px, ${newY}px)`;
+                };
+
+                const onEnd = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    
+                    // Reativa transições
+                    bubble.style.transition = 'box-shadow 0.3s ease, transform 0.1s ease'; 
+
+                    // Salva a posição final para o widget poder abrir no local correto
+                    const finalRect = bubble.getBoundingClientRect();
+                    const widgetWidth = widget.offsetWidth;
+                    const widgetHeight = widget.offsetHeight;
+
+                    // Se a bolha foi movida
+                    if (Math.abs(initialX - finalRect.left) > 5 || Math.abs(initialY - finalRect.top) > 5) {
+                        // Calcula a posição fixa relativa para CSS (fixed position)
+                        const finalLeft = finalRect.left;
+                        const finalBottom = window.innerHeight - finalRect.bottom;
+
+                        // Atualiza as propriedades CSS fixas (left e bottom)
+                        bubble.style.left = `${finalLeft}px`;
+                        bubble.style.bottom = `${finalBottom}px`;
+                        bubble.style.right = 'auto';
+                        bubble.style.top = 'auto';
+                        bubble.style.transform = 'none'; // Remove o transform para usar left/bottom
+
+                        // Reposiciona o widget sobre a bolha
+                        widget.style.left = `${finalLeft}px`;
+                        widget.style.bottom = `${finalBottom + bubble.offsetHeight + 20}px`;
+                        widget.style.right = 'auto';
+                        widget.style.top = 'auto';
+                        
+                        // Garante que o widget não saia da tela
+                        if (finalLeft + widgetWidth > window.innerWidth) {
+                            widget.style.left = `${window.innerWidth - widgetWidth - 10}px`;
+                        }
+                        if (finalRect.bottom + widgetHeight + bubble.offsetHeight > window.innerHeight) {
+                            widget.style.bottom = 'auto';
+                            widget.style.top = `${finalRect.top - widgetHeight - 20}px`;
+                        }
+                    }
+
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onEnd);
+                    document.removeEventListener('touchmove', onMove);
+                    document.removeEventListener('touchend', onEnd);
+                };
+
+                // Inicia o arrasto
+                bubble.addEventListener('mousedown', onDown);
+                bubble.addEventListener('touchstart', onDown, { passive: false });
+            }
+            // ==========================================
+            
+            addEventListeners() {
+                this.elements.toggle.addEventListener('click', () => this.toggleChat());
+                this.elements.close.addEventListener('click', () => this.toggleChat());
+                this.elements.send.addEventListener('click', () => this.handleUserMessage());
+                this.elements.input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.handleUserMessage();
+                });
+            }
+
+            toggleChat() {
+                this.isOpen = !this.isOpen;
+                this.elements.widget.classList.toggle('active', this.isOpen);
+                this.elements.badge.style.display = 'none';
+                
+                if (this.isOpen) {
+                    // Corrigido para não abrir teclado se já houver outro modal aberto (boa UX)
+                    const modalOpen = document.getElementById('cartModal').classList.contains('open') || document.getElementById('productDetailModal').classList.contains('open');
+                    if (!modalOpen) {
+                        setTimeout(() => this.elements.input.focus(), 300);
+                    }
+                    
+                    if (!this.hasOpened) {
+                        this.hasOpened = true;
+                        setTimeout(() => {
+                            this.botReply(`Fala! 👋<br><br>Sou o **Thiago**, especialista em hardware, games, acessórios e produtos de informática aqui da Atomic Games.<br><br>Já tô com o catálogo atualizado e pronto pra te dar aquela força na escolha certa. 😎<br><br>Quer montar ou melhorar seu setup, tá procurando algo específico ou só dando uma olhada?`);
+                        }, 400); 
+                    }
+                }
+            }
+
+            async handleUserMessage() {
+                const rawText = this.elements.input.value.trim();
+                if (!rawText) return;
+
+                this.elements.input.value = '';
+                this.appendMessage(rawText, 'user');
+                
+                const normalizedText = TextNormalizerChat.normalize(rawText);
+                
+                this.elements.statusDot.classList.add('typing');
+                const loadingMsg = this.appendMessage('<i class="fas fa-ellipsis-h"></i>', 'bot', true);
+                
+                await new Promise(r => setTimeout(r, 600 + Math.random() * 500));
+                
+                loadingMsg.remove();
+                this.elements.statusDot.classList.remove('typing');
+                
+                const response = this.generateResponse(normalizedText);
+                this.botReply(response.text, response.products);
+            }
+
+            generateResponse(text) {
+                const lower = text.toLowerCase();
+                const terms = lower.split(' ').filter(t => t.length > 2); 
+
+                let budget = null;
+                const budgetMatch = lower.match(/(?:r\$\s*)?(\d{1,5})(?:k|\s*mil|\s*reais)?/);
+                
+                if (budgetMatch) {
+                    let rawVal = parseFloat(budgetMatch[1].replace('k', '000'));
+                    let hasCurrencySymbol = lower.includes('r$') || lower.includes('reais') || lower.includes('mil') || lower.includes('k');
+                    
+                    if (hasCurrencySymbol) {
+                        budget = (rawVal < 100 && (lower.includes('k') || lower.includes('mil'))) ? rawVal * 1000 : rawVal;
+                    } else {
+                        const isProductNumber = /\b(play|iphone|galaxy|windows|ryzen|core|pixel|rtx|gtx|rx|ps|xbox)\s*\d+/.test(lower);
+                        if (rawVal >= 100 && !isProductNumber) {
+                            budget = rawVal;
+                        }
+                    }
+                }
+
+                let found = chatCatalogoGlobal.filter(p => {
+                    const pName = p.nome.toLowerCase();
+                    const nameMatch = pName.includes(lower) || p.tags.some(tag => lower.includes(tag));
+                    const priceMatch = budget ? p.preco <= (budget * 1.2) : true;
+                    
+                    let safetyCheck = true;
+                    if (terms.length > 0 && !budget) {
+                        const keyTerms = terms.filter(t => !['quero', 'comprar', 'preço', 'valor', 'quanto', 'custa', 'tem', 'voce', 'playstation', 'play'].includes(t));
+                        if (keyTerms.length > 0) {
+                             safetyCheck = keyTerms.some(term => pName.includes(term) || p.tags.some(t => t.includes(term)));
+                        }
+                    }
+                    return nameMatch && priceMatch && safetyCheck;
+                });
+
+                if (lower.match(/^(oi|ola|e ai|fala|salve)/)) return { text: "E aí! Tudo certo? Manda a braba, o que você precisa pro PC hoje?" };
+                
+                if (found.length > 0) {
+                    found.sort((a, b) => b.preco - a.preco); 
+                    return { text: `Achei essas opções aqui que combinam com o que você pediu:`, products: found.slice(0, 3) };
+                }
+
+                if (budget) {
+                    return { text: `Puts, com **R$ ${budget.toLocaleString('pt-BR', {minimumFractionDigits: 2})}** tá difícil achar o que você quer no estoque agora... Tenta aumentar um pouco o budget ou ver outro modelo?` };
+                } else if (lower.includes('controle') || lower.includes('gamepad')) {
+                    return { text: "Poxa, tô sem esse controle específico em estoque no momento. Mas costumamos receber reposição toda semana! Tenta buscar por 'DualSense' ou 'Xbox Controller' para ver os modelos mais populares." };
+                }
+                
+                return { text: "Não entendi muito bem. Você tá procurando alguma peça específica (tipo GPU, CPU, Controle) ou quer uma ajuda pra montar o PC?" };
+            }
+
+            appendMessage(text, sender, isTemp = false) {
+                const div = document.createElement('div');
+                div.className = `atomic-msg ${sender}`;
+                div.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+                this.elements.body.appendChild(div);
+                this.elements.body.scrollTop = this.elements.body.scrollHeight;
+                return div;
+            }
+
+            botReply(text, products = []) {
+                this.appendMessage(text, 'bot');
+                if (products.length > 0) {
+                    products.forEach(p => {
+                        const card = document.createElement('div');
+                        card.className = 'atomic-product-card';
+                        let imgUrl = p.imagem || 'https://via.placeholder.com/300x150?text=Sem+Imagem'; 
+                        
+                        card.innerHTML = `
+                            <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/300x150?text=Sem+Imagem'" alt="${p.nome}">
+                            <div class="ap-name">${p.nome}</div>
+                            <div class="ap-price">R$ ${p.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                            <div class="ap-desc">${p.descricao}</div>
+                        `;
+                        // Ação de clique: abre detalhes do produto no site principal
+                        card.onclick = () => {
+                            // Tenta encontrar o ID no catálogo principal para abrir o modal de detalhes
+                            const siteProduct = allProducts.find(ap => ap.name === p.nome || ap.id.endsWith(p.id.split('-')[1]));
+                            if (siteProduct && typeof window.showProductDetail === 'function') {
+                                window.showProductDetail(siteProduct.id);
+                                this.toggleChat(); // Fecha o chat para focar no produto
+                            } else {
+                                // Fallback: abre o link do produto no WhatsApp se o modal não for encontrado
+                                const whatsappMsg = encodeURIComponent(`Olá, tenho interesse no produto: ${p.nome} (R$ ${p.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}). Poderia me dar mais detalhes?`);
+                                window.open(`https://wa.me/5521995969378?text=${whatsappMsg}`, '_blank', 'noopener,noreferrer');
+                            }
+                        };
+                        this.elements.body.appendChild(card);
+                    });
+                    this.elements.body.scrollTop = this.elements.body.scrollHeight;
+                }
+            }
+        }
+
+        window.addEventListener('load', () => new ThiagoChatbot());
     </script>
 </body>
 </html>
