@@ -2693,7 +2693,7 @@
     <!-- ==================================================================== -->
     <script>
         /**
-         * THIAGO CHATBOT - LÓGICA DE INTEGRAÇÃO v6.1 (Com Drag and Drop)
+         * THIAGO CHATBOT - LÓGICA DE INTEGRAÇÃO v6.2 (Drag and Drop fix)
          * Integrado ao site principal da Atomic Games.
          */
 
@@ -2823,29 +2823,48 @@
             }
             
             // ==========================================
-            // DRAG AND DROP FUNCTIONALITY (NOVO)
+            // DRAG AND DROP FUNCTIONALITY (FIXED)
             // ==========================================
             setupDragAndDrop() {
                 const bubble = this.elements.toggle;
-                let isDragging = false;
-                let offset = { x: 0, y: 0 };
-                let initialX, initialY;
                 const widget = this.elements.widget;
+                let isDragging = false;
+                
+                let startX, startY;
+                let initialLeft, initialBottom; // Posição do mouse no início
+                let bubbleLeft, bubbleBottom; // Posição da bolha no início
+                
+                const getCoords = (e) => e.touches ? e.touches[0] : e;
                 
                 const onDown = (e) => {
-                    if (this.isOpen) return; // Não permite arrastar a bolha se o chat estiver aberto
-                    
-                    e = e.touches ? e.touches[0] : e;
+                    if (this.isOpen) return;
+                    e = getCoords(e);
                     
                     isDragging = true;
-                    initialX = e.clientX;
-                    initialY = e.clientY;
+                    bubble.style.transition = 'none'; // Desliga transições
 
-                    // Calcula o offset do mouse/toque em relação à bolha
-                    offset.x = initialX - bubble.offsetLeft;
-                    offset.y = initialY - bubble.offsetTop;
+                    // 1. Sincroniza a posição visual (transform) com a posição CSS (left/bottom)
+                    const rect = bubble.getBoundingClientRect();
+                    
+                    // Usa a posição atual da bolha no viewport
+                    bubbleLeft = rect.left;
+                    bubbleBottom = window.innerHeight - rect.bottom;
+                    
+                    // Aplica a posição atual como a nova posição fixa (removendo transform)
+                    bubble.style.left = `${bubbleLeft}px`;
+                    bubble.style.bottom = `${bubbleBottom}px`;
+                    bubble.style.transform = 'none'; 
+                    bubble.style.right = 'auto';
+                    bubble.style.top = 'auto';
 
-                    bubble.style.transition = 'none'; // Desliga transições durante o arrasto
+                    // 2. Guarda a posição inicial do clique (mouse/touch)
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // 3. Guarda a posição inicial da bolha (que já está sincronizada)
+                    initialLeft = bubbleLeft;
+                    initialBottom = bubbleBottom;
+
                     document.addEventListener('mousemove', onMove);
                     document.addEventListener('mouseup', onEnd);
                     document.addEventListener('touchmove', onMove, { passive: false });
@@ -2854,22 +2873,26 @@
 
                 const onMove = (e) => {
                     if (!isDragging) return;
-                    e.preventDefault(); // Evita rolagem na tela sensível ao toque
+                    e.preventDefault();
                     
-                    e = e.touches ? e.touches[0] : e;
+                    e = getCoords(e);
+
+                    const deltaX = e.clientX - startX;
+                    const deltaY = startY - e.clientY; // Y é invertido (bottom)
                     
-                    let newX = e.clientX - offset.x;
-                    let newY = e.clientY - offset.y;
+                    let newLeft = initialLeft + deltaX;
+                    let newBottom = initialBottom + deltaY;
                     
-                    // Limita a bolha dentro da viewport
+                    // Limites da tela
                     const maxX = window.innerWidth - bubble.offsetWidth;
                     const maxY = window.innerHeight - bubble.offsetHeight;
                     
-                    newX = Math.min(Math.max(0, newX), maxX);
-                    newY = Math.min(Math.max(0, newY), maxY);
+                    newLeft = Math.min(Math.max(0, newLeft), maxX);
+                    newBottom = Math.min(Math.max(0, newBottom), maxY);
 
-                    // Aplica a nova posição via `transform` (mais performático)
-                    bubble.style.transform = `translate(${newX}px, ${newY}px)`;
+                    // Aplica nova posição diretamente
+                    bubble.style.left = `${newLeft}px`;
+                    bubble.style.bottom = `${newBottom}px`;
                 };
 
                 const onEnd = () => {
@@ -2878,48 +2901,61 @@
                     
                     // Reativa transições
                     bubble.style.transition = 'box-shadow 0.3s ease, transform 0.1s ease'; 
+                    
+                    // Posições finais da bolha
+                    const finalLeft = parseFloat(bubble.style.left.replace('px', ''));
+                    const finalBottom = parseFloat(bubble.style.bottom.replace('px', ''));
 
-                    // Salva a posição final para o widget poder abrir no local correto
-                    const finalRect = bubble.getBoundingClientRect();
+                    // --- Posicionamento do Widget (Janela de Chat) ---
+                    
+                    // 1. Define a posição base do widget acima e alinhada à esquerda da bolha
+                    let widgetLeft = finalLeft;
+                    let widgetBottom = finalBottom + bubble.offsetHeight + 20;
+
+                    widget.style.right = 'auto'; // Garante reset do right
+                    widget.style.top = 'auto';   // Garante reset do top
+
+                    widget.style.left = `${widgetLeft}px`;
+                    widget.style.bottom = `${widgetBottom}px`;
+                    
+                    // 2. Verifica se o widget sai da tela (ajusta para dentro)
+                    
+                    // Reposiciona o widget para garantir que fique visível
                     const widgetWidth = widget.offsetWidth;
                     const widgetHeight = widget.offsetHeight;
-
-                    // Se a bolha foi movida
-                    if (Math.abs(initialX - finalRect.left) > 5 || Math.abs(initialY - finalRect.top) > 5) {
-                        // Calcula a posição fixa relativa para CSS (fixed position)
-                        const finalLeft = finalRect.left;
-                        const finalBottom = window.innerHeight - finalRect.bottom;
-
-                        // Atualiza as propriedades CSS fixas (left e bottom)
-                        bubble.style.left = `${finalLeft}px`;
-                        bubble.style.bottom = `${finalBottom}px`;
-                        bubble.style.right = 'auto';
-                        bubble.style.top = 'auto';
-                        bubble.style.transform = 'none'; // Remove o transform para usar left/bottom
-
-                        // Reposiciona o widget sobre a bolha
-                        widget.style.left = `${finalLeft}px`;
-                        widget.style.bottom = `${finalBottom + bubble.offsetHeight + 20}px`;
-                        widget.style.right = 'auto';
-                        widget.style.top = 'auto';
-                        
-                        // Garante que o widget não saia da tela
-                        if (finalLeft + widgetWidth > window.innerWidth) {
-                            widget.style.left = `${window.innerWidth - widgetWidth - 10}px`;
-                        }
-                        if (finalRect.bottom + widgetHeight + bubble.offsetHeight > window.innerHeight) {
-                            widget.style.bottom = 'auto';
-                            widget.style.top = `${finalRect.top - widgetHeight - 20}px`;
-                        }
+                    
+                    // Ajuste horizontal (se a janela sair do lado direito)
+                    if (finalLeft + widgetWidth > window.innerWidth) {
+                        widget.style.left = `${window.innerWidth - widgetWidth - 15}px`;
+                    } else if (finalLeft < 0) {
+                         // Ajuste horizontal (se a janela sair do lado esquerdo, embora já limitado pelo onMove)
+                        widget.style.left = '15px';
                     }
 
+                    // Ajuste vertical (se a janela sair do topo)
+                    if (widgetBottom + widgetHeight > window.innerHeight) {
+                        // Flipa a janela para a parte de cima da tela
+                        widget.style.bottom = 'auto';
+                        widget.style.top = `${window.innerHeight - finalBottom - widgetHeight - bubble.offsetHeight - 30}px`; 
+                        
+                        // Garante que não fique muito colado ao topo
+                        if (widget.offsetTop < 10) {
+                            widget.style.top = '10px';
+                        }
+
+                    } else if (widgetBottom < 0) {
+                         // Se a bolha foi arrastada para baixo demais (embora já limitado pelo onMove)
+                        widget.style.bottom = '10px';
+                        widget.style.top = 'auto';
+                    }
+
+                    // Remove listeners de arrasto
                     document.removeEventListener('mousemove', onMove);
                     document.removeEventListener('mouseup', onEnd);
                     document.removeEventListener('touchmove', onMove);
                     document.removeEventListener('touchend', onEnd);
                 };
 
-                // Inicia o arrasto
                 bubble.addEventListener('mousedown', onDown);
                 bubble.addEventListener('touchstart', onDown, { passive: false });
             }
