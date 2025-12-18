@@ -44,7 +44,6 @@
         
         body { 
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            /* CORREÇÃO 1: Garante que não haja overflow horizontal, que causa bugs no iOS */
             overflow-x: hidden; 
             line-height: 1.6;
         }
@@ -120,7 +119,6 @@
             -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
         }
         
-        /* === CORREÇÃO CRÍTICA PARA SELECTS NO MODO ESCURO === */
         .dark select option {
             background-color: #111827; 
             color: #f1f5f9;
@@ -483,7 +481,6 @@
             opacity: 0.8;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform: scale(1.05);
-            /* CORREÇÃO 2: Adicionada propriedade para melhor performance em mobile */
             will-change: transform, opacity;
         }
         .video-facade:hover img {
@@ -740,8 +737,8 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s;
-            white-space: nowrap; /* Essential for mobile tray */
-            flex-shrink: 0; /* Essential for mobile tray */
+            white-space: nowrap; 
+            flex-shrink: 0;
         }
         .filter-btn.active {
             background: var(--gradient-gold);
@@ -769,245 +766,293 @@
             z-index: 1;
         }
 
+        /* === ATOMIC CHAT WIDGET CSS === */
+        #atomic-chat-widget {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 9999;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .chat-bubble {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-gold);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            z-index: 2;
+        }
+        .chat-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+        .chat-bubble i {
+            font-size: 32px;
+            color: black;
+        }
+
+        .chat-window {
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            width: 350px;
+            height: 500px;
+            max-height: 70vh;
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            transform-origin: bottom left;
+            transform: scale(0);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+        .light .chat-window {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+        }
+        .dark .chat-window {
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(20px);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .chat-window.open {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .chat-header {
+            padding: 16px;
+            background: var(--gradient-gold);
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+        
+        .chat-input-area {
+            padding: 12px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            gap: 8px;
+        }
+        .dark .chat-input-area { border-color: rgba(255,255,255,0.1); }
+        
+        .chat-input {
+            flex-grow: 1;
+            padding: 10px 16px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .light .chat-input { background: #f1f5f9; color: #0f172a; }
+        .dark .chat-input { background: #1e293b; color: #f1f5f9; }
+        .chat-input:focus { border-color: #FFD700; }
+        
+        .chat-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-gold);
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: none;
+        }
+        .chat-send-btn:hover { transform: scale(1.1); }
+        .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Message Bubbles */
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            animation: fade-in-up 0.3s ease;
+        }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.7);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .dark .message.bot {
+            background: rgba(30, 41, 59, 0.8);
+            color: #f1f5f9;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: var(--gradient-gold);
+            color: black;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.2);
+            font-weight: 500;
+        }
+        
+        /* Action Button inside Chat */
+        .chat-action-btn {
+            display: block;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #25D366; /* WhatsApp Green */
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .chat-action-btn:hover { transform: scale(1.02); }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 14px;
+            align-self: flex-start;
+            width: fit-content;
+        }
+        .dark .typing-indicator { background: rgba(30, 41, 59, 0.5); }
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #64748b;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
         /* === RESPONSIVE MOBILE ENHANCEMENTS === */
         @media (max-width: 768px) {
-            /* Hero Section Mobile */
-            .hero-section { 
-                min-height: auto; 
-                padding-top: 0; 
-                padding-bottom: 1.5rem; 
-            }
+            /* Existing Mobile CSS ... */
+            .hero-section { min-height: auto; padding-top: 0; padding-bottom: 1.5rem; }
+            .product-img-box { height: 160px; padding: 16px; }
+            .btn-primary, .btn-secondary { padding: 0.875rem 1.5rem; font-size: 0.9rem; min-height: 48px; }
+            .filter-btn { padding: 0.625rem 1rem; font-size: 0.75rem; }
+            .product-card button[aria-label*="Adicionar"] { width: 44px !important; height: 44px !important; min-width: 44px; }
+            .product-card { border-radius: 16px; }
+            .product-card .p-4 { padding: 12px !important; }
+            .product-card h3 { font-size: 0.8rem; line-height: 1.3; }
+            .product-card .text-gradient { font-size: 0.95rem; }
+            .cart-modal { max-width: 100%; border-left: none; }
+            .toast-container { bottom: 80px; left: 16px; right: 16px; transform: none; }
+            .toast { padding: 12px 16px; font-size: 0.85rem; border-radius: 12px; }
+            #categoryFilters { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 8px; margin-bottom: 1rem; mask-image: linear-gradient(to right, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%); }
+            #categoryFilters::-webkit-scrollbar { display: none; }
+            section { padding-top: 3rem; padding-bottom: 3rem; }
+            .bento-card { border-radius: 20px; }
+            #serviceForm input, #serviceForm select, #searchInput { font-size: 16px; }
+            .stat-card { padding: 1.25rem !important; }
+            .stat-card p.font-black { font-size: 1.75rem !important; }
+            .review-card { padding: 1rem; }
+            .review-card blockquote { font-size: 0.875rem; }
+            .map-container { height: 250px; }
+            .bento-card summary, .bento-card .text-muted { padding: 1rem !important; }
+            footer { padding-top: 3rem; padding-bottom: 2rem; }
+            .mobile-menu { width: 85%; max-width: 320px; }
             
-            /* Smaller product images on mobile */
-            .product-img-box { 
-                height: 160px; 
-                padding: 16px;
-            }
+            /* === ADJUSTED BACK TO TOP FOR MOBILE === */
+            #backToTop { bottom: 20px; right: 20px; left: auto; width: 48px; height: 48px; }
             
-            /* Better touch targets */
-            .btn-primary, .btn-secondary {
-                padding: 0.875rem 1.5rem;
-                font-size: 0.9rem;
-                min-height: 48px;
-            }
-            
-            /* Improved filter buttons for mobile */
-            .filter-btn {
-                padding: 0.625rem 1rem;
-                font-size: 0.75rem;
-            }
-            
-            /* Larger touch targets for add to cart */
-            .product-card button[aria-label*="Adicionar"] {
-                width: 44px !important;
-                height: 44px !important;
-                min-width: 44px;
-            }
-            
-            /* Mobile-friendly cards spacing */
-            .product-card {
-                border-radius: 16px;
-            }
-            .product-card .p-4 {
-                padding: 12px !important;
-            }
-            
-            /* Better text sizing on mobile */
-            .product-card h3 {
-                font-size: 0.8rem;
-                line-height: 1.3;
-            }
-            .product-card .text-gradient {
-                font-size: 0.95rem;
-            }
-            
-            /* Mobile Cart Modal */
-            .cart-modal {
-                max-width: 100%;
-                border-left: none;
-            }
-            
-            /* Mobile toast positioning */
-            .toast-container {
-                bottom: 80px;
-                left: 16px;
-                right: 16px;
-                transform: none;
-            }
-            .toast {
-                padding: 12px 16px;
-                font-size: 0.85rem;
-                border-radius: 12px;
-            }
-            
-            /* Swipe-friendly tray (bandeja) */
-            #categoryFilters {
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-                padding-bottom: 8px;
-                margin-bottom: 1rem;
-                mask-image: linear-gradient(to right, black 85%, transparent 100%);
-                -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
-            }
-            #categoryFilters::-webkit-scrollbar {
-                display: none;
-            }
-            
-            /* Better spacing for mobile sections */
-            section {
-                padding-top: 3rem;
-                padding-bottom: 3rem;
-            }
-            
-            /* Mobile-optimized bento cards */
-            .bento-card {
-                border-radius: 20px;
-            }
-            
-            /* Mobile service form */
-            #serviceForm input,
-            #serviceForm select,
-            /* CORREÇÃO 3: Adicionado input search para prevenir zoom no iOS */
-            #searchInput { 
-                font-size: 16px; /* Prevents zoom on iOS */
-            }
-            
-            /* Stat cards grid on mobile */
-            .stat-card {
-                padding: 1.25rem !important;
-            }
-            .stat-card p.font-black {
-                font-size: 1.75rem !important;
-            }
-            
-            /* Mobile reviews */
-            .review-card {
-                padding: 1rem;
-            }
-            .review-card blockquote {
-                font-size: 0.875rem;
-            }
-            
-            /* Location section mobile */
-            .map-container {
-                height: 250px;
-            }
-            
-            /* FAQ on mobile */
-            .bento-card summary,
-            .bento-card .text-muted {
-                padding: 1rem !important;
-            }
-            
-            /* Footer mobile */
-            footer {
-                padding-top: 3rem;
-                padding-bottom: 2rem;
-            }
-            
-            /* Mobile menu improvements */
-            .mobile-menu {
-                width: 85%;
-                max-width: 320px;
-            }
-            
-            /* Back to top button mobile position */
-            #backToTop {
+            /* === CHAT WIDGET MOBILE === */
+            #atomic-chat-widget {
                 bottom: 20px;
-                left: 20px; /* Alterado de right para left */
-                right: auto;
-                width: 48px;
-                height: 48px;
+                left: 20px;
             }
-            
-            /* Trust badges on mobile */
-            .hero-section [role="list"] {
-                gap: 0.75rem;
+            .chat-window {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                max-height: 100vh;
+                border-radius: 0;
+                transform-origin: bottom left;
+                z-index: 10000;
             }
-            .hero-section [role="listitem"] {
-                font-size: 0.75rem;
+            .chat-window.open {
+                display: flex; /* Ensure it overrides any other display prop */
             }
-            .hero-section [role="listitem"] .w-8 {
-                width: 28px;
-                height: 28px;
-            }
-            
-            /* Charts responsive */
-            .chart-box {
-                height: 220px;
-            }
-            
-            /* Product detail modal on mobile */
-            .modal-base {
-                width: 95%;
-                max-height: 90vh;
-            }
-            .modal-base .grid {
-                grid-template-columns: 1fr;
-            }
-            .modal-base figure {
-                min-height: 200px;
-            }
-            #modalProductName {
-                font-size: 1.5rem;
-            }
-            #modalProductPrice {
-                font-size: 1.75rem;
-            }
+
+            .hero-section [role="list"] { gap: 0.75rem; }
+            .hero-section [role="listitem"] { font-size: 0.75rem; }
+            .hero-section [role="listitem"] .w-8 { width: 28px; height: 28px; }
+            .chart-box { height: 220px; }
+            .modal-base { width: 95%; max-height: 90vh; }
+            .modal-base .grid { grid-template-columns: 1fr; }
+            .modal-base figure { min-height: 200px; }
+            #modalProductName { font-size: 1.5rem; }
+            #modalProductPrice { font-size: 1.75rem; }
         }
         
         /* Extra small devices */
         @media (max-width: 380px) {
-            .product-img-box {
-                height: 140px;
-            }
-            .product-card h3 {
-                font-size: 0.75rem;
-            }
-            .product-card .text-gradient {
-                font-size: 0.85rem;
-            }
-            .filter-btn {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.7rem;
-            }
-            h1 {
-                font-size: 1.75rem !important;
-            }
-            h2 {
-                font-size: 1.5rem !important;
-            }
+            .product-img-box { height: 140px; }
+            .product-card h3 { font-size: 0.75rem; }
+            .product-card .text-gradient { font-size: 0.85rem; }
+            .filter-btn { padding: 0.5rem 0.75rem; font-size: 0.7rem; }
+            h1 { font-size: 1.75rem !important; }
+            h2 { font-size: 1.5rem !important; }
         }
         
         /* Tablet optimizations */
         @media (min-width: 769px) and (max-width: 1024px) {
-            .product-img-box {
-                height: 200px;
-            }
-            .hero-section {
-                min-height: 80vh;
-            }
+            .product-img-box { height: 200px; }
+            .hero-section { min-height: 80vh; }
         }
         
         /* Safe area for notched phones */
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .cart-modal > div:last-child {
-                padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
-            }
-            .mobile-menu > div {
-                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
-            }
-            /* CORREÇÃO 4: Aplica safe-area-inset-bottom para botão Back To Top */
-            #backToTop {
-                bottom: calc(20px + env(safe-area-inset-bottom));
-            }
-            /* CORREÇÃO 4: Aplica safe-area-inset-bottom para toasts */
-            .toast-container {
-                bottom: calc(80px + env(safe-area-inset-bottom));
-            }
+            .cart-modal > div:last-child { padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }
+            .mobile-menu > div { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+            #backToTop { bottom: calc(20px + env(safe-area-inset-bottom)); }
+            .toast-container { bottom: calc(80px + env(safe-area-inset-bottom)); }
         }
 
         /* === REDUCED MOTION === */
@@ -1028,12 +1073,52 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
 
-    <!-- Back To Top (Agora na Esquerda) -->
+    <!-- Back To Top (ALTERADO: Movido para a Direita para não conflitar com o Chatbot na Esquerda) -->
     <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" id="backToTop" 
-            class="fixed bottom-6 left-6 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold"
+            class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold"
             aria-label="Voltar ao topo da página">
         <i class="ph-bold ph-arrow-up text-xl"></i>
     </button>
+
+    <!-- NEW ATOMIC CHATBOT WIDGET -->
+    <div id="atomic-chat-widget">
+        <!-- Chat Window -->
+        <div id="chatWindow" class="chat-window">
+            <div class="chat-header">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-black flex items-center justify-center">
+                        <span class="font-bold text-yellow-500">TG</span>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Thiago - Atomic</p>
+                        <p class="text-xs opacity-80">Especialista Virtual</p>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="p-2 hover:bg-white/20 rounded-lg transition" aria-label="Fechar chat">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+            
+            <div id="chatMessages" class="chat-messages">
+                <!-- Messages will appear here -->
+                <div class="message bot">
+                    Olá! Eu sou o Thiago, especialista da Atomic Games. Como posso te ajudar hoje?
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." onkeypress="handleChatInput(event)">
+                <button id="sendBtn" onclick="sendMessage()" class="chat-send-btn" aria-label="Enviar mensagem">
+                    <i class="ph-bold ph-paper-plane-right text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Floating Bubble -->
+        <div class="chat-bubble pulse-glow" onclick="toggleChat()">
+            <i class="ph-fill ph-chat-teardrop-text"></i>
+        </div>
+    </div>
 
     <!-- Product Detail Modal -->
     <div id="productDetailOverlay" class="modal-overlay" onclick="closeProductDetail()" aria-hidden="true"></div>
@@ -1368,25 +1453,6 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-2">Nenhum produto encontrado</h3>
                     <p class="text-muted">Tente buscar por outro termo</p>
-                </div>
-
-                <!-- Human Support CTA -->
-                <div class="mt-20 bento-card p-10 md:p-14 text-center relative overflow-hidden reveal noise-overlay">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-yellow-500/20 to-transparent rounded-full blur-3xl" aria-hidden="true"></div>
-                    <div class="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-orange-500/20 to-transparent rounded-full blur-3xl" aria-hidden="true"></div>
-                    <div class="relative z-10">
-                        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-xl glow-gold">
-                            <i class="ph-fill ph-headset text-4xl text-black"></i>
-                        </div>
-                        <h3 class="text-2xl md:text-3xl font-bold mb-3">Não encontrou o que procura?</h3>
-                        <p class="text-muted mb-8 max-w-md mx-auto text-lg">Temos muito mais itens na loja física. Fale direto com um <strong class="text-base">atendente humano</strong>.</p>
-                        <a href="https://wa.me/5521995969378?text=Ol%C3%A1%2C%20n%C3%A3o%20achei%20o%20produto%20que%20eu%20queria%20no%20site.%20Pode%20me%20ajudar%3F" 
-                            target="_blank" rel="noopener noreferrer"
-                            class="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-10 py-5 rounded-2xl font-bold transition-all shadow-xl hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-1">
-                            <i class="ph-bold ph-whatsapp-logo text-2xl"></i>
-                            Falar com Atendente
-                        </a>
-                    </div>
                 </div>
             </div>
         </section>
@@ -1827,7 +1893,6 @@
         // === LOAD PRODUCTS FROM GITHUB (SITE PRINCIPAL) ===
         async function loadGamesFromGitHub() {
             try {
-                // CORREÇÃO 5: Adicionar Cache-Buster à URL de leitura
                 const cacheBuster = `?t=${Date.now()}`;
                 const fetchUrl = PRODUCTS_URL_BASE + cacheBuster;
                 
@@ -2007,8 +2072,6 @@
             cart.forEach(item => message += `• ${item.name} - ${item.price}\n`);
             message += `\n*Total: ${document.getElementById('cartTotal').textContent}*`;
             message += "\n\nComo prosseguir com pagamento/entrega?";
-            // Correção de Segurança: window.open já abre em nova aba, mas aqui garantimos o comportamento padrão.
-            // Para maior segurança, como é disparado por usuário, é seguro.
             window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
         }
 
@@ -2114,7 +2177,7 @@
             grid.appendChild(fragment);
         }
 
-        // === VIDEO LOADER (CORRIGIDO PARA ERRO 153/PLAY) ===
+        // === VIDEO LOADER ===
         window.loadVideo = () => {
             const facade = document.getElementById('videoFacade');
             const container = document.getElementById('videoContainer');
@@ -2122,7 +2185,6 @@
             facade.style.display = 'none';
             container.classList.remove('hidden');
             
-            // CORREÇÃO CRÍTICA: Removido &origin para evitar erro 153 em preview/local
             container.innerHTML = `<iframe class="w-full h-full" 
                 src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" 
                 title="Atomic Games Video"
@@ -2241,6 +2303,134 @@
             }
         }
 
+        // === ATOMIC CHATBOT LOGIC ===
+        const CHAT_API_URL = "https://atomic-thiago-backend.onrender.com/chat";
+        let isChatOpen = false;
+        let isChatLoading = false;
+
+        window.toggleChat = () => {
+            const chatWindow = document.getElementById('chatWindow');
+            isChatOpen = !isChatOpen;
+            
+            if (isChatOpen) {
+                chatWindow.classList.add('open');
+                setTimeout(() => document.getElementById('chatInput').focus(), 300);
+            } else {
+                chatWindow.classList.remove('open');
+            }
+        }
+
+        window.handleChatInput = (e) => {
+            if (e.key === 'Enter') {
+                window.sendMessage();
+            }
+        }
+
+        function createMessageElement(text, type, actionLink = null) {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerHTML = text.replace(/\n/g, '<br>'); // Simple Markdown-ish break
+
+            // Convert markdown links [text](url) to HTML if simple
+            div.innerHTML = div.innerHTML.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="text-decoration:underline; font-weight:bold;">$1</a>');
+
+            if (actionLink) {
+                // Parse markdown link format from action_link if present: [Link Text](url)
+                const linkMatch = actionLink.match(/\[(.*?)\]\((.*?)\)/);
+                if (linkMatch) {
+                    const btn = document.createElement('a');
+                    btn.href = linkMatch[2];
+                    btn.textContent = linkMatch[1];
+                    btn.target = '_blank';
+                    btn.rel = 'noopener noreferrer';
+                    btn.className = 'chat-action-btn';
+                    div.appendChild(btn);
+                } else if (actionLink.startsWith('http')) {
+                    const btn = document.createElement('a');
+                    btn.href = actionLink;
+                    btn.textContent = "Clique aqui";
+                    btn.target = '_blank';
+                    btn.rel = 'noopener noreferrer';
+                    btn.className = 'chat-action-btn';
+                    div.appendChild(btn);
+                }
+            }
+            return div;
+        }
+
+        function createTypingIndicator() {
+            const div = document.createElement('div');
+            div.className = 'typing-indicator';
+            div.id = 'typingIndicator';
+            div.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            return div;
+        }
+
+        window.sendMessage = async () => {
+            const input = document.getElementById('chatInput');
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageText = input.value.trim();
+
+            if (!messageText || isChatLoading) return;
+
+            // 1. Add User Message
+            messagesContainer.appendChild(createMessageElement(messageText, 'user'));
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // 2. Add Typing Indicator
+            isChatLoading = true;
+            document.getElementById('sendBtn').disabled = true;
+            const typingInd = createTypingIndicator();
+            messagesContainer.appendChild(typingInd);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                // 3. Get Session ID
+                const sessionId = localStorage.getItem('atomic_chat_session');
+
+                // 4. Call API
+                const response = await fetch(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: messageText,
+                        session_id: sessionId || null
+                    })
+                });
+
+                const data = await response.json();
+
+                // 5. Remove Typing Indicator
+                typingInd.remove();
+
+                if (data.success) {
+                    // Save session ID
+                    if (data.session_id) {
+                        localStorage.setItem('atomic_chat_session', data.session_id);
+                    }
+
+                    // 6. Add Bot Response
+                    messagesContainer.appendChild(createMessageElement(data.response, 'bot', data.action_link));
+                } else {
+                    messagesContainer.appendChild(createMessageElement("Ops! Tive um problema técnico. Pode tentar novamente?", 'bot'));
+                }
+
+            } catch (error) {
+                typingInd.remove();
+                console.error("Chat Error:", error);
+                messagesContainer.appendChild(createMessageElement("Sem conexão com o servidor. Verifique sua internet.", 'bot'));
+            } finally {
+                isChatLoading = false;
+                document.getElementById('sendBtn').disabled = false;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
         // === INITIALIZATION ===
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -2295,7 +2485,6 @@
                 }
                 
                 const message = `*SOLICITAÇÃO DE REPARO (SITE)*\n\n👤 *Nome:* ${name}\n📱 *Tel:* ${phone}\n🎮 *Aparelho:* ${dev}\n⚠️ *Problema:* ${iss}\n\n_Vim pelo site e gostaria de um orçamento._`;
-                // Correção de Segurança: window.open com noopener,noreferrer
                 window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
             });
 
@@ -2325,26 +2514,11 @@
                     if (document.getElementById('cartModal').classList.contains('open')) toggleCart();
                     if (document.getElementById('mobileMenu').classList.contains('open')) toggleMobileMenu();
                     if (document.getElementById('productDetailModal').classList.contains('open')) closeProductDetail();
+                    if (isChatOpen) toggleChat();
                 }
             });
 
-            // === TYPEBOT INTEGRATION ===
-            const typebotInitScript = document.createElement("script");
-            typebotInitScript.type = "module";
-            typebotInitScript.innerHTML = `import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0/dist/web.js'
-
-            Typebot.initBubble({
-                typebot: "my-typebot-c22umex",
-                theme: {
-                    button: {
-                        backgroundColor: "#eeb720",
-                        customIconSrc: "https://s3.typebot.io/public/workspaces/cmj0hzi4m0005k1049pyejdzc/typebots/cmj2a3khs0003le044c22umex/bubble-icon?v=1765736400010",
-                    },
-                    chatWindow: { backgroundColor: "#F8F8F8" },
-                },
-            });
-            `;
-            document.body.append(typebotInitScript);
+            // === TYPEBOT REMOVED AS REQUESTED ===
         });
     </script>
 </body>
