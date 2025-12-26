@@ -26,13 +26,25 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Outros Scripts do Site Principal -->
+    <!-- Scripts Externos (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        /* === PERFORMANCE OPTIMIZATIONS === */
+        /* === CORE SETTINGS === */
+        :root {
+            --gold: #FFD700;
+            --gold-dark: #E6C200;
+            --orange: #FF8C00;
+            --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FFD700 100%);
+            --gradient-aurora: linear-gradient(135deg, #FFD700 0%, #FF6B35 25%, #F7931E 50%, #FFD700 75%, #FFA500 100%);
+            --glass-light: rgba(255, 255, 255, 0.7);
+            --glass-dark: rgba(17, 24, 39, 0.7);
+            --blur: 20px;
+            --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+        
         * { box-sizing: border-box; }
         
         html { 
@@ -48,7 +60,6 @@
             line-height: 1.6;
         }
 
-        /* Prevent body scroll when mobile chat is open */
         body.chat-open {
             overflow: hidden !important;
             position: fixed;
@@ -75,22 +86,7 @@
             z-index: 9999;
             transition: top 0.3s;
         }
-        .skip-link:focus {
-            top: 0;
-        }
-
-        /* === 2025 DESIGN SYSTEM === */
-        :root {
-            --gold: #FFD700;
-            --gold-dark: #E6C200;
-            --orange: #FF8C00;
-            --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FFD700 100%);
-            --gradient-aurora: linear-gradient(135deg, #FFD700 0%, #FF6B35 25%, #F7931E 50%, #FFD700 75%, #FFA500 100%);
-            --glass-light: rgba(255, 255, 255, 0.7);
-            --glass-dark: rgba(17, 24, 39, 0.7);
-            --blur: 20px;
-            --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
-        }
+        .skip-link:focus { top: 0; }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 10px; }
@@ -101,7 +97,7 @@
         }
         ::-webkit-scrollbar-thumb:hover { background: #FFD700; }
 
-        /* === COLOR THEMES === */
+        /* === THEMES === */
         .light .bg-base { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
         .light .bg-card { background: rgba(255, 255, 255, 0.8); }
         .light .bg-card-solid { background: #ffffff; }
@@ -126,12 +122,9 @@
             -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
         }
         
-        .dark select option {
-            background-color: #111827; 
-            color: #f1f5f9;
-        }
+        .dark select option { background-color: #111827; color: #f1f5f9; }
 
-        /* === GRADIENT MESH BACKGROUNDS === */
+        /* === ANIMATIONS & EFFECTS === */
         .mesh-gradient {
             position: fixed;
             inset: 0;
@@ -140,33 +133,23 @@
             pointer-events: none;
             contain: strict;
         }
-        .mesh-gradient::before {
+        .mesh-gradient::before, .mesh-gradient::after {
             content: '';
             position: absolute;
-            width: 50vw;
-            height: 50vw;
-            max-width: 600px;
-            max-height: 600px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
-            top: -10%;
-            right: -10%;
-            animation: float-slow 20s ease-in-out infinite;
             will-change: transform;
         }
+        .mesh-gradient::before {
+            width: 50vw; height: 50vw; max-width: 600px; max-height: 600px;
+            background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+            top: -10%; right: -10%;
+            animation: float-slow 20s ease-in-out infinite;
+        }
         .mesh-gradient::after {
-            content: '';
-            position: absolute;
-            width: 40vw;
-            height: 40vw;
-            max-width: 500px;
-            max-height: 500px;
-            border-radius: 50%;
+            width: 40vw; height: 40vw; max-width: 500px; max-height: 500px;
             background: radial-gradient(circle, rgba(255,140,0,0.2) 0%, transparent 70%);
-            bottom: 10%;
-            left: -10%;
+            bottom: 10%; left: -10%;
             animation: float-slow 25s ease-in-out infinite reverse;
-            will-change: transform;
         }
         
         @keyframes float-slow {
@@ -175,7 +158,6 @@
             66% { transform: translate(-20px, 20px) scale(0.95); }
         }
 
-        /* === TEXT GRADIENT 2025 === */
         .text-gradient {
             background: var(--gradient-aurora);
             background-size: 300% auto;
@@ -189,58 +171,38 @@
             50% { background-position: 100% center; }
         }
 
-        /* === GLOW EFFECTS === */
-        .glow-gold {
-            box-shadow: 
-                0 0 20px rgba(255, 215, 0, 0.3),
-                0 0 40px rgba(255, 215, 0, 0.1),
-                0 0 60px rgba(255, 215, 0, 0.05);
-        }
-        .glow-gold-intense {
-            box-shadow: 
-                0 0 30px rgba(255, 215, 0, 0.5),
-                0 0 60px rgba(255, 215, 0, 0.3),
-                0 0 100px rgba(255, 215, 0, 0.1);
-        }
+        .glow-gold { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.1), 0 0 60px rgba(255, 215, 0, 0.05); }
+        .glow-gold-intense { box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 0 0 60px rgba(255, 215, 0, 0.3), 0 0 100px rgba(255, 215, 0, 0.1); }
 
-        /* === REVEAL ANIMATIONS === */
         .reveal {
             opacity: 0;
             transform: translateY(40px);
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
             will-change: opacity, transform;
         }
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        
         .reveal-scale {
-            opacity: 0;
-            transform: scale(0.9);
+            opacity: 0; transform: scale(0.9);
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             will-change: opacity, transform;
         }
-        .reveal-scale.visible {
-            opacity: 1;
-            transform: scale(1);
-        }
+        .reveal-scale.visible { opacity: 1; transform: scale(1); }
 
-        /* === FLOAT ANIMATION === */
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(1deg); }
-        }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(1deg); } }
         .float { animation: float 6s ease-in-out infinite; }
 
-        /* === PULSE GLOW === */
         @keyframes pulse-glow {
             0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7), 0 4px 20px rgba(255, 215, 0, 0.3); }
             50% { box-shadow: 0 0 30px 10px rgba(255, 215, 0, 0.3), 0 4px 30px rgba(255, 215, 0, 0.5); }
         }
         .pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+        
+        @keyframes icon-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        .icon-bounce { animation: icon-bounce 2s ease-in-out infinite; }
 
-        /* === MODERN BUTTONS === */
+        /* === COMPONENTS === */
+        /* Buttons */
         .btn-primary {
             position: relative;
             background: var(--gradient-gold);
@@ -254,24 +216,13 @@
             box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
         }
         .btn-primary::before {
-            content: '';
-            position: absolute;
-            inset: 0;
+            content: ''; position: absolute; inset: 0;
             background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
-            transform: translateX(-100%);
-            transition: transform 0.6s;
+            transform: translateX(-100%); transition: transform 0.6s;
         }
-        .btn-primary:hover::before {
-            transform: translateX(100%);
-        }
-        .btn-primary:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.5);
-            background-position: right center;
-        }
-        .btn-primary:active {
-            transform: translateY(0) scale(0.98);
-        }
+        .btn-primary:hover::before { transform: translateX(100%); }
+        .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 30px rgba(255, 215, 0, 0.5); background-position: right center; }
+        .btn-primary:active { transform: translateY(0) scale(0.98); }
 
         .btn-secondary {
             position: relative;
@@ -284,21 +235,14 @@
             overflow: hidden;
         }
         .btn-secondary::before {
-            content: '';
-            position: absolute;
-            inset: 0;
+            content: ''; position: absolute; inset: 0;
             background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.1));
-            opacity: 0;
-            transition: opacity 0.3s;
+            opacity: 0; transition: opacity 0.3s;
         }
         .btn-secondary:hover::before { opacity: 1; }
-        .btn-secondary:hover {
-            border-color: #FFD700;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
-        }
+        .btn-secondary:hover { border-color: #FFD700; transform: translateY(-2px); box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2); }
 
-        /* === BENTO GRID CARDS === */
+        /* Cards */
         .bento-card {
             position: relative;
             background: var(--glass-light);
@@ -309,28 +253,13 @@
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             contain: layout style;
         }
-        .dark .bento-card {
-            background: var(--glass-dark);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-        .bento-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent 40%, rgba(255,215,0,0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.4s;
-            pointer-events: none;
-        }
-        .bento-card:hover::before { opacity: 1; }
+        .dark .bento-card { background: var(--glass-dark); border-color: rgba(255, 255, 255, 0.1); }
         .bento-card:hover {
             transform: translateY(-8px) scale(1.01);
             border-color: rgba(255, 215, 0, 0.3);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15),
-                        0 0 30px rgba(255, 215, 0, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), 0 0 30px rgba(255, 215, 0, 0.1);
         }
 
-        /* === PRODUCT CARDS 2025 === */
         .product-card {
             position: relative;
             border-radius: 24px;
@@ -338,77 +267,30 @@
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             contain: layout style paint;
         }
-        .product-card::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 24px;
-            padding: 2px;
-            background: linear-gradient(135deg, transparent 50%, rgba(255,215,0,0.5));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.4s;
-            pointer-events: none;
-        }
-        .product-card:hover::after { opacity: 1; }
         .product-card:hover {
             transform: translateY(-12px) scale(1.02);
-            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.25),
-                        0 0 40px rgba(255, 215, 0, 0.15);
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.25), 0 0 40px rgba(255, 215, 0, 0.15);
         }
 
         .product-img-box {
-            position: relative;
-            height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            overflow: hidden;
+            position: relative; height: 220px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px; overflow: hidden;
         }
-        .light .product-img-box {
-            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-        }
-        .dark .product-img-box {
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-        }
-        .product-img-box::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 30%;
-            background: radial-gradient(ellipse at center, rgba(255,215,0,0.2) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        .product-card:hover .product-img-box::before { opacity: 1; }
-        
+        .light .product-img-box { background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); }
+        .dark .product-img-box { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); }
         .product-img-box img {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain;
+            max-height: 100%; max-width: 100%; object-fit: contain;
             transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
             filter: drop-shadow(0 10px 30px rgba(0,0,0,0.15));
             cursor: pointer;
         }
-        .product-card:hover .product-img-box img {
-            transform: scale(1.15) rotate(-2deg);
-        }
+        .product-card:hover .product-img-box img { transform: scale(1.15) rotate(-2deg); }
 
-        /* === CATEGORY TAGS === */
+        /* Tags */
         .category-tag {
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 6px 12px;
-            border-radius: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            font-size: 0.65rem; font-weight: 800; padding: 6px 12px;
+            border-radius: 8px; text-transform: uppercase; letter-spacing: 0.08em;
             backdrop-filter: blur(10px);
         }
         .category-console { background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9)); color: white; }
@@ -416,366 +298,262 @@
         .category-acessorios { background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(139, 92, 246, 0.9)); color: white; }
         .category-hardware { background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9)); color: white; }
 
-        /* === NAV LINKS === */
-        .nav-link {
-            position: relative;
-            padding: 0.5rem 0;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
+        /* Navigation */
+        .nav-link { position: relative; padding: 0.5rem 0; font-weight: 600; transition: color 0.3s; }
         .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 3px;
-            background: var(--gradient-gold);
-            border-radius: 3px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            content: ''; position: absolute; bottom: 0; left: 50%;
+            width: 0; height: 3px; background: var(--gradient-gold);
+            border-radius: 3px; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             transform: translateX(-50%);
         }
-        .nav-link:hover::after { width: 100%; }
-        .nav-link:hover { color: #FFD700; }
-        .nav-link.active { color: #FFD700; }
-        .nav-link.active::after { width: 100%; }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .nav-link:hover, .nav-link.active { color: #FFD700; }
+        .nav-hidden { transform: translateY(-100%); }
 
-        /* === HERO SECTION === */
-        .hero-section {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-        }
+        /* Hero */
+        .hero-section { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
         @media (min-width: 768px) {
             .hero-section::before {
-                content: '';
-                position: absolute;
-                inset: 0;
+                content: ''; position: absolute; inset: 0;
                 background: url('https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp') center right / cover no-repeat;
                 z-index: 0;
             }
-            .light .hero-section::after {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(135deg, rgba(248,250,252,0.98) 0%, rgba(248,250,252,0.9) 40%, rgba(248,250,252,0.3) 100%);
-                z-index: 1;
+            .hero-section::after {
+                content: ''; position: absolute; inset: 0; z-index: 1;
             }
-            .dark .hero-section::after {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(135deg, rgba(3,7,18,0.98) 0%, rgba(3,7,18,0.9) 40%, rgba(3,7,18,0.3) 100%);
-                z-index: 1;
-            }
+            .light .hero-section::after { background: linear-gradient(135deg, rgba(248,250,252,0.98) 0%, rgba(248,250,252,0.9) 40%, rgba(248,250,252,0.3) 100%); }
+            .dark .hero-section::after { background: linear-gradient(135deg, rgba(3,7,18,0.98) 0%, rgba(3,7,18,0.9) 40%, rgba(3,7,18,0.3) 100%); }
         }
 
-        /* === VIDEO FACADE === */
+        /* Video Facade */
         .video-facade {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            cursor: pointer;
-            overflow: hidden;
+            position: relative; width: 100%; height: 100%; background: #000;
+            cursor: pointer; overflow: hidden;
         }
         .video-facade img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.8;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: scale(1.05);
-            will-change: transform, opacity;
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.8;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform: scale(1.05); will-change: transform, opacity;
         }
-        .video-facade:hover img {
-            opacity: 0.5;
-            transform: scale(1.1);
-            filter: blur(3px);
-        }
+        .video-facade:hover img { opacity: 0.5; transform: scale(1.1); filter: blur(3px); }
         .play-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
-            background: var(--gradient-gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80px; height: 80px; background: var(--gradient-gold);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
         }
-        .video-facade:hover .play-btn {
-            transform: translate(-50%, -50%) scale(1.15);
-            box-shadow: 0 0 60px rgba(255, 215, 0, 0.7);
-        }
+        .video-facade:hover .play-btn { transform: translate(-50%, -50%) scale(1.15); box-shadow: 0 0 60px rgba(255, 215, 0, 0.7); }
 
-        /* === MODALS & OVERLAYS === */
+        /* Modals & Overlays */
         .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 99;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.4s;
         }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
 
         .cart-modal {
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100%;
-            width: 100%;
-            max-width: 440px;
-            z-index: 100;
-            transform: translateX(100%);
+            position: fixed; top: 0; right: 0; height: 100%; width: 100%; max-width: 440px;
+            z-index: 100; transform: translateX(100%);
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
         .cart-modal.open { transform: translateX(0); }
 
         .modal-base {
-            position: fixed;
-            top: 50%;
-            left: 50%;
+            position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
-            opacity: 0;
-            pointer-events: none;
+            opacity: 0; pointer-events: none;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             z-index: 100;
         }
-        .modal-base.open {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translate(-50%, -50%) scale(1);
-        }
+        .modal-base.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 
-        /* === CART BADGE === */
+        /* Badges & Toasts */
         .badge {
-            position: absolute;
-            top: -6px;
-            right: -6px;
+            position: absolute; top: -6px; right: -6px;
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-            font-size: 0.65rem;
-            font-weight: 800;
-            min-width: 20px;
-            height: 20px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 6px;
-            animation: badge-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: white; font-size: 0.65rem; font-weight: 800;
+            min-width: 20px; height: 20px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 6px; animation: badge-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             border: 2px solid;
         }
         .light .badge { border-color: #ffffff; }
         .dark .badge { border-color: #0f172a; }
-        @keyframes badge-pop {
-            0% { transform: scale(0); }
-            70% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
+        @keyframes badge-pop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-        /* === TOAST NOTIFICATIONS === */
         .toast-container {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 200; display: flex; flex-direction: column; gap: 12px;
         }
         .toast {
-            padding: 16px 28px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            padding: 16px 28px; border-radius: 16px; font-weight: 700; font-size: 0.95rem;
+            display: flex; align-items: center; gap: 12px;
             animation: toast-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.4);
-            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px -15px rgba(0,0,0,0.4); backdrop-filter: blur(20px);
         }
-        @keyframes toast-in {
-            from { transform: translateY(100px) scale(0.8); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
-        }
-        .toast-success { 
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-            color: white;
-        }
-        .toast-error {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
-            color: white;
-        }
+        @keyframes toast-in { from { transform: translateY(100px) scale(0.8); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        .toast-success { background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95)); color: white; }
+        .toast-error { background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95)); color: white; }
 
-        /* === MOBILE MENU === */
+        /* Mobile Menu */
         .mobile-menu {
-            position: fixed;
-            inset: 0;
-            z-index: 90;
-            transform: translateX(-100%);
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: fixed; inset: 0; z-index: 90;
+            transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .mobile-menu.open { transform: translateX(0); }
-        
         .mobile-menu-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 89;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            z-index: 89; opacity: 0; pointer-events: none; transition: opacity 0.4s;
         }
         .mobile-menu-overlay.open { opacity: 1; pointer-events: auto; }
 
-        /* === STAT CARDS === */
-        .stat-card {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        /* Misc Components */
+        .stat-card { position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .stat-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2); }
         .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-gold);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.5s;
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: var(--gradient-gold); transform: scaleX(0); transform-origin: left; transition: transform 0.5s;
         }
         .stat-card:hover::before { transform: scaleX(1); }
-        .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2);
-        }
 
-        /* === SERVICE FEATURES === */
-        .service-feature {
-            padding: 1rem;
-            border-radius: 16px;
-            border: 1px solid transparent;
-            transition: all 0.4s;
-        }
-        .service-feature:hover {
-            transform: translateX(8px);
-            border-color: rgba(255, 215, 0, 0.3);
-            background: rgba(255, 215, 0, 0.05);
-        }
+        .service-feature { padding: 1rem; border-radius: 16px; border: 1px solid transparent; transition: all 0.4s; }
+        .service-feature:hover { transform: translateX(8px); border-color: rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.05); }
 
-        /* === REVIEW CARDS === */
-        .review-card {
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .review-card:hover {
-            transform: translateY(-8px) rotate(1deg);
-            box-shadow: 0 25px 50px -12px rgba(255, 215, 0, 0.2);
-        }
+        .review-card { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .review-card:hover { transform: translateY(-8px) rotate(1deg); box-shadow: 0 25px 50px -12px rgba(255, 215, 0, 0.2); }
 
-        /* === MAP CONTAINER === */
-        .map-container iframe {
-            width: 100%;
-            height: 100%;
-            filter: grayscale(0.2) contrast(1.1);
-            transition: filter 0.5s;
-        }
-        .map-container:hover iframe {
-            filter: grayscale(0) contrast(1);
-        }
+        .map-container iframe { width: 100%; height: 100%; filter: grayscale(0.2) contrast(1.1); transition: filter 0.5s; }
+        .map-container:hover iframe { filter: grayscale(0) contrast(1); }
 
-        /* === BACK TO TOP === */
         #backToTop {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(20px) scale(0.8);
+            opacity: 0; pointer-events: none; transform: translateY(20px) scale(0.8);
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        #backToTop.show {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0) scale(1);
-        }
+        #backToTop.show { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
 
-        /* === NAVBAR STATES === */
-        .nav-hidden { transform: translateY(-100%); }
-
-        /* === FAQ === */
         details summary::-webkit-details-marker { display: none; }
         details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 
-        /* === FOCUS STYLES (ACCESSIBILITY) === */
-        :focus-visible {
-            outline: 3px solid #FFD700;
-            outline-offset: 3px;
-        }
-        button:focus-visible, a:focus-visible {
-            outline: 3px solid #FFD700;
-            outline-offset: 3px;
-        }
+        :focus-visible { outline: 3px solid #FFD700; outline-offset: 3px; }
+        
+        .chart-box { position: relative; height: 280px; width: 100%; contain: layout; }
 
-        /* === CHART BOX === */
-        .chart-box { 
-            position: relative; 
-            height: 280px; 
-            width: 100%;
-            contain: layout;
-        }
+        .filter-btn { position: relative; overflow: hidden; transition: all 0.3s; white-space: nowrap; flex-shrink: 0; }
+        .filter-btn.active { background: var(--gradient-gold); color: #000; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4); }
 
-        /* === FILTER BUTTONS === */
-        .filter-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-            white-space: nowrap; 
-            flex-shrink: 0;
-        }
-        .filter-btn.active {
-            background: var(--gradient-gold);
-            color: #000;
-            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
-        }
-
-        /* === ICON ANIMATIONS === */
-        .icon-bounce {
-            animation: icon-bounce 2s ease-in-out infinite;
-        }
-        @keyframes icon-bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        /* === NOISE TEXTURE OVERLAY === */
         .noise-overlay::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: var(--noise);
-            opacity: 0.02;
-            pointer-events: none;
-            z-index: 1;
+            content: ''; position: absolute; inset: 0; background-image: var(--noise);
+            opacity: 0.02; pointer-events: none; z-index: 1;
         }
 
-        /* === RESPONSIVE MOBILE ENHANCEMENTS === */
+        /* === ATOMIC CHATBOT (Mobile Fix) === */
+        #atomic-chat-widget { 
+            z-index: 99999; font-family: 'Inter', sans-serif; line-height: 1.5; 
+            pointer-events: none; /* CORREÇÃO: Permite clicar nos elementos atrás do container */
+            position: fixed; inset: 0;
+        }
+        
+        .chat-bubble {
+            position: absolute; bottom: 20px; left: 20px; width: 65px; height: 65px;
+            border-radius: 50%; background: #000; border: 3px solid #FFD700;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: grab; z-index: 100000;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; touch-action: none; transition: transform 0.1s;
+            pointer-events: auto; /* Reativa cliques na bolha */
+        }
+        .chat-bubble:active { cursor: grabbing; transform: scale(0.90); }
+        .chat-bubble img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        
+        .chat-bubble-badge {
+            position: absolute; top: 0; right: 0; width: 22px; height: 22px;
+            background: #ef4444; color: white; border-radius: 50%; font-size: 11px;
+            font-weight: bold; display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fff;
+        }
+
+        .chat-window {
+            position: absolute; bottom: 100px; left: 20px; width: 350px; height: 550px; max-height: 80vh;
+            background: #ffffff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            display: flex; flex-direction: column; overflow: hidden; z-index: 99999;
+            transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1); border: 1px solid rgba(0,0,0,0.1);
+        }
+        .chat-window.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #FFD700, #FF8C00); padding: 15px;
+            display: flex; align-items: center; justify-content: space-between; color: #000;
+        }
+        .chat-header-info { display: flex; align-items: center; gap: 10px; }
+        .chat-avatar-small { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.3); }
+        .chat-avatar-small img { width: 100%; height: 100%; object-fit: cover; }
+        .chat-status h4 { font-size: 14px; font-weight: 800; margin: 0; line-height: 1.1; }
+        .chat-status span { font-size: 11px; opacity: 0.8; display: flex; align-items: center; gap: 4px; }
+        
+        .chat-close-btn {
+            background: rgba(255,255,255,0.2); border: none; width: 32px; height: 32px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .chat-close-btn:hover { background: rgba(255,255,255,0.4); }
+
+        .chat-messages {
+            flex: 1; min-height: 0; background: #f3f4f6; padding: 15px;
+            overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 12px;
+        }
+        .dark .chat-messages { background: #0f172a; }
+        .dark .chat-window { background: #1e293b; border-color: #334155; }
+
+        .message { display: flex; gap: 8px; max-width: 90%; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .message.bot { align-self: flex-start; }
+        .message.user { align-self: flex-end; flex-direction: row-reverse; }
+        
+        .message-avatar { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+        
+        .message-bubble {
+            padding: 10px 14px; border-radius: 14px; font-size: 13px;
+            line-height: 1.4; position: relative; word-wrap: break-word;
+        }
+        .message.bot .message-bubble { background: #fff; color: #1f2937; border-bottom-left-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .dark .message.bot .message-bubble { background: #334155; color: #fff; }
+        .message.user .message-bubble { background: #000; color: #FFD700; border-bottom-right-radius: 2px; }
+
+        .chat-products-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0 10px 0; width: 100%; scrollbar-width: none; }
+        .chat-products-scroll::-webkit-scrollbar { display: none; }
+        
+        .chat-product-card {
+            min-width: 140px; max-width: 140px; background: #fff; border-radius: 10px;
+            padding: 8px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; align-items: center;
+        }
+        .dark .chat-product-card { background: #1e293b; border-color: #475569; }
+        .chat-product-card img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 5px; }
+        .chat-product-title { font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 4px; height: 30px; overflow: hidden; line-height: 1.2; color: #000; }
+        .dark .chat-product-title { color: #fff; }
+        .chat-product-price { font-size: 12px; color: #16a34a; font-weight: 800; margin-bottom: 6px; }
+        .chat-add-btn {
+            width: 100%; background: #FFD700; color: #000; border: none; font-size: 10px;
+            font-weight: bold; padding: 6px; border-radius: 6px; cursor: pointer;
+        }
+
+        .chat-input-area { padding: 10px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; }
+        .dark .chat-input-area { background: #1e293b; border-color: #334155; }
+        .chat-input {
+            flex: 1; padding: 10px 14px; border-radius: 20px; border: 1px solid #e5e7eb;
+            background: #f9fafb; outline: none; font-size: 14px; color: #000;
+        }
+        .dark .chat-input { background: #334155; border-color: #475569; color: #fff; }
+        .chat-send-btn {
+            width: 42px; height: 42px; border-radius: 50%; background: #000; color: #FFD700;
+            border: none; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 18px; transition: transform 0.2s;
+        }
+        .chat-send-btn:hover { transform: scale(1.1); }
+
+        /* === RESPONSIVE === */
         @media (max-width: 768px) {
-            /* Existing Mobile CSS ... */
             .hero-section { min-height: auto; padding-top: 0; padding-bottom: 1.5rem; }
             .product-img-box { height: 160px; padding: 16px; }
             .btn-primary, .btn-secondary { padding: 0.875rem 1.5rem; font-size: 0.9rem; min-height: 48px; }
@@ -801,10 +579,7 @@
             .bento-card summary, .bento-card .text-muted { padding: 1rem !important; }
             footer { padding-top: 3rem; padding-bottom: 2rem; }
             .mobile-menu { width: 85%; max-width: 320px; }
-            
-            /* === ADJUSTED BACK TO TOP FOR MOBILE === */
             #backToTop { bottom: 20px; right: 20px; left: auto; width: 48px; height: 48px; }
-
             .hero-section [role="list"] { gap: 0.75rem; }
             .hero-section [role="listitem"] { font-size: 0.75rem; }
             .hero-section [role="listitem"] .w-8 { width: 28px; height: 28px; }
@@ -816,23 +591,27 @@
             #modalProductPrice { font-size: 1.75rem; }
         }
         
-        /* Extra small devices */
-        @media (max-width: 380px) {
+        @media (max-width: 480px) {
             .product-img-box { height: 140px; }
             .product-card h3 { font-size: 0.75rem; }
             .product-card .text-gradient { font-size: 0.85rem; }
             .filter-btn { padding: 0.5rem 0.75rem; font-size: 0.7rem; }
             h1 { font-size: 1.75rem !important; }
             h2 { font-size: 1.5rem !important; }
+            .chat-window {
+                right: 0 !important; left: 0 !important; bottom: 0 !important; top: 0 !important;
+                width: 100% !important; height: 100dvh !important; max-height: 100dvh !important;
+                border-radius: 0; transform: translateY(100%);
+            }
+            .chat-window.open { transform: translateY(0); }
+            .chat-bubble { bottom: 20px; left: 20px; }
         }
         
-        /* Tablet optimizations */
         @media (min-width: 769px) and (max-width: 1024px) {
             .product-img-box { height: 200px; }
             .hero-section { min-height: 80vh; }
         }
         
-        /* Safe area for notched phones */
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .cart-modal > div:last-child { padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)); }
             .mobile-menu > div { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
@@ -840,316 +619,10 @@
             .toast-container { bottom: calc(80px + env(safe-area-inset-bottom)); }
         }
 
-        /* === REDUCED MOTION === */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
             }
-        }
-
-        /* ============================================================
-           ATOMIC CHATBOT - ESTILOS (NOVO)
-           ============================================================ */
-        #atomic-chat-widget {
-            z-index: 99999; /* Garante que fique acima de tudo */
-            font-family: 'Inter', sans-serif;
-            line-height: 1.5;
-        }
-
-        /* 1. BOLHA FLUTUANTE */
-        .chat-bubble {
-            position: fixed;
-            bottom: 20px;
-            left: 20px; /* LADO ESQUERDO */
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background: #000;
-            border: 3px solid #FFD700;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            cursor: grab;
-            z-index: 100000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            touch-action: none; /* Importante para arrastar no mobile */
-            transition: transform 0.1s;
-        }
-
-        .chat-bubble:active {
-            cursor: grabbing;
-            transform: scale(0.95);
-        }
-
-        .chat-bubble img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            pointer-events: none;
-        }
-
-        .chat-bubble-badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 22px;
-            height: 22px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            font-size: 11px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #fff;
-        }
-
-        /* 2. JANELA DO CHAT */
-        .chat-window {
-            position: fixed;
-            bottom: 100px;
-            left: 20px; /* Alinhado à esquerda por padrão */
-            width: 350px;
-            height: 550px;
-            max-height: 80vh;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 99999;
-            transform: translateY(20px) scale(0.95);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-
-        .chat-window.open {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Header */
-        .chat-header {
-            background: linear-gradient(135deg, #FFD700, #FF8C00);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: #000;
-        }
-
-        .chat-header-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chat-avatar-small {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-
-        .chat-avatar-small img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .chat-status h4 {
-            font-size: 14px;
-            font-weight: 800;
-            margin: 0;
-            line-height: 1.1;
-        }
-
-        .chat-status span {
-            font-size: 11px;
-            opacity: 0.8;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .chat-close-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .chat-close-btn:hover { background: rgba(255,255,255,0.4); }
-
-        /* Messages Area */
-        .chat-messages {
-            flex: 1;
-            min-height: 0; /* Correção para flexbox scroll no mobile */
-            background: #f3f4f6;
-            padding: 15px;
-            overflow-y: auto;
-            overscroll-behavior: contain; /* Impede scroll do body ao chegar no fim */
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        /* Suporte a Dark Mode do seu site */
-        .dark .chat-messages { background: #0f172a; }
-        .dark .chat-window { background: #1e293b; border-color: #334155; }
-
-        /* Balões de Mensagem */
-        .message {
-            display: flex;
-            gap: 8px;
-            max-width: 90%;
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .message.bot { align-self: flex-start; }
-        .message.user { align-self: flex-end; flex-direction: row-reverse; }
-
-        .message-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .message-bubble {
-            padding: 10px 14px;
-            border-radius: 14px;
-            font-size: 13px;
-            line-height: 1.4;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-        .message.bot .message-bubble {
-            background: #fff;
-            color: #1f2937;
-            border-bottom-left-radius: 2px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .dark .message.bot .message-bubble { background: #334155; color: #fff; }
-
-        .message.user .message-bubble {
-            background: #000;
-            color: #FFD700;
-            border-bottom-right-radius: 2px;
-        }
-
-        /* Cards de Produto (Carrossel) */
-        .chat-products-scroll {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding: 5px 0 10px 0;
-            width: 100%;
-            scrollbar-width: none;
-        }
-        .chat-products-scroll::-webkit-scrollbar { display: none; }
-
-        .chat-product-card {
-            min-width: 140px;
-            max-width: 140px;
-            background: #fff;
-            border-radius: 10px;
-            padding: 8px;
-            border: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .dark .chat-product-card { background: #1e293b; border-color: #475569; }
-
-        .chat-product-card img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 5px; }
-        .chat-product-title { font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 4px; height: 30px; overflow: hidden; line-height: 1.2; color: #000; }
-        .dark .chat-product-title { color: #fff; }
-        .chat-product-price { font-size: 12px; color: #16a34a; font-weight: 800; margin-bottom: 6px; }
-
-        .chat-add-btn {
-            width: 100%;
-            background: #FFD700;
-            color: #000;
-            border: none;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 6px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* Input Area */
-        .chat-input-area {
-            padding: 10px;
-            background: #fff;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            gap: 8px;
-        }
-        .dark .chat-input-area { background: #1e293b; border-color: #334155; }
-
-        .chat-input {
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 20px;
-            border: 1px solid #e5e7eb;
-            background: #f9fafb;
-            outline: none;
-            font-size: 14px;
-            color: #000;
-        }
-        .dark .chat-input { background: #334155; border-color: #475569; color: #fff; }
-
-        .chat-send-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: #000;
-            color: #FFD700;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            transition: transform 0.2s;
-        }
-        .chat-send-btn:hover { transform: scale(1.1); }
-
-        /* Responsivo - CORREÇÕES MOBILE */
-        @media (max-width: 480px) {
-            .chat-window {
-                right: 0 !important;
-                left: 0 !important;
-                bottom: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                /* Usar 100dvh para evitar problemas com barra de endereço em iOS/Android */
-                height: 100dvh !important;
-                max-height: 100dvh !important;
-                border-radius: 0;
-                transform: translateY(100%);
-            }
-            .chat-window.open { transform: translateY(0); }
-            /* Mantém posição inicial via CSS e não JS */
-            .chat-bubble { bottom: 20px; left: 20px; }
         }
     </style>
 <link rel="stylesheet" href="/index.css">
@@ -1170,47 +643,25 @@
     </button>
 
     <!-- ============================================
-         ATOMIC CHAT WIDGET (NOVO)
+         ATOMIC CHAT WIDGET
          ============================================ -->
     <div id="atomic-chat-widget">
-        
-        <!-- Bolha Flutuante (Arrastável) -->
         <div id="chatBubble" class="chat-bubble">
             <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
             <div id="chatBadge" class="chat-bubble-badge">1</div>
         </div>
-
-        <!-- Janela do Chat -->
         <div id="chatWindow" class="chat-window">
-            <!-- Header -->
             <div class="chat-header">
                 <div class="chat-header-info">
-                    <div class="chat-avatar-small">
-                        <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Thiago">
-                    </div>
-                    <div class="chat-status">
-                        <h4>Thiago - Atomic</h4>
-                        <span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online</span>
-                    </div>
+                    <div class="chat-avatar-small"><img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Thiago"></div>
+                    <div class="chat-status"><h4>Thiago - Atomic</h4><span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online</span></div>
                 </div>
-                <button id="closeChatBtn" class="chat-close-btn">
-                    <!-- Ícone X simples -->
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
-                </button>
+                <button id="closeChatBtn" class="chat-close-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg></button>
             </div>
-
-            <!-- Área de Mensagens -->
-            <div id="chatMessages" class="chat-messages">
-                <!-- As mensagens aparecerão aqui via JS -->
-            </div>
-
-            <!-- Área de Input -->
+            <div id="chatMessages" class="chat-messages"></div>
             <div class="chat-input-area">
                 <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
-                <button id="sendBtn" class="chat-send-btn">
-                    <!-- Ícone Avião -->
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"></path></svg>
-                </button>
+                <button id="sendBtn" class="chat-send-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"></path></svg></button>
             </div>
         </div>
     </div>
@@ -1220,9 +671,7 @@
     <article id="productDetailModal" class="modal-base w-11/12 max-w-4xl bg-card-solid rounded-3xl shadow-2xl border border-base overflow-hidden" role="dialog" aria-labelledby="modalProductName" aria-modal="true">
         <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
             <span class="text-sm font-bold text-muted uppercase tracking-wider">Detalhes do Produto</span>
-            <button onclick="closeProductDetail()" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar detalhes do produto">
-                <i class="ph-bold ph-x text-xl"></i>
-            </button>
+            <button onclick="closeProductDetail()" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar detalhes do produto"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="p-6 md:p-8 grid md:grid-cols-2 gap-6 md:gap-8 max-h-[80vh] overflow-y-auto">
             <figure class="relative bg-base rounded-2xl p-6 flex items-center justify-center min-h-64">
@@ -1234,15 +683,9 @@
                 <p id="modalProductDescription" class="text-muted text-lg leading-relaxed">Descrição detalhada do produto.</p>
                 <div class="flex items-center justify-between pt-4 border-t border-base">
                     <span id="modalProductPrice" class="font-bold text-4xl text-gradient">R$ 0,00</span>
-                    <button id="modalAddToCartBtn" onclick="modalAddToCart(this.dataset.id)" 
-                                class="flex items-center gap-2 btn-primary text-base px-6 py-3">
-                        <i class="ph-bold ph-plus text-xl"></i> Adicionar
-                    </button>
+                    <button id="modalAddToCartBtn" class="flex items-center gap-2 btn-primary text-base px-6 py-3"><i class="ph-bold ph-plus text-xl"></i> Adicionar</button>
                 </div>
-                <a id="modalWhatsappBtn" href="#" target="_blank" rel="noopener noreferrer"
-                   class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all hover:-translate-y-1">
-                    <i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp
-                </a>
+                <a id="modalWhatsappBtn" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all hover:-translate-y-1"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp</a>
             </div>
         </div>
     </article>
@@ -1258,66 +701,34 @@
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="" class="h-12 w-12 rounded-full shadow-lg bg-black glow-gold">
                     <span class="font-bold text-xl brand-font">ATOMIC</span>
                 </div>
-                <button onclick="toggleMobileMenu()" class="p-3 rounded-xl bg-base hover:bg-card transition" aria-label="Fechar menu">
-                    <i class="ph-bold ph-x text-xl"></i>
-                </button>
+                <button onclick="toggleMobileMenu()" class="p-3 rounded-xl bg-base hover:bg-card transition" aria-label="Fechar menu"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             
             <div class="flex-grow space-y-2">
                 <a href="#store" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
-                        <i class="ph-fill ph-storefront text-2xl text-black"></i>
-                    </div>
-                    <div>
-                        <span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span>
-                        <p class="text-xs text-muted">Produtos e ofertas</p>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-fill ph-storefront text-2xl text-black"></i></div>
+                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span><p class="text-xs text-muted">Produtos e ofertas</p></div>
                 </a>
                 <a href="#services" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
-                        <i class="ph-fill ph-wrench text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <span class="font-bold text-lg group-hover:text-yellow-500 transition">Assistência</span>
-                        <p class="text-xs text-muted">Reparos especializados</p>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-wrench text-2xl text-white"></i></div>
+                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Assistência</span><p class="text-xs text-muted">Reparos especializados</p></div>
                 </a>
                 <a href="#dashboard" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
-                        <i class="ph-fill ph-star text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <span class="font-bold text-lg group-hover:text-yellow-500 transition">Depoimentos</span>
-                        <p class="text-xs text-muted">O que falam da gente</p>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-star text-2xl text-white"></i></div>
+                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Depoimentos</span><p class="text-xs text-muted">O que falam da gente</p></div>
                 </a>
                 <a href="#location" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg">
-                        <i class="ph-fill ph-map-pin text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <span class="font-bold text-lg group-hover:text-yellow-500 transition">Localização</span>
-                        <p class="text-xs text-muted">Visite nosso QG</p>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-map-pin text-2xl text-white"></i></div>
+                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Localização</span><p class="text-xs text-muted">Visite nosso QG</p></div>
                 </a>
             </div>
             
             <div class="mt-auto space-y-4">
-                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer"
-                   class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition">
-                    <i class="ph-bold ph-whatsapp-logo text-2xl"></i>
-                    Fale Conosco
-                </a>
+                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
                 <div class="flex justify-center gap-4 pt-4">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition" aria-label="Instagram">
-                        <i class="ph-fill ph-instagram-logo text-xl"></i>
-                    </a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition" aria-label="Facebook">
-                        <i class="ph-fill ph-facebook-logo text-xl"></i>
-                    </a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition" aria-label="TikTok">
-                        <i class="ph-fill ph-tiktok-logo text-xl"></i>
-                    </a>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
                 </div>
             </div>
         </div>
@@ -1328,34 +739,15 @@
     <aside class="cart-modal bg-card-solid border-l border-base shadow-2xl" id="cartModal" role="dialog" aria-labelledby="cartTitle" aria-modal="true">
         <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
             <h2 id="cartTitle" class="font-bold text-xl flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold">
-                    <i class="ph-fill ph-shopping-cart text-black"></i>
-                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-shopping-cart text-black"></i></div>
                 Seu Carrinho
             </h2>
-            <button onclick="toggleCart()" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar carrinho">
-                <i class="ph-bold ph-x text-xl"></i>
-            </button>
+            <button onclick="toggleCart()" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar carrinho"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
-        <div class="flex-grow overflow-y-auto p-5 space-y-4" id="cartItemsContainer">
-            <div class="text-center py-12">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base flex items-center justify-center">
-                    <i class="ph-duotone ph-shopping-cart-simple text-4xl text-muted"></i>
-                </div>
-                <p class="text-muted font-medium">Seu carrinho está vazio</p>
-                <p class="text-sm text-muted mt-1">Adicione produtos para começar</p>
-            </div>
-        </div>
+        <div class="flex-grow overflow-y-auto p-5 space-y-4" id="cartItemsContainer"></div>
         <div class="p-5 border-t border-base bg-base">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-muted font-medium">Subtotal</span>
-                <span id="cartTotal" class="font-bold text-2xl text-gradient">R$ 0,00</span>
-            </div>
-            <button onclick="checkoutWhatsApp()" 
-                    class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                    id="checkoutBtn" disabled>
-                <i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp
-            </button>
+            <div class="flex justify-between items-center mb-4"><span class="text-muted font-medium">Subtotal</span><span id="cartTotal" class="font-bold text-2xl text-gradient">R$ 0,00</span></div>
+            <button onclick="checkoutWhatsApp()" class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" id="checkoutBtn" disabled><i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp</button>
             <p class="text-center text-xs text-muted mt-3">Pagamento e entrega combinados no chat</p>
         </div>
     </aside>
@@ -1364,24 +756,18 @@
     <header class="sticky top-0 z-50 glass border-b border-base shadow-sm transition-all duration-300" id="navbar">
         <nav class="container mx-auto px-4 lg:px-8 h-20 flex justify-between items-center" aria-label="Navegação principal">
             <div class="flex items-center gap-4">
-                <!-- Mobile Menu Button -->
-                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl hover:bg-base transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobileMenu">
-                    <i class="ph-bold ph-list text-2xl"></i>
-                </button>
-                
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl hover:bg-base transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobileMenu"><i class="ph-bold ph-list text-2xl"></i></button>
                 <a href="#top" class="flex items-center gap-3 hover:opacity-90 transition transform hover:scale-105 duration-300" aria-label="Atomic Games - Página inicial">
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo Atomic Games" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50 glow-gold">
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic Games" class="h-7 w-auto hidden sm:block">
                 </a>
             </div>
-
             <div class="hidden md:flex gap-8 font-semibold text-sm uppercase tracking-wide text-muted">
                 <a href="#store" class="nav-link active">Loja Virtual</a>
                 <a href="#services" class="nav-link">Assistência</a>
                 <a href="#dashboard" class="nav-link">Depoimentos</a>
                 <a href="#location" class="nav-link">Localização</a>
             </div>
-
             <div class="flex items-center gap-3">
                 <button id="themeToggle" class="p-3 rounded-xl hover:bg-base transition" aria-label="Alternar entre tema claro e escuro">
                     <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
@@ -1391,11 +777,7 @@
                     <i class="ph-bold ph-shopping-cart text-2xl group-hover:text-yellow-500 transition"></i>
                     <span id="cartCount" class="badge hidden" aria-live="polite">0</span>
                 </button>
-                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer"
-                   class="hidden lg:flex items-center gap-2 btn-primary text-sm">
-                    <i class="ph-bold ph-whatsapp-logo text-lg"></i>
-                    <span>Fale Conosco</span>
-                </a>
+                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="hidden lg:flex items-center gap-2 btn-primary text-sm"><i class="ph-bold ph-whatsapp-logo text-lg"></i><span>Fale Conosco</span></a>
             </div>
         </nav>
     </header>
@@ -1405,77 +787,33 @@
         <section class="hero-section" aria-labelledby="hero-title">
             <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-10 md:gap-16">
                 <div class="md:w-1/2 space-y-7 flex flex-col items-center md:items-start text-center md:text-left reveal">
-                    
-                    <!-- Mobile Banner -->
                     <div class="block md:hidden w-[calc(100%+2rem)] -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-3xl shadow-2xl relative h-48">
-                        <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" 
-                             alt="Atomic Games - Loja de Games e Assistência Técnica" 
-                             class="w-full h-full object-cover" 
-                             loading="eager">
+                        <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" alt="Atomic Games Banner" class="w-full h-full object-cover" loading="eager">
                     </div>
-
                     <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full text-xs font-extrabold uppercase tracking-wider shadow-lg transform hover:scale-105 transition cursor-default glow-gold">
                         <i class="ph-fill ph-map-pin icon-bounce"></i> Madureira - RJ
                     </div>
-                    
-                    <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] text-base">
-                        O Quartel General do <span class="text-gradient">Gamer Carioca</span>
-                    </h1>
-                    
-                    <p class="text-lg md:text-xl text-muted font-medium max-w-lg leading-relaxed">
-                        Console quebrado? PC lento? Ou procurando aquele upgrade? 
-                        Somos <strong class="text-base">especialistas em assistência técnica</strong> e a loja mais completa da região.
-                    </p>
-                    
+                    <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] text-base">O Quartel General do <span class="text-gradient">Gamer Carioca</span></h1>
+                    <p class="text-lg md:text-xl text-muted font-medium max-w-lg leading-relaxed">Console quebrado? PC lento? Ou procurando aquele upgrade? Somos <strong class="text-base">especialistas em assistência técnica</strong> e a loja mais completa da região.</p>
                     <div class="flex flex-col sm:flex-row gap-4 pt-2 w-full md:w-auto">
-                        <a href="#store" class="btn-primary pulse-glow flex items-center justify-center gap-3 w-full sm:w-auto">
-                            <i class="ph-bold ph-shopping-bag text-lg"></i> Ver Produtos
-                        </a>
-                        <a href="#services" class="btn-secondary flex items-center justify-center gap-3 w-full sm:w-auto">
-                            <i class="ph-bold ph-wrench"></i> Assistência Técnica
-                        </a>
+                        <a href="#store" class="btn-primary pulse-glow flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-shopping-bag text-lg"></i> Ver Produtos</a>
+                        <a href="#services" class="btn-secondary flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-wrench"></i> Assistência Técnica</a>
                     </div>
-                    
-                    <!-- Trust Badges -->
                     <div class="flex flex-wrap justify-center md:justify-start gap-6 pt-4" role="list" aria-label="Diferenciais">
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem">
-                            <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                <i class="ph-fill ph-shield-check text-green-500 text-lg"></i>
-                            </div>
-                            <span>Garantia Real</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem">
-                            <div class="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                                <i class="ph-fill ph-star text-yellow-500 text-lg"></i>
-                            </div>
-                            <span>4.9 no Google</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem">
-                            <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <i class="ph-fill ph-users text-blue-500 text-lg"></i>
-                            </div>
-                            <span>+5000 Clientes</span>
-                        </div>
+                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"><i class="ph-fill ph-shield-check text-green-500 text-lg"></i></div><span>Garantia Real</span></div>
+                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center"><i class="ph-fill ph-star text-yellow-500 text-lg"></i></div><span>4.9 no Google</span></div>
+                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"><i class="ph-fill ph-users text-blue-500 text-lg"></i></div><span>+5000 Clientes</span></div>
                     </div>
                 </div>
-
                 <div class="md:w-1/2 w-full flex justify-center reveal" style="transition-delay: 200ms;">
                     <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
-                        <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="YCsT_InlNWw" role="button" tabindex="0" aria-label="Reproduzir vídeo sobre a Atomic Games" onkeydown="if(event.key==='Enter')loadVideo()">
-                            <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail do vídeo - Conheça a Atomic Games" 
-                                    onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
-                            <div class="play-btn" aria-hidden="true">
-                                <i class="ph-fill ph-play text-3xl text-black ml-1"></i>
-                            </div>
+                        <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="YCsT_InlNWw" role="button" tabindex="0" aria-label="Reproduzir vídeo" onkeydown="if(event.key==='Enter')loadVideo()">
+                            <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail Vídeo" onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
+                            <div class="play-btn" aria-hidden="true"><i class="ph-fill ph-play text-3xl text-black ml-1"></i></div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                             <div class="absolute bottom-4 left-4 right-4 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                                    <i class="ph-fill ph-youtube-logo text-black text-xl"></i>
-                                </div>
-                                <div class="text-white">
-                                    <p class="font-bold text-sm">Conheça a Atomic</p>
-                                    <p class="text-xs opacity-80">Assista ao vídeo</p>
-                                </div>
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-youtube-logo text-black text-xl"></i></div>
+                                <div class="text-white"><p class="font-bold text-sm">Conheça a Atomic</p><p class="text-xs opacity-80">Assista ao vídeo</p></div>
                             </div>
                         </div>
                         <div id="videoContainer" class="w-full h-full hidden"></div>
@@ -1489,65 +827,37 @@
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 reveal">
                     <div>
-                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                            <i class="ph-fill ph-storefront"></i> Nossa Loja
-                        </span>
+                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-storefront"></i> Nossa Loja</span>
                         <h2 id="store-title" class="text-4xl md:text-5xl font-black mb-3 text-base">Catálogo <span class="text-gradient">Atomic</span></h2>
                         <p class="text-muted text-lg max-w-md">Adicione itens ao carrinho e finalize pelo WhatsApp. Preços imbatíveis!</p>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <div class="relative group w-full sm:w-72">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i class="ph-bold ph-magnifying-glass text-muted group-focus-within:text-yellow-500 transition"></i>
-                            </div>
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-magnifying-glass text-muted group-focus-within:text-yellow-500 transition"></i></div>
                             <label for="searchInput" class="sr-only">Buscar produto</label>
-                            <input type="search" id="searchInput" placeholder="Buscar produto..." 
-                                    class="w-full bg-card text-base border-2 border-base rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-yellow-500 transition-all duration-300 text-sm font-medium shadow-sm hover:border-yellow-500/50">
+                            <input type="search" id="searchInput" placeholder="Buscar produto..." class="w-full bg-card text-base border-2 border-base rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-yellow-500 transition-all duration-300 text-sm font-medium shadow-sm hover:border-yellow-500/50">
                         </div>
                     </div>
                 </header>
-
-                <!-- Bandeja de Filtros (Scrollable on Mobile) -->
-                <div class="flex overflow-x-auto pb-4 md:pb-0 mb-12 gap-3 snap-x hide-scrollbar reveal" id="categoryFilters" role="group" aria-label="Filtros de categoria">
-                    <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 snap-center" data-category="all" aria-pressed="true">
-                        <i class="ph-fill ph-lightning mr-2"></i> Destaques
-                    </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all snap-center" data-category="console" aria-pressed="false">
-                        <i class="ph-bold ph-game-controller mr-2"></i> Consoles
-                    </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-green-400 hover:text-green-600 transition-all snap-center" data-category="games" aria-pressed="false">
-                        <i class="ph-bold ph-disc mr-2"></i> Jogos
-                    </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-purple-400 hover:text-purple-600 transition-all snap-center" data-category="acessorios" aria-pressed="false">
-                        <i class="ph-bold ph-headphones mr-2"></i> Acessórios
-                    </button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-red-400 hover:text-red-600 transition-all snap-center" data-category="hardware" aria-pressed="false">
-                        <i class="ph-bold ph-cpu mr-2"></i> Hardware
-                    </button>
+                <div class="flex overflow-x-auto pb-4 md:pb-0 mb-12 gap-3 snap-x hide-scrollbar reveal" id="categoryFilters" role="group" aria-label="Filtros">
+                    <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 snap-center" data-category="all" aria-pressed="true"><i class="ph-fill ph-lightning mr-2"></i> Destaques</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all snap-center" data-category="console" aria-pressed="false"><i class="ph-bold ph-game-controller mr-2"></i> Consoles</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-green-400 hover:text-green-600 transition-all snap-center" data-category="games" aria-pressed="false"><i class="ph-bold ph-disc mr-2"></i> Jogos</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-purple-400 hover:text-purple-600 transition-all snap-center" data-category="acessorios" aria-pressed="false"><i class="ph-bold ph-headphones mr-2"></i> Acessórios</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-red-400 hover:text-red-600 transition-all snap-center" data-category="hardware" aria-pressed="false"><i class="ph-bold ph-cpu mr-2"></i> Hardware</button>
                 </div>
-
                 <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6 reveal" id="productGrid" role="list" aria-live="polite">
                     <div class="col-span-full py-16 text-center text-muted">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-card flex items-center justify-center animate-pulse">
-                            <i class="ph-duotone ph-spinner text-3xl"></i>
-                        </div>
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-card flex items-center justify-center animate-pulse"><i class="ph-duotone ph-spinner text-3xl"></i></div>
                         <p>Carregando catálogo...</p>
                     </div>
                 </div>
-                
                 <div id="loadMoreContainer" class="hidden text-center mt-14 reveal">
-                    <button id="btnLoadMore" class="group px-10 py-4 border-2 border-base bg-card text-base rounded-2xl font-bold hover:border-yellow-500 hover:text-yellow-600 transition-all shadow-sm hover:shadow-lg">
-                        Ver Todos os Produtos 
-                        <i class="ph-bold ph-caret-down ml-2 group-hover:translate-y-1 transition-transform inline-block"></i>
-                    </button>
+                    <button id="btnLoadMore" class="group px-10 py-4 border-2 border-base bg-card text-base rounded-2xl font-bold hover:border-yellow-500 hover:text-yellow-600 transition-all shadow-sm hover:shadow-lg">Ver Todos os Produtos <i class="ph-bold ph-caret-down ml-2 group-hover:translate-y-1 transition-transform inline-block"></i></button>
                 </div>
-
                 <div id="noResults" class="hidden text-center py-20">
-                    <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-card flex items-center justify-center">
-                        <i class="ph-duotone ph-magnifying-glass text-5xl text-muted"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-2">Nenhum produto encontrado</h3>
-                    <p class="text-muted">Tente buscar por outro termo</p>
+                    <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-card flex items-center justify-center"><i class="ph-duotone ph-magnifying-glass text-5xl text-muted"></i></div>
+                    <h3 class="text-2xl font-bold mb-2">Nenhum produto encontrado</h3><p class="text-muted">Tente buscar por outro termo</p>
                 </div>
             </div>
         </section>
@@ -1556,109 +866,40 @@
         <section id="services" class="py-24 bg-card scroll-mt-20" aria-labelledby="services-title">
             <div class="container mx-auto px-4 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                        <i class="ph-fill ph-wrench"></i> Assistência Técnica
-                    </span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-wrench"></i> Assistência Técnica</span>
                     <h2 id="services-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-10">Assistência Técnica de <span class="text-gradient">Elite</span></h2>
-                    
                     <div class="space-y-4">
                         <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0">
-                                <i class="ph-fill ph-clock-countdown"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-1">Orçamento Rápido</h3>
-                                <p class="text-muted text-lg">Diagnóstico ágil para você não ficar sem jogar. Na maioria dos casos, no mesmo dia.</p>
-                            </div>
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-clock-countdown"></i></div>
+                            <div><h3 class="font-bold text-xl mb-1">Orçamento Rápido</h3><p class="text-muted text-lg">Diagnóstico ágil para você não ficar sem jogar.</p></div>
                         </div>
-                        
                         <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0">
-                                <i class="ph-fill ph-circuitry"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-1">Laboratório Próprio</h3>
-                                <p class="text-muted text-lg">Peças originais e ferramentas de precisão para reparos de alta qualidade.</p>
-                            </div>
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-circuitry"></i></div>
+                            <div><h3 class="font-bold text-xl mb-1">Laboratório Próprio</h3><p class="text-muted text-lg">Peças originais e ferramentas de precisão.</p></div>
                         </div>
-                        
                         <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center text-2xl shadow-lg flex-shrink-0">
-                                <i class="ph-fill ph-shield-check"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-1">Garantia Real</h3>
-                                <p class="text-muted text-lg">3 meses de garantia em todos os serviços. Confiança é nossa marca.</p>
-                            </div>
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-shield-check"></i></div>
+                            <div><h3 class="font-bold text-xl mb-1">Garantia Real</h3><p class="text-muted text-lg">3 meses de garantia em todos os serviços.</p></div>
                         </div>
                     </div>
                 </div>
-                
                 <div class="bento-card p-8 md:p-10 relative overflow-hidden reveal noise-overlay">
                     <div class="absolute top-0 right-0 w-40 h-40 bg-yellow-500/20 rounded-full blur-3xl animate-pulse" aria-hidden="true"></div>
-                    
                     <div class="flex items-center gap-4 mb-8 relative z-10">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold">
-                            <i class="ph-fill ph-wrench text-2xl text-black"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-bold">Simular Reparo</h3>
-                            <p class="text-sm text-muted">Preencha e receba um orçamento</p>
-                        </div>
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-wrench text-2xl text-black"></i></div>
+                        <div><h3 class="text-2xl font-bold">Simular Reparo</h3><p class="text-sm text-muted">Preencha e receba um orçamento</p></div>
                     </div>
-                    
                     <form id="serviceForm" class="space-y-5 relative z-10">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="clientName" class="block text-sm font-semibold mb-2 text-muted">Seu Nome</label>
-                                <input type="text" id="clientName" name="clientName" placeholder="João Silva" required autocomplete="name"
-                                        class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
-                            </div>
-                            <div>
-                                <label for="clientPhone" class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label>
-                                <input type="tel" id="clientPhone" name="clientPhone" placeholder="(21) 99999-9999" required autocomplete="tel"
-                                        class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
-                            </div>
+                            <div><label for="clientName" class="block text-sm font-semibold mb-2 text-muted">Seu Nome</label><input type="text" id="clientName" name="clientName" placeholder="João Silva" required autocomplete="name" class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition"></div>
+                            <div><label for="clientPhone" class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label><input type="tel" id="clientPhone" name="clientPhone" placeholder="(21) 99999-9999" required autocomplete="tel" class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition"></div>
                         </div>
-                        
-                        <div>
-                            <label for="deviceSelect" class="block text-sm font-semibold mb-2 text-muted">Aparelho</label>
-                            <select id="deviceSelect" name="device" required class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
-                                <option value="">Selecione o aparelho...</option>
-                                <option value="PS5">PlayStation 5</option>
-                                <option value="PS4">PlayStation 4</option>
-                                <option value="Xbox Series">Xbox Series S/X</option>
-                                <option value="Nintendo Switch">Nintendo Switch</option>
-                                <option value="PC">Computador / Notebook</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label for="issueSelect" class="block text-sm font-semibold mb-2 text-muted">Qual o defeito?</label>
-                            <select id="issueSelect" name="issue" required class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
-                                <option value="">Selecione o problema...</option>
-                                <option value="Limpeza">Limpeza / Aquecimento</option>
-                                <option value="Nao Liga">Não Liga</option>
-                                <option value="Sem Imagem">Sem Imagem (HDMI)</option>
-                                <option value="Controle">Drift no Controle</option>
-                                <option value="Outro">Outro Defeito</option>
-                            </select>
-                        </div>
-                        
+                        <div><label for="deviceSelect" class="block text-sm font-semibold mb-2 text-muted">Aparelho</label><select id="deviceSelect" name="device" required class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer"><option value="">Selecione o aparelho...</option><option value="PS5">PlayStation 5</option><option value="PS4">PlayStation 4</option><option value="Xbox Series">Xbox Series S/X</option><option value="Nintendo Switch">Nintendo Switch</option><option value="PC">Computador / Notebook</option></select></div>
+                        <div><label for="issueSelect" class="block text-sm font-semibold mb-2 text-muted">Qual o defeito?</label><select id="issueSelect" name="issue" required class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer"><option value="">Selecione o problema...</option><option value="Limpeza">Limpeza / Aquecimento</option><option value="Nao Liga">Não Liga</option><option value="Sem Imagem">Sem Imagem (HDMI)</option><option value="Controle">Drift no Controle</option><option value="Outro">Outro Defeito</option></select></div>
                         <div id="serviceResult" class="hidden p-5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl border border-yellow-500/30" role="status" aria-live="polite">
-                            <div class="flex items-center gap-3">
-                                <i class="ph-fill ph-clock text-2xl text-yellow-600"></i>
-                                <div>
-                                    <p class="text-sm text-muted">Tempo estimado de reparo</p>
-                                    <p class="font-bold text-lg text-yellow-600 dark:text-yellow-400" id="timeEstimate">--</p>
-                                </div>
-                            </div>
+                            <div class="flex items-center gap-3"><i class="ph-fill ph-clock text-2xl text-yellow-600"></i><div><p class="text-sm text-muted">Tempo estimado de reparo</p><p class="font-bold text-lg text-yellow-600 dark:text-yellow-400" id="timeEstimate">--</p></div></div>
                         </div>
-                        
-                        <button type="submit" class="w-full py-4 btn-primary flex items-center justify-center gap-3 text-lg">
-                            <i class="ph-bold ph-whatsapp-logo text-xl"></i>
-                            Agendar via WhatsApp
-                        </button>
+                        <button type="submit" class="w-full py-4 btn-primary flex items-center justify-center gap-3 text-lg"><i class="ph-bold ph-whatsapp-logo text-xl"></i> Agendar via WhatsApp</button>
                     </form>
                 </div>
             </div>
@@ -1668,124 +909,46 @@
         <section id="dashboard" class="py-24 bg-base scroll-mt-20" aria-labelledby="dashboard-title">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="text-center max-w-3xl mx-auto mb-16 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                        <i class="ph-fill ph-chart-line-up"></i> Nossa Reputação
-                    </span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-chart-line-up"></i> Nossa Reputação</span>
                     <h2 id="dashboard-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Aprovado pelos <span class="text-gradient">Gamers</span></h2>
                     <p class="text-muted text-lg">Transparência total: veja nossos números e o que dizem nossos clientes.</p>
                 </header>
-                
-                <!-- Charts -->
                 <div class="grid md:grid-cols-2 gap-8 mb-16 reveal">
                     <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                                <i class="ph-fill ph-star text-black text-xl"></i>
-                            </div>
-                            Pontos Fortes (Média)
-                        </h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de radar mostrando pontos fortes: Atendimento 4.9, Preço 4.7, Rapidez 4.8, Variedade 4.6, Confiança 5.0">
-                            <canvas id="reputationChart"></canvas>
-                        </div>
+                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-star text-black text-xl"></i></div> Pontos Fortes (Média)</h3>
+                        <div class="chart-box" role="img" aria-label="Gráfico de radar"><canvas id="reputationChart"></canvas></div>
                     </div>
                     <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
-                                <i class="ph-fill ph-chart-pie-slice text-white text-xl"></i>
-                            </div>
-                            Distribuição de Serviços
-                        </h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de pizza mostrando: Manutenção 40%, Jogos 20%, Consoles 25%, Peças 15%">
-                            <canvas id="servicesChart"></canvas>
-                        </div>
+                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center"><i class="ph-fill ph-chart-pie-slice text-white text-xl"></i></div> Distribuição de Serviços</h3>
+                        <div class="chart-box" role="img" aria-label="Gráfico de pizza"><canvas id="servicesChart"></canvas></div>
                     </div>
                 </div>
-
-                <!-- Reviews -->
                 <article id="reviews" class="bento-card p-8 md:p-12 relative overflow-hidden reveal noise-overlay" aria-labelledby="reviews-title">
-                    <div class="absolute top-4 right-4 opacity-5" aria-hidden="true">
-                        <i class="ph-fill ph-google-logo text-[150px]"></i>
-                    </div>
-
+                    <div class="absolute top-4 right-4 opacity-5" aria-hidden="true"><i class="ph-fill ph-google-logo text-[150px]"></i></div>
                     <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 relative z-10 gap-6">
                         <div>
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="flex gap-1" role="img" aria-label="5 estrelas">
-                                    <i class="ph-fill ph-star text-yellow-400 text-2xl"></i>
-                                    <i class="ph-fill ph-star text-yellow-400 text-2xl"></i>
-                                    <i class="ph-fill ph-star text-yellow-400 text-2xl"></i>
-                                    <i class="ph-fill ph-star text-yellow-400 text-2xl"></i>
-                                    <i class="ph-fill ph-star text-yellow-400 text-2xl"></i>
-                                </div>
-                                <span class="font-black text-3xl">4.9</span>
-                                <span class="text-muted text-lg">/ 5.0</span>
+                                <div class="flex gap-1" role="img" aria-label="5 estrelas"><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i></div>
+                                <span class="font-black text-3xl">4.9</span><span class="text-muted text-lg">/ 5.0</span>
                             </div>
                             <h3 id="reviews-title" class="text-2xl md:text-3xl font-bold">O que falam da Atomic?</h3>
-                            <p class="text-muted mt-1">Baseado em avaliações reais do Google Maps</p>
                         </div>
-                        <a href="https://maps.app.goo.gl/9FpRW2ztsrE3j9Rz9" target="_blank" rel="noopener noreferrer"
-                           class="flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
-                            <i class="ph-fill ph-google-logo"></i>
-                            Ver no Google
-                            <i class="ph-bold ph-arrow-square-out"></i>
-                        </a>
+                        <a href="https://maps.app.goo.gl/9FpRW2ztsrE3j9Rz9" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"><i class="ph-fill ph-google-logo"></i> Ver no Google <i class="ph-bold ph-arrow-square-out"></i></a>
                     </header>
-
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
                         <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white flex items-center justify-center font-bold text-lg" aria-hidden="true">R</div>
-                                <div class="flex-grow">
-                                    <p class="font-bold">Rafael Costa</p>
-                                    <time class="text-xs text-muted" datetime="2025-01">Há 2 semanas</time>
-                                </div>
-                                <i class="ph-fill ph-google-logo text-gray-300 text-xl" aria-hidden="true"></i>
-                            </div>
-                            <div class="flex gap-0.5 mb-4" role="img" aria-label="5 estrelas">
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                            </div>
+                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white flex items-center justify-center font-bold text-lg">R</div><div class="flex-grow"><p class="font-bold">Rafael Costa</p><time class="text-xs text-muted">Há 2 semanas</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
+                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
                             <blockquote class="text-muted leading-relaxed">"Levei meu PS5 que estava desligando sozinho. Fizeram a limpeza e troca da pasta térmica no mesmo dia. Atendimento nota 10!"</blockquote>
                         </article>
-
                         <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-lg" aria-hidden="true">F</div>
-                                <div class="flex-grow">
-                                    <p class="font-bold">Felipe Martins</p>
-                                    <time class="text-xs text-muted" datetime="2024-12">Há 1 mês</time>
-                                </div>
-                                <i class="ph-fill ph-google-logo text-gray-300 text-xl" aria-hidden="true"></i>
-                            </div>
-                            <div class="flex gap-0.5 mb-4" role="img" aria-label="5 estrelas">
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                            </div>
+                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-lg">F</div><div class="flex-grow"><p class="font-bold">Felipe Martins</p><time class="text-xs text-muted">Há 1 mês</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
+                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
                             <blockquote class="text-muted leading-relaxed">"Melhor preço do Rio pra comprar console. Comprei meu Xbox Series S lá, lacrado com garantia. Recomendo demais."</blockquote>
                         </article>
-
                         <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center font-bold text-lg" aria-hidden="true">J</div>
-                                <div class="flex-grow">
-                                    <p class="font-bold">Juliana Alves</p>
-                                    <time class="text-xs text-muted" datetime="2025-01">Há 3 dias</time>
-                                </div>
-                                <i class="ph-fill ph-google-logo text-gray-300 text-xl" aria-hidden="true"></i>
-                            </div>
-                            <div class="flex gap-0.5 mb-4" role="img" aria-label="5 estrelas">
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                                <i class="ph-fill ph-star text-yellow-400"></i>
-                            </div>
+                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center font-bold text-lg">J</div><div class="flex-grow"><p class="font-bold">Juliana Alves</p><time class="text-xs text-muted">Há 3 dias</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
+                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
                             <blockquote class="text-muted leading-relaxed">"Minha loja de confiança em Madureira. Já arrumei controle de Switch, comprei jogos e sempre fui bem atendida."</blockquote>
                         </article>
                     </div>
@@ -1797,61 +960,20 @@
         <section id="location" class="py-24 bg-base scroll-mt-20" aria-labelledby="location-title">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                        <i class="ph-fill ph-map-pin"></i> Visite-nos
-                    </span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-map-pin"></i> Visite-nos</span>
                     <h2 id="location-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Venha Conhecer Nosso <span class="text-gradient">QG</span></h2>
                     <p class="text-muted text-lg">Fácil acesso no coração de Madureira.</p>
                 </header>
-
                 <div class="bento-card overflow-hidden shadow-2xl flex flex-col md:flex-row reveal" style="min-height: 480px;">
                     <div class="md:w-2/5 p-8 md:p-12 flex flex-col justify-center space-y-8 relative z-10">
                         <address class="not-italic">
-                            <div class="flex items-start gap-4">
-                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center flex-shrink-0 glow-gold">
-                                    <i class="ph-fill ph-map-pin text-xl text-black"></i>
-                                    </div>
-                                <div>
-                                    <h3 class="font-bold text-xl mb-2">Endereço</h3>
-                                    <p class="text-muted leading-relaxed">
-                                        Av. Ministro Edgard Romero, 81<br>
-                                        Loja 3 - Madureira<br>
-                                        Rio de Janeiro - RJ
-                                    </p>
-                                </div>
-                            </div>
+                            <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center flex-shrink-0 glow-gold"><i class="ph-fill ph-map-pin text-xl text-black"></i></div><div><h3 class="font-bold text-xl mb-2">Endereço</h3><p class="text-muted leading-relaxed">Av. Ministro Edgard Romero, 81<br>Loja 3 - Madureira<br>Rio de Janeiro - RJ</p></div></div>
                         </address>
-                        
-                        <div class="flex items-start gap-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
-                                <i class="ph-fill ph-clock text-xl text-white"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-2">Horário</h3>
-                                <p class="text-muted leading-relaxed">
-                                    Segunda a Sexta: 09h às 19h<br>
-                                    Sábado: 09h às 14h<br>
-                                    <span class="text-red-500 font-medium">Domingo: Fechado</span>
-                                </p>
-                            </div>
-                        </div>
-
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1">
-                            <i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota
-                        </a>
+                        <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0"><i class="ph-fill ph-clock text-xl text-white"></i></div><div><h3 class="font-bold text-xl mb-2">Horário</h3><p class="text-muted leading-relaxed">Segunda a Sexta: 09h às 19h<br>Sábado: 09h às 14h<br><span class="text-red-500 font-medium">Domingo: Fechado</span></p></div></div>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1"><i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota</a>
                     </div>
-
                     <div class="md:w-3/5 h-64 md:h-auto bg-gray-200 map-container">
-                        <iframe 
-                            src="https://maps.google.com/maps?q=Atomic%20Games%20Av.%20Ministro%20Edgard%20Romero%2081%20Madureira&t=&z=16&ie=UTF8&iwloc=&output=embed" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade"
-                            title="Mapa mostrando a localização da Atomic Games em Madureira, Rio de Janeiro">
-                        </iframe>
+                        <iframe src="https://maps.google.com/maps?q=Atomic%20Games%20Av.%20Ministro%20Edgard%20Romero%2081%20Madureira&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa Localização"></iframe>
                     </div>
                 </div>
             </div>
@@ -1861,14 +983,10 @@
         <section id="faq" class="py-24 bg-card" aria-labelledby="faq-title">
             <div class="container mx-auto px-4 lg:px-8 max-w-4xl">
                 <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                        <i class="ph-fill ph-question"></i> Dúvidas
-                    </span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-question"></i> Dúvidas</span>
                     <h2 id="faq-title" class="text-3xl md:text-4xl font-black text-base">Perguntas Frequentes</h2>
                 </header>
-                <div class="space-y-4 reveal" id="faqContainer" role="list">
-                    <!-- FAQs via JS -->
-                </div>
+                <div class="space-y-4 reveal" id="faqContainer" role="list"></div>
             </div>
         </section>
     </main>
@@ -1878,853 +996,398 @@
         <div class="container mx-auto px-4 lg:px-8">
             <div class="text-center">
                 <a href="#top" class="inline-block hover:opacity-90 transition transform hover:scale-110 duration-300 mb-6" aria-label="Voltar ao topo">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" 
-                         class="h-20 w-20 mx-auto rounded-full shadow-2xl bg-black ring-4 ring-yellow-400/30 glow-gold"
-                         alt="Logo Atomic Games" loading="lazy">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="h-20 w-20 mx-auto rounded-full shadow-2xl bg-black ring-4 ring-yellow-400/30 glow-gold" alt="Logo Atomic Games" loading="lazy">
                 </a>
                 <p class="font-bold text-2xl mb-2 brand-font">ATOMIC GAMES</p>
                 <p class="text-muted mb-8">Madureira - Rio de Janeiro</p>
-                
                 <nav class="flex justify-center gap-4 mb-8" aria-label="Redes sociais">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer"
-                       class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"
-                       aria-label="Siga-nos no Instagram">
-                        <i class="ph-fill ph-instagram-logo"></i>
-                    </a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer"
-                       class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"
-                       aria-label="Curta nossa página no Facebook">
-                        <i class="ph-fill ph-facebook-logo"></i>
-                    </a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer"
-                       class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:bg-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"
-                       aria-label="Siga-nos no TikTok">
-                        <i class="ph-fill ph-tiktok-logo"></i>
-                    </a>
-                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer"
-                       class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"
-                       aria-label="Fale conosco no WhatsApp">
-                        <i class="ph-fill ph-whatsapp-logo"></i>
-                    </a>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-instagram-logo"></i></a>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-facebook-logo"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:bg-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-tiktok-logo"></i></a>
+                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-whatsapp-logo"></i></a>
                 </nav>
-                
-                <div class="border-t border-base pt-8">
-                    <p class="text-sm text-muted">&copy; <time datetime="2025">2025</time> Atomic Games. Todos os direitos reservados.</p>
-                </div>
+                <div class="border-t border-base pt-8"><p class="text-sm text-muted">&copy; <time datetime="2025">2025</time> Atomic Games. Todos os direitos reservados.</p></div>
             </div>
         </div>
     </footer>
 
     <script>
-        // === CONFIGURATION ===
-        const GITHUB_USERNAME = "atomicgamesbrasil";
-        const GITHUB_REPO = "siteoficial";
-        const GITHUB_BRANCH = "main";
-        const PRODUCTS_URL_BASE = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${GITHUB_BRANCH}/produtos.json`;
-        const REPO_IMG_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${GITHUB_BRANCH}/`;
+        const CONFIG = {
+            GITHUB_USER: "atomicgamesbrasil",
+            GITHUB_REPO: "siteoficial",
+            GITHUB_BRANCH: "main",
+            CHAT_API: 'https://atomic-thiago-backend.onrender.com/chat'
+        };
+        const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
 
-        // Fallback Products
+        // Initial Data
         const initialProducts = [
-            { id: "1", name: "PlayStation 5 Slim", category: "console", price: "R$ 3.799,00", image: REPO_IMG_URL + "img%20site/console-ps5.webp", desc: "Digital Edition, 1TB SSD. O console mais rápido da Sony para a nova geração de jogos em 4K." },
-            { id: "2", name: "Xbox Series S", category: "console", price: "R$ 2.699,00", image: REPO_IMG_URL + "img%20site/console-xbox-s.webp", desc: "512GB SSD, Compacto e 100% digital. Jogue centenas de títulos com o Xbox Game Pass." },
-            { id: "6", name: "God of War Ragnarok", category: "games", price: "R$ 299,00", image: REPO_IMG_URL + "img%20site/game-gow.webp", desc: "PS5 Mídia Física. A aventura épica de Kratos e Atreus na mitologia nórdica chega ao seu clímax." },
-            { id: "12", name: "Controle DualSense", category: "acessorios", price: "R$ 449,00", image: REPO_IMG_URL + "img%20site/acessorio-dualsense.webp", desc: "Original Sony. Controle sem fio com feedback tátil imersivo e gatilhos adaptáveis." },
-            { id: "13", name: "Mouse Gamer Red Dragon", category: "acessorios", price: "R$ 149,90", image: "https://placehold.co/400x400/292524/FFD700?text=MOUSE", desc: "Mouse Redragon de alta precisão com DPI ajustável, ideal para jogos FPS." }
+            { id: "1", name: "PlayStation 5 Slim", category: "console", price: "R$ 3.799,00", image: BASE_IMG_URL + "img%20site/console-ps5.webp", desc: "Digital Edition, 1TB SSD. O console mais rápido da Sony." },
+            { id: "2", name: "Xbox Series S", category: "console", price: "R$ 2.699,00", image: BASE_IMG_URL + "img%20site/console-xbox-s.webp", desc: "512GB SSD, Compacto e 100% digital." },
+            { id: "6", name: "God of War Ragnarok", category: "games", price: "R$ 299,00", image: BASE_IMG_URL + "img%20site/game-gow.webp", desc: "PS5 Mídia Física. Aventura épica." },
+            { id: "12", name: "Controle DualSense", category: "acessorios", price: "R$ 449,00", image: BASE_IMG_URL + "img%20site/acessorio-dualsense.webp", desc: "Original Sony. Controle sem fio." },
+            { id: "13", name: "Mouse Gamer Red Dragon", category: "acessorios", price: "R$ 149,90", image: "https://placehold.co/400x400/292524/FFD700?text=MOUSE", desc: "Mouse Redragon de alta precisão." }
         ];
 
         const faqs = [
-            { q: "Vocês aceitam consoles usados na troca?", a: "Sim! Avaliamos seu console usado (PS4, Xbox One, Switch) como parte do pagamento. Traga para avaliação presencial ou envie fotos pelo WhatsApp." },
-            { q: "Qual o prazo de garantia dos serviços?", a: "Todos os nossos serviços de manutenção possuem 90 dias (3 meses) de garantia legal. Guardamos registro de todos os reparos realizados." },
-            { q: "Vocês montam PC Gamer?", a: "Com certeza! Temos consultoria especializada para montar o PC ideal para seu orçamento e necessidade, seja para jogos competitivos ou streaming." },
-            { q: "Entregam em todo o Rio de Janeiro?", a: "Sim, trabalhamos com entregas expressas em todo o Rio de Janeiro. A taxa varia por região - consulte no WhatsApp para um orçamento." }
+            { q: "Vocês aceitam consoles usados na troca?", a: "Sim! Avaliamos seu console usado (PS4, Xbox One, Switch) como parte do pagamento." },
+            { q: "Qual o prazo de garantia dos serviços?", a: "Todos os nossos serviços de manutenção possuem 90 dias (3 meses) de garantia legal." },
+            { q: "Vocês montam PC Gamer?", a: "Com certeza! Temos consultoria especializada para montar o PC ideal para seu orçamento." },
+            { q: "Entregam em todo o Rio de Janeiro?", a: "Sim, trabalhamos com entregas expressas. Consulte taxa no WhatsApp." }
         ];
 
-        // === STATE ===
+        // State & DOM Elements Cache
         let allProducts = [...initialProducts];
         let cart = [];
         let currentFilter = 'all';
         let debounceTimer;
+        let els = {}; // Cached DOM elements
 
-        // === PERFORMANCE: Throttle function ===
-        function throttle(func, limit) {
-            let inThrottle;
-            return function(...args) {
-                if (!inThrottle) {
-                    func.apply(this, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
-                }
-            }
-        }
-
-        // === TOAST NOTIFICATIONS ===
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
+        // Utils
+        const formatPrice = p => typeof p === 'number' ? p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (String(p).includes('R$') ? p : parseFloat(String(p).replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+        const showToast = (msg, type = 'success') => {
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            toast.innerHTML = `
-                <i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i>
-                <span>${message}</span>
-            `;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(20px) scale(0.8)';
-                toast.style.transition = 'all 0.3s';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
+            toast.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i><span>${msg}</span>`;
+            els.toastContainer.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px) scale(0.8)'; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+        const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
-        // === MOBILE MENU ===
-        window.toggleMobileMenu = () => {
-            const menu = document.getElementById('mobileMenu');
-            const overlay = document.getElementById('mobileMenuOverlay');
-            const isOpen = menu.classList.toggle('open');
-            overlay.classList.toggle('open');
-            document.body.style.overflow = isOpen ? 'hidden' : '';
-            document.querySelector('[aria-controls="mobileMenu"]')?.setAttribute('aria-expanded', isOpen);
-        }
-
-        // === LOAD PRODUCTS FROM GITHUB (SITE PRINCIPAL) ===
+        // Logic
         async function loadGamesFromGitHub() {
             try {
-                const cacheBuster = `?t=${Date.now()}`;
-                const fetchUrl = PRODUCTS_URL_BASE + cacheBuster;
-                
-                const response = await fetch(fetchUrl);
-                if (response.ok) {
-                    const productsFromRepo = await response.json();
-                    const normalizedProducts = productsFromRepo.map(p => {
-                        let img = p.image || '';
-                        if (img.includes('/img/') && !img.includes('img%20site')) {
-                            img = img.replace('/img/', '/img%20site/');
-                        }
-                        return {
-                            id: (p.id || Date.now() + Math.random()).toString(),
-                            name: p.name || "Produto Sem Nome",
-                            category: mapCategory(p.category),
-                            price: formatPrice(p.price),
-                            image: img || "https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC",
-                            desc: p.desc || "Sem descrição."
-                        };
-                    });
-                    if (normalizedProducts.length > 0) {
-                        allProducts = normalizedProducts;
-                    }
+                const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.length) allProducts = data.map(p => ({
+                        id: (p.id || Date.now() + Math.random()).toString(),
+                        name: p.name || "Produto",
+                        category: p.category ? (p.category.toLowerCase().includes('console') ? 'console' : p.category.toLowerCase().includes('acess') ? 'acessorios' : p.category.toLowerCase().match(/pc|hardware/) ? 'hardware' : 'games') : 'games',
+                        price: formatPrice(p.price),
+                        image: (p.image || "").replace('/img/', '/img%20site/') || "https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC",
+                        desc: p.desc || "Sem descrição."
+                    }));
                 }
-            } catch (error) {
-                console.warn("Using fallback catalog:", error);
-            } finally {
-                renderProducts(currentFilter, document.getElementById('searchInput').value);
-            }
+            } catch (e) { console.warn("Using fallback catalog"); }
+            renderProducts(currentFilter, els.searchInput.value);
         }
 
-        // === UTILITIES ===
-        function formatPrice(price) {
-            if (typeof price === 'number') return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            if (String(price).includes('R$')) return price;
-            const num = parseFloat(String(price).replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, ''));
-            return isNaN(num) ? price : num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
+        function renderProducts(filter, term = "", forceAll = false) {
+            const lowerTerm = term.toLowerCase();
+            const filtered = allProducts.filter(p => 
+                (filter === 'all' || (p.category || 'games').toLowerCase().includes(filter)) &&
+                (!term || p.name.toLowerCase().includes(lowerTerm) || (p.desc && p.desc.toLowerCase().includes(lowerTerm)))
+            );
 
-        function mapCategory(cat) {
-            if (!cat) return 'games';
-            const c = cat.toLowerCase();
-            if (c.includes('console')) return 'console';
-            if (c.includes('acess')) return 'acessorios';
-            if (c.includes('pc') || c.includes('hardware')) return 'hardware';
-            return 'games';
-        }
-
-        // === INTERSECTION OBSERVER (Optimized) ===
-        const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    revealObserver.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        function initRevealAnimations() {
-            document.querySelectorAll('.reveal, .reveal-scale').forEach(el => revealObserver.observe(el));
-        }
-
-        // === SCROLL HANDLING (Optimized with requestAnimationFrame) ===
-        let ticking = false;
-        let lastScrollY = 0;
-        const navbar = document.getElementById('navbar');
-        const backToTopBtn = document.getElementById('backToTop');
-
-        function updateScrollUI() {
-            const currentScrollY = window.scrollY;
-            backToTopBtn.classList.toggle('show', currentScrollY > 400);
-            if (currentScrollY > lastScrollY && currentScrollY > 80) {
-                navbar.classList.add('nav-hidden');
-            } else {
-                navbar.classList.remove('nav-hidden');
-            }
-            lastScrollY = currentScrollY;
-            ticking = false;
-        }
-
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                requestAnimationFrame(updateScrollUI);
-                ticking = true;
-            }
-        }, { passive: true });
-
-        // === CART FUNCTIONS ===
-        window.addToCart = (id) => {
-            const product = allProducts.find(p => p.id.toString() === id.toString());
-            if (!product) return;
-            cart.push(product);
-            updateCartUI();
-            showToast(`${product.name} adicionado!`);
-        }
-
-        window.modalAddToCart = (id) => {
-            window.addToCart(id);
-            closeProductDetail();
-        }
-
-        window.removeFromCart = (index) => {
-            const item = cart[index];
-            cart.splice(index, 1);
-            updateCartUI();
-            showToast(`${item.name} removido`, 'error');
-        }
-
-        function updateCartUI() {
-            const container = document.getElementById('cartItemsContainer');
-            const totalEl = document.getElementById('cartTotal');
-            const countEl = document.getElementById('cartCount');
-            const checkoutBtn = document.getElementById('checkoutBtn');
+            const limit = (window.innerWidth < 768) ? 6 : 10;
+            const toShow = forceAll || term ? filtered : filtered.slice(0, limit);
             
-            countEl.textContent = cart.length;
-            countEl.classList.toggle('hidden', cart.length === 0);
-            checkoutBtn.disabled = cart.length === 0;
+            els.loadMore.classList.toggle('hidden', forceAll || term || filtered.length <= limit);
+            els.noResults.classList.toggle('hidden', filtered.length > 0);
             
-            if (cart.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12">
-                        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base flex items-center justify-center">
-                            <i class="ph-duotone ph-shopping-cart-simple text-4xl text-muted"></i>
-                        </div>
-                        <p class="text-muted font-medium">Seu carrinho está vazio</p>
-                        <p class="text-sm text-muted mt-1">Adicione produtos para começar</p>
-                    </div>`;
-                totalEl.textContent = 'R$ 0,00';
-                return;
-            }
+            if (!filtered.length) { els.productGrid.innerHTML = ''; return; }
 
-            let total = 0;
-            const fragment = document.createDocumentFragment();
-            
-            cart.forEach((item, index) => {
-                const priceNum = parseFloat(item.price.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 0;
-                total += priceNum;
-                
-                const div = document.createElement('div');
-                div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
-                div.innerHTML = `
-                    <img src="${item.image}" class="w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow" 
-                                onerror="this.src='https://placehold.co/100?text=ATOMIC'" alt="${item.name}" loading="lazy">
-                    <div class="flex-grow min-w-0">
-                        <p class="font-bold text-sm line-clamp-1">${item.name}</p>
-                        <p class="text-xs text-muted line-clamp-1">${item.desc}</p>
-                        <p class="text-sm font-bold text-gradient mt-1">${item.price}</p>
-                    </div>
-                    <button onclick="removeFromCart(${index})" 
-                                 class="self-center p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition"
-                                 aria-label="Remover ${item.name} do carrinho">
-                        <i class="ph-bold ph-trash text-lg"></i>
-                    </button>`;
-                fragment.appendChild(div);
-            });
-            
-            container.innerHTML = '';
-            container.appendChild(fragment);
-            totalEl.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        window.toggleCart = () => {
-            const modal = document.getElementById('cartModal');
-            const overlay = document.getElementById('cartOverlay');
-            const isOpen = modal.classList.toggle('open');
-            overlay.classList.toggle('open');
-            document.body.style.overflow = isOpen ? 'hidden' : '';
-        }
-
-        window.checkoutWhatsApp = () => {
-            if (cart.length === 0) {
-                showToast('Seu carrinho está vazio!', 'error');
-                return;
-            }
-            let message = "Olá! Vim pelo site e gostaria de fechar o pedido:\n\n";
-            cart.forEach(item => message += `• ${item.name} - ${item.price}\n`);
-            message += `\n*Total: ${document.getElementById('cartTotal').textContent}*`;
-            message += "\n\nComo prosseguir com pagamento/entrega?";
-            window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-        }
-
-        // === PRODUCT DETAIL MODAL ===
-        window.showProductDetail = (id) => {
-            const product = allProducts.find(p => p.id.toString() === id.toString());
-            if (!product) return;
-
-            document.getElementById('modalProductImage').src = product.image;
-            document.getElementById('modalProductImage').alt = product.name;
-            document.getElementById('modalProductName').textContent = product.name;
-            document.getElementById('modalProductDescription').textContent = product.desc;
-            document.getElementById('modalProductPrice').textContent = product.price;
-            
-            const categoryEl = document.getElementById('modalProductCategory');
-            categoryEl.className = `category-tag absolute top-4 left-4 category-${product.category}`;
-            categoryEl.textContent = product.category;
-            
-            document.getElementById('modalAddToCartBtn').dataset.id = id;
-            
-            const whatsappMsg = encodeURIComponent(`Olá, tenho interesse no produto: ${product.name} (${product.price}). Poderia me dar mais detalhes?`);
-            document.getElementById('modalWhatsappBtn').href = `https://wa.me/5521995969378?text=${whatsappMsg}`;
-
-            document.getElementById('productDetailModal').classList.add('open');
-            document.getElementById('productDetailOverlay').classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
-
-        window.closeProductDetail = () => {
-            document.getElementById('productDetailModal').classList.remove('open');
-            document.getElementById('productDetailOverlay').classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        // === RENDER PRODUCTS (Optimized with DocumentFragment) ===
-        function renderProducts(filter, searchTerm = "", forceAll = false) {
-            const grid = document.getElementById('productGrid');
-            const noRes = document.getElementById('noResults');
-            const loadMoreContainer = document.getElementById('loadMoreContainer');
-            
-            let filtered = [...allProducts];
-            
-            if (filter !== 'all') {
-                filtered = filtered.filter(p => (p.category || 'games').toLowerCase().includes(filter));
-            }
-            
-            if (searchTerm) {
-                const lowerTerm = searchTerm.toLowerCase();
-                filtered = filtered.filter(p => 
-                    p.name.toLowerCase().includes(lowerTerm) || 
-                    (p.desc && p.desc.toLowerCase().includes(lowerTerm))
-                );
-            }
-
-            const isMobile = window.innerWidth < 768;
-            const initialLimit = isMobile ? 6 : 10;
-            let productsToShow = forceAll || searchTerm ? filtered : filtered.slice(0, initialLimit);
-            
-            loadMoreContainer.classList.toggle('hidden', forceAll || searchTerm || filtered.length <= initialLimit);
-            noRes.classList.toggle('hidden', filtered.length > 0);
-
-            if (filtered.length === 0) {
-                grid.innerHTML = '';
-                return;
-            }
-
-            const categoryClasses = {
-                console: 'category-console',
-                games: 'category-games',
-                acessorios: 'category-acessorios',
-                hardware: 'category-hardware'
-            };
-
-            const fragment = document.createDocumentFragment();
-            
-            productsToShow.forEach((p, index) => {
+            const frag = document.createDocumentFragment();
+            toShow.forEach((p, i) => {
                 const card = document.createElement('article');
                 card.className = 'product-card bg-card border border-base flex flex-col h-full group';
-                card.style.animationDelay = `${index * 50}ms`;
-                card.setAttribute('role', 'listitem');
+                card.style.animationDelay = `${i * 50}ms`;
                 card.innerHTML = `
-                    <div class="product-img-box" onclick="showProductDetail('${p.id}')" role="button" tabindex="0" aria-label="Ver detalhes de ${p.name}" onkeydown="if(event.key==='Enter')showProductDetail('${p.id}')">
-                        <img src="${p.image}" alt="${p.name}" loading="lazy" 
-                                     onerror="this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=${encodeURIComponent(p.name.substring(0,10))}'">
-                        <span class="category-tag ${categoryClasses[p.category] || ''} absolute top-3 left-3">${p.category}</span>
+                    <div class="product-img-box" onclick="showProductDetail('${p.id}')" role="button" tabindex="0">
+                        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC'">
+                        <span class="category-tag ${getCategoryClass(p.category)} absolute top-3 left-3">${p.category}</span>
                     </div>
                     <div class="p-4 md:p-5 flex-grow flex flex-col">
                         <h3 class="font-bold text-sm md:text-base mb-1 leading-tight group-hover:text-yellow-500 transition line-clamp-2">${p.name}</h3>
                         <p class="text-xs text-muted mb-4 flex-grow line-clamp-2">${p.desc}</p>
                         <div class="mt-auto flex items-center justify-between gap-2">
                             <span class="font-black text-base md:text-lg text-gradient">${p.price}</span>
-                            <button onclick="addToCart('${p.id}')" 
-                                            class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-yellow-500/20 transform active:scale-90 hover:scale-105"
-                                            aria-label="Adicionar ${p.name} ao carrinho">
-                                <i class="ph-bold ph-plus text-lg"></i>
-                            </button>
+                            <button onclick="addToCart('${p.id}')" class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg hover:scale-105"><i class="ph-bold ph-plus text-lg"></i></button>
                         </div>
                     </div>`;
-                fragment.appendChild(card);
+                frag.appendChild(card);
             });
-            
-            grid.innerHTML = '';
-            grid.appendChild(fragment);
+            els.productGrid.innerHTML = '';
+            els.productGrid.appendChild(frag);
         }
 
-        // === VIDEO LOADER ===
-        window.loadVideo = () => {
-            const facade = document.getElementById('videoFacade');
-            const container = document.getElementById('videoContainer');
-            const videoId = facade.dataset.videoId;
-            facade.style.display = 'none';
-            container.classList.remove('hidden');
+        function updateCartUI() {
+            els.cartCount.textContent = cart.length;
+            els.cartCount.classList.toggle('hidden', !cart.length);
+            els.checkoutBtn.disabled = !cart.length;
             
-            container.innerHTML = `<iframe class="w-full h-full" 
-                src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" 
-                title="Atomic Games Video"
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerpolicy="strict-origin-when-cross-origin" 
-                allowfullscreen></iframe>`;
-        }
+            if (!cart.length) {
+                els.cartItems.innerHTML = '<div class="text-center py-12"><div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base flex items-center justify-center"><i class="ph-duotone ph-shopping-cart-simple text-4xl text-muted"></i></div><p class="text-muted font-medium">Seu carrinho está vazio</p></div>';
+                els.cartTotal.textContent = 'R$ 0,00';
+                return;
+            }
 
-        // === FAQ RENDERER ===
-        function renderFAQs() {
-            const container = document.getElementById('faqContainer');
-            const fragment = document.createDocumentFragment();
-            
-            faqs.forEach((item, i) => {
-                const details = document.createElement('details');
-                details.className = 'group bento-card overflow-hidden';
-                details.setAttribute('role', 'listitem');
-                if (i === 0) details.open = true;
-                details.innerHTML = `
-                    <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 md:p-6 bg-card group-open:bg-gradient-to-r group-open:from-yellow-50 group-open:to-orange-50 dark:group-open:from-yellow-900/10 dark:group-open:to-orange-900/10 transition-colors">
-                        <span class="text-base font-bold pr-4">${item.q}</span>
-                        <div class="w-10 h-10 rounded-xl bg-base group-open:bg-yellow-100 dark:group-open:bg-yellow-900/30 flex items-center justify-center transition-all flex-shrink-0">
-                            <i class="ph-bold ph-caret-down text-lg transition-transform group-open:rotate-180"></i>
-                        </div>
-                    </summary>
-                    <div class="text-muted p-5 md:p-6 pt-0 leading-relaxed bg-base">
-                        ${item.a}
-                    </div>`;
-                fragment.appendChild(details);
+            let total = 0;
+            const frag = document.createDocumentFragment();
+            cart.forEach((item, idx) => {
+                total += parseFloat(item.price.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 0;
+                const div = document.createElement('div');
+                div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
+                div.innerHTML = `
+                    <img src="${item.image}" class="w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow" onerror="this.src='https://placehold.co/100?text=ATOMIC'">
+                    <div class="flex-grow min-w-0"><p class="font-bold text-sm line-clamp-1">${item.name}</p><p class="text-xs text-muted line-clamp-1">${item.desc}</p><p class="text-sm font-bold text-gradient mt-1">${item.price}</p></div>
+                    <button onclick="removeFromCart(${idx})" class="self-center p-2 text-red-500 hover:bg-red-100 rounded-xl transition"><i class="ph-bold ph-trash text-lg"></i></button>`;
+                frag.appendChild(div);
             });
-            
-            container.innerHTML = '';
-            container.appendChild(fragment);
+            els.cartItems.innerHTML = '';
+            els.cartItems.appendChild(frag);
+            els.cartTotal.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        // === CHARTS ===
-        let repChart, servChart;
-        
+        // Global Handlers
+        window.addToCart = id => { const p = allProducts.find(x => x.id == id); if(p){ cart.push(p); updateCartUI(); showToast(`${p.name} adicionado!`); } };
+        window.removeFromCart = idx => { cart.splice(idx, 1); updateCartUI(); showToast('Produto removido', 'error'); };
+        window.toggleCart = () => { const open = els.cartModal.classList.toggle('open'); els.cartOverlay.classList.toggle('open'); document.body.style.overflow = open ? 'hidden' : ''; };
+        window.toggleMobileMenu = () => { const open = els.mobileMenu.classList.toggle('open'); els.mobileOverlay.classList.toggle('open'); document.body.style.overflow = open ? 'hidden' : ''; };
+        window.checkoutWhatsApp = () => {
+            if (!cart.length) return showToast('Carrinho vazio!', 'error');
+            const msg = "Olá! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${els.cartTotal.textContent}*`;
+            window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
+        };
+        window.showProductDetail = id => {
+            const p = allProducts.find(x => x.id == id);
+            if (!p) return;
+            document.getElementById('modalProductImage').src = p.image;
+            document.getElementById('modalProductName').textContent = p.name;
+            document.getElementById('modalProductDescription').textContent = p.desc;
+            document.getElementById('modalProductPrice').textContent = p.price;
+            document.getElementById('modalProductCategory').className = `category-tag absolute top-4 left-4 ${getCategoryClass(p.category)}`;
+            document.getElementById('modalProductCategory').textContent = p.category;
+            document.getElementById('modalAddToCartBtn').dataset.id = id;
+            document.getElementById('modalAddToCartBtn').onclick = () => { window.addToCart(id); window.closeProductDetail(); };
+            document.getElementById('modalWhatsappBtn').href = `https://wa.me/5521995969378?text=${encodeURIComponent(`Interesse em: ${p.name}`)}`;
+            els.detailModal.classList.add('open'); els.detailOverlay.classList.add('open'); document.body.style.overflow = 'hidden';
+        };
+        window.closeProductDetail = () => { els.detailModal.classList.remove('open'); els.detailOverlay.classList.remove('open'); document.body.style.overflow = ''; };
+        window.loadVideo = () => { 
+            const f = document.getElementById('videoFacade'); 
+            document.getElementById('videoContainer').innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${f.dataset.videoId}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+            f.style.display = 'none'; document.getElementById('videoContainer').classList.remove('hidden');
+        };
+
+        // Charts
         function initCharts(theme) {
-            const isDark = theme === 'dark';
-            const textColor = isDark ? '#f1f5f9' : '#0f172a';
-            const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+            const dark = theme === 'dark';
+            const color = dark ? '#f1f5f9' : '#0f172a';
+            if (window.repChart) window.repChart.destroy();
+            if (window.servChart) window.servChart.destroy();
+            
+            const c1 = document.getElementById('reputationChart');
+            if (c1) window.repChart = new Chart(c1.getContext('2d'), {
+                type: 'radar',
+                data: { labels: ['Atendimento', 'Preço', 'Rapidez', 'Variedade', 'Confiança'], datasets: [{ label: 'Nota', data: [4.9, 4.7, 4.8, 4.6, 5.0], backgroundColor: 'rgba(255,215,0,0.2)', borderColor: '#FFD700', pointBackgroundColor: '#FFD700' }] },
+                options: { scales: { r: { max: 5, grid: { color: dark ? '#ffffff10' : '#00000010' }, pointLabels: { color } } }, plugins: { legend: { display: false } } }
+            });
 
-            if (repChart) repChart.destroy();
-            if (servChart) servChart.destroy();
-
-            const ctx1 = document.getElementById('reputationChart')?.getContext('2d');
-            if (ctx1) {
-                repChart = new Chart(ctx1, {
-                    type: 'radar',
-                    data: {
-                        labels: ['Atendimento', 'Preço', 'Rapidez', 'Variedade', 'Confiança'],
-                        datasets: [{
-                            label: 'Nota Média',
-                            data: [4.9, 4.7, 4.8, 4.6, 5.0],
-                            backgroundColor: 'rgba(255, 215, 0, 0.2)',
-                            borderColor: '#FFD700',
-                            borderWidth: 3,
-                            pointBackgroundColor: '#FFD700',
-                            pointBorderColor: isDark ? '#0f172a' : '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 6
-                        }]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        scales: {
-                            r: {
-                                beginAtZero: true,
-                                max: 5,
-                                grid: { color: gridColor },
-                                angleLines: { color: gridColor },
-                                pointLabels: { color: textColor, font: { size: 12, weight: '600', family: 'Inter' } },
-                                ticks: { display: false }
-                            }
-                        },
-                        plugins: { legend: { display: false } },
-                        animation: { duration: 1000 }
-                    }
-                });
-            }
-
-            const ctx2 = document.getElementById('servicesChart')?.getContext('2d');
-            if (ctx2) {
-                servChart = new Chart(ctx2, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Manutenção', 'Jogos', 'Consoles', 'Peças'],
-                        datasets: [{
-                            data: [40, 20, 25, 15],
-                            backgroundColor: ['#FFD700', '#10B981', '#3B82F6', '#8B5CF6'],
-                            borderWidth: 0,
-                            borderRadius: 6,
-                            spacing: 4
-                        }]
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        cutout: '65%',
-                        plugins: { 
-                            legend: { 
-                                position: 'right', 
-                                labels: { 
-                                    color: textColor, 
-                                    font: { family: 'Inter', size: 12, weight: '500' },
-                                    padding: 16,
-                                    usePointStyle: true,
-                                    pointStyle: 'circle'
-                                } 
-                            } 
-                        },
-                        animation: { duration: 1000 }
-                    }
-                });
-            }
+            const c2 = document.getElementById('servicesChart');
+            if (c2) window.servChart = new Chart(c2.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Manutenção', 'Jogos', 'Consoles', 'Peças'], datasets: [{ data: [40, 20, 25, 15], backgroundColor: ['#FFD700', '#10B981', '#3B82F6', '#8B5CF6'], borderWidth: 0 }] },
+                options: { cutout: '65%', plugins: { legend: { position: 'right', labels: { color, usePointStyle: true } } } }
+            });
         }
 
-        // === INITIALIZATION ===
+        // Init
         document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.className = savedTheme;
+            // Cache Elements
+            els = {
+                toastContainer: document.getElementById('toastContainer'),
+                cartCount: document.getElementById('cartCount'),
+                cartItems: document.getElementById('cartItemsContainer'),
+                cartTotal: document.getElementById('cartTotal'),
+                checkoutBtn: document.getElementById('checkoutBtn'),
+                cartModal: document.getElementById('cartModal'),
+                cartOverlay: document.getElementById('cartOverlay'),
+                mobileMenu: document.getElementById('mobileMenu'),
+                mobileOverlay: document.getElementById('mobileMenuOverlay'),
+                productGrid: document.getElementById('productGrid'),
+                noResults: document.getElementById('noResults'),
+                loadMore: document.getElementById('loadMoreContainer'),
+                searchInput: document.getElementById('searchInput'),
+                detailModal: document.getElementById('productDetailModal'),
+                detailOverlay: document.getElementById('productDetailOverlay')
+            };
+
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.className = theme;
             
-            initCharts(savedTheme);
-            renderFAQs();
+            // Render Static Content
+            document.getElementById('faqContainer').innerHTML = faqs.map((f, i) => `<details class="group bento-card overflow-hidden"${i===0?' open':''}><summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 md:p-6 bg-card transition-colors"><span class="text-base font-bold pr-4">${f.q}</span><div class="w-10 h-10 rounded-xl bg-base flex items-center justify-center transition-all flex-shrink-0"><i class="ph-bold ph-caret-down text-lg transition-transform group-open:rotate-180"></i></div></summary><div class="text-muted p-5 md:p-6 pt-0 leading-relaxed bg-base">${f.a}</div></details>`).join('');
+            
+            initCharts(theme);
             loadGamesFromGitHub();
-            initRevealAnimations();
 
-            // Load More Button
-            document.getElementById('btnLoadMore')?.addEventListener('click', () => {
-                renderProducts(currentFilter, document.getElementById('searchInput').value, true);
-            });
+            // Intersection Observer
+            const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-            // Filter Buttons (Desktop & Mobile)
-            const buttons = document.querySelectorAll('.filter-btn');
-            const searchInput = document.getElementById('searchInput');
+            // Events
+            document.getElementById('btnLoadMore')?.addEventListener('click', () => renderProducts(currentFilter, els.searchInput.value, true));
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', e => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                currentFilter = e.currentTarget.dataset.category;
+                renderProducts(currentFilter, els.searchInput.value);
+            }));
+            els.searchInput?.addEventListener('input', e => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => renderProducts(currentFilter, e.target.value), 300); });
             
-            buttons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    buttons.forEach(b => {
-                        b.classList.remove('active');
-                        b.setAttribute('aria-pressed', 'false');
-                    });
-                    e.currentTarget.classList.add('active');
-                    e.currentTarget.setAttribute('aria-pressed', 'true');
-                    currentFilter = e.currentTarget.dataset.category;
-                    renderProducts(currentFilter, searchInput.value);
-                });
-            });
-            
-            // Search with Debounce
-            searchInput?.addEventListener('input', (e) => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    renderProducts(currentFilter, e.target.value);
-                }, 300);
-            });
-
-            // Service Form
-            document.getElementById('serviceForm')?.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('clientName').value;
-                const phone = document.getElementById('clientPhone').value;
-                const dev = document.getElementById('deviceSelect').value;
-                const iss = document.getElementById('issueSelect').value;
-                
-                if (!name || !phone || !dev || !iss) {
-                    showToast('Preencha todos os campos!', 'error');
-                    return;
-                }
-                
-                const message = `*SOLICITAÇÃO DE REPARO (SITE)*\n\n👤 *Nome:* ${name}\n📱 *Tel:* ${phone}\n🎮 *Aparelho:* ${dev}\n⚠️ *Problema:* ${iss}\n\n_Vim pelo site e gostaria de um orçamento._`;
-                window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-            });
-
-            // Dynamic Estimate
-            document.getElementById('serviceForm')?.addEventListener('change', () => {
-                const dev = document.getElementById('deviceSelect').value;
-                const iss = document.getElementById('issueSelect').value;
-                const res = document.getElementById('serviceResult');
-                if (dev && iss) {
-                    res.classList.remove('hidden');
-                    document.getElementById('timeEstimate').textContent = iss === 'Limpeza' ? '24 Horas' : '3 a 5 dias úteis';
-                }
-            });
-
-            // Theme Toggle
             document.getElementById('themeToggle')?.addEventListener('click', () => {
-                const html = document.documentElement;
-                const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
-                html.className = newTheme;
-                localStorage.setItem('theme', newTheme);
-                initCharts(newTheme);
+                const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                document.documentElement.className = newTheme; localStorage.setItem('theme', newTheme); initCharts(newTheme);
             });
 
-            // ESC to close modals
-            document.addEventListener('keydown', (e) => {
+            document.getElementById('serviceForm')?.addEventListener('submit', e => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const msg = `*SOLICITAÇÃO DE REPARO*\n\n👤 ${fd.get('clientName')}\n📱 ${fd.get('clientPhone')}\n🎮 ${fd.get('device')}\n⚠️ ${fd.get('issue')}`;
+                window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
+            });
+            
+            document.getElementById('serviceForm')?.addEventListener('change', () => {
+                if(document.getElementById('deviceSelect').value && document.getElementById('issueSelect').value) {
+                    document.getElementById('serviceResult').classList.remove('hidden');
+                    document.getElementById('timeEstimate').textContent = document.getElementById('issueSelect').value === 'Limpeza' ? '24 Horas' : '3 a 5 dias úteis';
+                }
+            });
+
+            // Scroll Handler
+            let lastY = 0, ticking = false;
+            window.addEventListener('scroll', () => {
+                if(!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const y = window.scrollY;
+                        document.getElementById('backToTop').classList.toggle('show', y > 400);
+                        document.getElementById('navbar').classList.toggle('nav-hidden', y > lastY && y > 80);
+                        lastY = y; ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, { passive: true });
+
+            document.addEventListener('keydown', e => {
                 if (e.key === 'Escape') {
-                    if (document.getElementById('cartModal').classList.contains('open')) toggleCart();
-                    if (document.getElementById('mobileMenu').classList.contains('open')) toggleMobileMenu();
-                    if (document.getElementById('productDetailModal').classList.contains('open')) closeProductDetail();
-                    // Removed reference to isChatOpen as the new chat uses IIFE logic
+                    if (els.cartModal.classList.contains('open')) window.toggleCart();
+                    if (els.mobileMenu.classList.contains('open')) window.toggleMobileMenu();
+                    if (els.detailModal.classList.contains('open')) window.closeProductDetail();
                 }
             });
         });
 
-        // ============================================
-        // LÓGICA DO ATOMIC CHATBOT (CORRIGIDO MOBILE)
-        // ============================================
+        // === CHATBOT (IIFE) - REVISADO PARA MOBILE ===
         (function() {
-            const CONFIG = {
-                API_URL: 'https://atomic-thiago-backend.onrender.com/chat',
-                WELCOME_MSG: 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\n\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?'
+            const els = { bubble: document.getElementById('chatBubble'), win: document.getElementById('chatWindow'), msgs: document.getElementById('chatMessages'), input: document.getElementById('chatInput') };
+            let isOpen = false, dragging = false, startX, startY, initX, initY;
+            let touchStartTime = 0; // Para detecção precisa de clique mobile
+            let sessionId = localStorage.getItem('chat_sess_id');
+
+            function toggle() {
+                isOpen = !isOpen;
+                els.win.classList.toggle('open', isOpen);
+                document.getElementById('chatBadge').style.display = isOpen ? 'none' : 'flex';
+                document.body.classList.toggle('chat-open', isOpen);
+                if(isOpen) { if(window.innerWidth > 768) els.input.focus(); scrollToBottom(); }
+            }
+
+            function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
+
+            function addMsg(role, text, prods, link) {
+                const div = document.createElement('div'); div.className = `message ${role}`;
+                let content = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                if(prods?.length) content += `<div class="chat-products-scroll">${prods.map(p => `<div class="chat-product-card"><img src="${p.image||'https://placehold.co/100'}"><div class="chat-product-title">${p.name||p.nome}</div><div class="chat-product-price">${p.price||p.preco}</div><button class="chat-add-btn" onclick="window.open('https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}')">VER</button></div>`).join('')}</div>`;
+                if(link) content += `<a href="${link}" target="_blank" style="display:block;margin-top:8px;background:#22c55e;color:white;text-align:center;padding:8px;border-radius:6px;font-weight:bold;font-size:12px">NEGOCIAR</a>`;
+                
+                div.innerHTML = `<div class="message-avatar">${role==='bot' ? '<img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg">' : '<div style="width:100%;height:100%;background:#333;color:#FFD700;display:flex;align-items:center;justify-content:center;font-size:10px">EU</div>'}</div><div class="message-bubble">${content}</div>`;
+                els.msgs.appendChild(div); scrollToBottom();
+            }
+
+            async function send() {
+                const txt = els.input.value.trim();
+                if(!txt) return;
+                els.input.value = ''; addMsg('user', txt);
+                const loadDiv = document.createElement('div'); loadDiv.id='typing'; loadDiv.style.cssText='padding:10px;font-style:italic;color:#888;font-size:12px'; loadDiv.innerText='Digitando...'; els.msgs.appendChild(loadDiv); scrollToBottom();
+                try {
+                    const res = await fetch(CONFIG.CHAT_API, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
+                    const data = await res.json();
+                    document.getElementById('typing').remove();
+                    if(data.success) {
+                        if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
+                        addMsg('bot', data.response, data.produtos_sugeridos, data.action_link);
+                    } else addMsg('bot', 'Erro no sistema.');
+                } catch { document.getElementById('typing').remove(); addMsg('bot', 'Sem conexão.'); }
+            }
+
+            // Drag Logic Mobile & Desktop Híbrido
+            const dragStart = e => { 
+                dragging = false; 
+                touchStartTime = Date.now();
+                const t = e.touches?.[0]||e; 
+                startX=t.clientX; startY=t.clientY; 
+                const r=els.bubble.getBoundingClientRect(); 
+                initX=r.left; initY=r.top; 
+                
+                // Feedback visual de toque
+                els.bubble.style.transform = 'scale(0.9)';
+
+                if(e.type==='touchstart'){
+                    document.addEventListener('touchmove', dragMove, {passive:false});
+                    document.addEventListener('touchend', dragEnd);
+                } else {
+                    document.addEventListener('mousemove', dragMove);
+                    document.addEventListener('mouseup', dragEnd);
+                } 
             };
 
-            const bubble = document.getElementById('chatBubble');
-            const windowEl = document.getElementById('chatWindow');
-            const closeBtn = document.getElementById('closeChatBtn');
-            const input = document.getElementById('chatInput');
-            const sendBtn = document.getElementById('sendBtn');
-            const messagesArea = document.getElementById('chatMessages');
-            const badge = document.getElementById('chatBadge');
-
-            let isOpen = false;
-            let isDragging = false;
-            let hasMoved = false;
-            let startX, startY, initialLeft, initialTop;
-            let sessionId = localStorage.getItem('atomic_chat_session_id');
-
-            // Ajuste de sensibilidade para mobile (em pixels)
-            const DRAG_THRESHOLD = 10; 
-
-            // --- 1. Inicialização ---
-            function init() {
-                if(bubble) {
-                    // Mensagem de boas vindas
-                    addMessage('bot', CONFIG.WELCOME_MSG);
-
-                    // Event Listeners
-                    closeBtn.addEventListener('click', toggleChat);
-                    sendBtn.addEventListener('click', sendMessage);
-                    input.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') sendMessage();
-                    });
-
-                    // Inicia Draggable (Mobile & Desktop)
-                    bubble.addEventListener('mousedown', onDragStart);
-                    bubble.addEventListener('touchstart', onDragStart, { passive: false });
-                }
-            }
-
-            // --- 2. Lógica de Arrastar (Draggable) ---
-            function onDragStart(e) {
-                isDragging = false; // Só vira true se passar do threshold
-                hasMoved = false;
+            const dragMove = e => { 
+                const t = e.touches?.[0]||e; 
+                const dx=t.clientX-startX, dy=t.clientY-startY; 
                 
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                // Threshold de 10px para considerar arrasto (evita micro-tremores de tela)
+                if(!dragging && Math.sqrt(dx*dx+dy*dy) > 10) { 
+                    dragging=true; 
+                    els.bubble.style.bottom='auto'; 
+                    els.bubble.style.right='auto'; 
+                } 
+                if(dragging) { 
+                    if(e.cancelable) e.preventDefault(); // Impede scroll da tela ao arrastar
+                    els.bubble.style.left = `${Math.min(window.innerWidth-65, Math.max(0, initX+dx))}px`; 
+                    els.bubble.style.top = `${Math.min(window.innerHeight-65, Math.max(0, initY+dy))}px`; 
+                } 
+            };
+
+            const dragEnd = (e) => { 
+                document.removeEventListener('mousemove', dragMove); 
+                document.removeEventListener('mouseup', dragEnd); 
+                document.removeEventListener('touchmove', dragMove); 
+                document.removeEventListener('touchend', dragEnd);
                 
-                startX = clientX;
-                startY = clientY;
+                // Retira feedback visual
+                els.bubble.style.transform = 'scale(1)';
+
+                // Lógica de clique robusta: se não arrastou OU se foi um toque muito rápido (<300ms) com pouco movimento
+                const timeDiff = Date.now() - touchStartTime;
+                if(!dragging || timeDiff < 300) { 
+                    toggle(); 
+                }
+            };
+
+            if(els.bubble) {
+                // Mensagem inicial garantida
+                if(els.msgs.children.length === 0) {
+                   addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?');
+                }
                 
-                const rect = bubble.getBoundingClientRect();
-                initialLeft = rect.left;
-                initialTop = rect.top;
-
-                // Previne que o CSS bottom: 20px atrapalhe o cálculo top quando começamos a mover
-                // mas só aplicamos isso se realmente for mover, para evitar saltos.
-
-                if (e.type === 'touchstart') {
-                    document.addEventListener('touchmove', onDragMove, { passive: false });
-                    document.addEventListener('touchend', onDragEnd);
-                } else {
-                    document.addEventListener('mousemove', onDragMove);
-                    document.addEventListener('mouseup', onDragEnd);
-                }
+                els.bubble.addEventListener('mousedown', dragStart); 
+                els.bubble.addEventListener('touchstart', dragStart, {passive:false});
+                document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); toggle(); };
+                document.getElementById('sendBtn').onclick = send;
+                els.input.onkeypress = e => e.key==='Enter' && send();
             }
-
-            function onDragMove(e) {
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-
-                // Só considera "arrastar" se mover mais que o threshold (evita jitter no toque)
-                if (!isDragging && dist > DRAG_THRESHOLD) {
-                    isDragging = true;
-                    hasMoved = true;
-                    // Fixar posição absoluta para iniciar movimento suave
-                    bubble.style.bottom = 'auto';
-                    bubble.style.right = 'auto';
-                }
-
-                if (isDragging) {
-                    if(e.cancelable) e.preventDefault(); // Impede scroll da tela enquanto arrasta a bolha
-
-                    let newLeft = initialLeft + dx;
-                    let newTop = initialTop + dy;
-                    
-                    // Limites da tela
-                    const maxLeft = window.innerWidth - bubble.offsetWidth;
-                    const maxTop = window.innerHeight - bubble.offsetHeight;
-                    
-                    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-                    newTop = Math.max(0, Math.min(newTop, maxTop));
-
-                    bubble.style.left = newLeft + 'px';
-                    bubble.style.top = newTop + 'px';
-                }
-            }
-
-            function onDragEnd() {
-                document.removeEventListener('mousemove', onDragMove);
-                document.removeEventListener('mouseup', onDragEnd);
-                document.removeEventListener('touchmove', onDragMove);
-                document.removeEventListener('touchend', onDragEnd);
-
-                // Se moveu pouco, considera clique
-                if (!hasMoved) toggleChat();
-            }
-
-            // --- 3. Abrir/Fechar ---
-            function toggleChat() {
-                isOpen = !isOpen;
-                if (isOpen) {
-                    windowEl.classList.add('open');
-                    badge.style.display = 'none';
-                    // Foco no input apenas em Desktop para evitar teclado abrindo na cara no mobile
-                    if(window.innerWidth > 768) input.focus();
-                    scrollToBottom();
-                    
-                    // Bloqueia scroll do body no mobile para melhor UX
-                    if(window.innerWidth <= 480) document.body.classList.add('chat-open');
-                } else {
-                    windowEl.classList.remove('open');
-                    document.body.classList.remove('chat-open');
-                }
-            }
-
-            // --- 4. Envio ---
-            async function sendMessage() {
-                const text = input.value.trim();
-                if (!text) return;
-
-                input.value = '';
-                addMessage('user', text);
-                showTyping();
-
-                try {
-                    const res = await fetch(CONFIG.API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: text, session_id: sessionId })
-                    });
-                    const data = await res.json();
-                    hideTyping();
-
-                    if (data.success) {
-                        if (data.session_id) {
-                            sessionId = data.session_id;
-                            localStorage.setItem('atomic_chat_session_id', sessionId);
-                        }
-                        addMessage('bot', data.response, data.produtos_sugeridos, data.action_link);
-                    } else {
-                        addMessage('bot', '😅 Ops, erro no sistema. Tente de novo.');
-                    }
-                } catch (err) {
-                    hideTyping();
-                    addMessage('bot', '⚠️ Sem conexão. Verifique a internet.');
-                    console.error(err);
-                }
-            }
-
-            // --- 5. Renderização UI ---
-            function addMessage(role, text, products = [], actionLink = null) {
-                const div = document.createElement('div');
-                div.className = `message ${role}`;
-                
-                let htmlContent = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-
-                // Produtos
-                if (products && products.length > 0) {
-                    htmlContent += `<div class="chat-products-scroll">`;
-                    products.forEach(p => {
-                        htmlContent += `
-                        <div class="chat-product-card">
-                            <img src="${p.image || 'https://placehold.co/100?text=ATOMIC'}" alt="Prod">
-                            <div class="chat-product-title">${p.name || p.nome}</div>
-                            <div class="chat-product-price">${p.price || p.preco}</div>
-                            <button class="chat-add-btn" onclick="window.open('https://wa.me/5521995969378?text=Tenho interesse em: ${encodeURIComponent(p.name || p.nome)}', '_blank')">VER</button>
-                        </div>`;
-                    });
-                    htmlContent += `</div>`;
-                }
-
-                // Botão Ação
-                if (actionLink) {
-                    htmlContent += `<a href="${actionLink}" target="_blank" style="display:block;margin-top:8px;background:#22c55e;color:white;text-align:center;padding:8px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:12px;">NEGOCIAR NO WHATSAPP</a>`;
-                }
-
-                const avatarSrc = role === 'bot' 
-                    ? 'https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg' 
-                    : null;
-
-                div.innerHTML = `
-                    <div class="message-avatar">
-                        ${avatarSrc ? `<img src="${avatarSrc}">` : '<div style="width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;color:#FFD700;font-size:12px;">EU</div>'}
-                    </div>
-                    <div class="message-bubble">${htmlContent}</div>
-                `;
-                
-                messagesArea.appendChild(div);
-                scrollToBottom();
-            }
-
-            function showTyping() {
-                const div = document.createElement('div');
-                div.id = 'chat-typing';
-                div.style.padding = '10px';
-                div.style.fontStyle = 'italic';
-                div.style.fontSize = '12px';
-                div.style.color = '#888';
-                div.innerText = 'Digitando...';
-                messagesArea.appendChild(div);
-                scrollToBottom();
-            }
-
-            function hideTyping() {
-                const el = document.getElementById('chat-typing');
-                if(el) el.remove();
-            }
-
-            function scrollToBottom() {
-                messagesArea.scrollTop = messagesArea.scrollHeight;
-            }
-
-            // Inicia
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
         })();
     </script>
 <script type="module" src="/index.tsx"></script>
