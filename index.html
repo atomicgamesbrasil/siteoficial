@@ -464,7 +464,7 @@
             display: flex; align-items: center; justify-content: center;
             overflow: hidden; 
             touch-action: none; /* CRÍTICO: Impede que o browser interfira no toque */
-            transition: transform 0.1s;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             pointer-events: auto; /* Reativa cliques na bolha */
         }
         .chat-bubble:active { cursor: grabbing; transform: scale(0.90); }
@@ -603,12 +603,22 @@
             .filter-btn { padding: 0.5rem 0.75rem; font-size: 0.7rem; }
             h1 { font-size: 1.75rem !important; }
             h2 { font-size: 1.5rem !important; }
+            /* CORREÇÃO DO CHAT MOBILE: Não ocupa mais a tela toda */
             .chat-window {
-                right: 0 !important; left: 0 !important; bottom: 0 !important; top: 0 !important;
-                width: 100% !important; height: 100dvh !important; max-height: 100dvh !important;
-                border-radius: 0; transform: translateY(100%);
+                right: 16px !important;
+                left: 16px !important;
+                bottom: 16px !important;
+                top: auto !important;
+                width: auto !important;
+                height: 65vh !important; /* Altura menor que 100vh */
+                max-height: 600px !important;
+                border-radius: 24px !important; /* Bordas arredondadas de volta */
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+                transform: translateY(20px) scale(0.95);
             }
-            .chat-window.open { transform: translateY(0); }
+            .chat-window.open {
+                transform: translateY(0) scale(1);
+            }
             .chat-bubble { bottom: 20px; left: 20px; }
         }
         
@@ -1339,6 +1349,18 @@
                 els.win.classList.toggle('open', isOpen);
                 document.getElementById('chatBadge').style.display = isOpen ? 'none' : 'flex';
                 document.body.classList.toggle('chat-open', isOpen);
+                
+                // CORREÇÃO: Oculta a bolha suavemente quando aberto
+                if (isOpen) {
+                    els.bubble.style.opacity = '0';
+                    els.bubble.style.pointerEvents = 'none';
+                    els.bubble.style.transform = 'scale(0.8)';
+                } else {
+                    els.bubble.style.opacity = '1';
+                    els.bubble.style.pointerEvents = 'auto';
+                    els.bubble.style.transform = 'scale(1)';
+                }
+
                 if(isOpen) { if(window.innerWidth > 768) els.input.focus(); scrollToBottom(); }
             }
 
