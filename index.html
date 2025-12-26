@@ -1651,25 +1651,46 @@
             let sessionId = localStorage.getItem('chat_sess_id');
 
             // --- UI LOGIC ---
-            function toggle() {
-                state.isOpen = !state.isOpen;
-                els.win.classList.toggle('open', state.isOpen);
-                els.badge.style.display = state.isOpen ? 'none' : 'flex';
-                document.body.classList.toggle('chat-open', state.isOpen);
+            function updateChatUI(open) {
+                state.isOpen = open;
+                els.win.classList.toggle('open', open);
+                els.badge.style.display = open ? 'none' : 'flex';
+                document.body.classList.toggle('chat-open', open);
                 
-                // Animate Bubble Out/In
-                if (state.isOpen) {
+                if (open) {
+                    // Open logic
                     els.bubble.style.transform = 'scale(0.8) translateY(20px)';
                     els.bubble.style.opacity = '0';
                     els.bubble.style.pointerEvents = 'none';
                     if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 300);
                     scrollToBottom();
                 } else {
+                    // Close logic
                     els.bubble.style.transform = 'scale(1)';
                     els.bubble.style.opacity = '1';
                     els.bubble.style.pointerEvents = 'auto';
                 }
             }
+
+            function openChat() {
+                if(state.isOpen) return;
+                history.pushState({chat: true}, '', '#chat');
+                updateChatUI(true);
+            }
+
+            function closeChat() {
+                if(!state.isOpen) return;
+                // Importante: Voltar no histórico para disparar popstate e fechar corretamente
+                history.back(); 
+            }
+
+            // History Listener (The Magic Fix)
+            window.addEventListener('popstate', (e) => {
+                // Se o chat estiver aberto e o usuário apertar voltar, fechamos o chat
+                if (state.isOpen) {
+                    updateChatUI(false);
+                }
+            });
 
             function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
@@ -1713,7 +1734,8 @@
                     els.bubble.style.transform = 'scale(1)';
                     
                     if (!state.isDragging) {
-                        e.preventDefault(); toggle();
+                        e.preventDefault(); 
+                        openChat(); // Use new open handler
                     } else {
                         // Magnetic Snap Logic
                         els.bubble.classList.add('snapping');
@@ -1732,7 +1754,16 @@
                 });
                 
                 // Desktop Click
-                els.bubble.addEventListener('click', (e) => { if(e.detail) toggle(); });
+                els.bubble.addEventListener('click', (e) => { 
+                    if(e.detail) {
+                        if(state.isOpen) closeChat(); else openChat();
+                    } 
+                });
+                
+                document.getElementById('closeChatBtn').onclick = (e) => { 
+                    e.stopPropagation(); 
+                    closeChat(); 
+                };
             }
 
             // --- MESSAGING LOGIC ---
@@ -1803,7 +1834,6 @@
             }
 
             // Init Chat
-            document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); toggle(); };
             document.getElementById('sendBtn').onclick = send;
             els.input.onkeypress = e => e.key==='Enter' && send();
             
