@@ -2,7 +2,8 @@
 <html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- ATUALIZAÇÃO: interactive-widget=resizes-content ajuda o layout a reagir ao teclado virtual -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Atomic Games e Informática - Site Oficial</title>
     
     <!-- Canonical Tag (SEO) -->
@@ -119,18 +120,21 @@
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            /* PERFORMANCE: Remove delay de 300ms no touch */
+            touch-action: manipulation; 
         }
         
         body { 
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             overflow-x: hidden; 
             line-height: 1.6;
+            min-height: 100vh;
+            min-height: 100dvh; /* Mobile Moderno */
         }
 
         body.chat-open {
             overflow: hidden !important;
-            position: fixed;
-            width: 100%;
+            overscroll-behavior: none;
         }
         
         h1, h2, h3, h4, .brand-font { 
@@ -163,6 +167,10 @@
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover { background: #FFD700; }
+        
+        /* Mobile Horizontal Scroll Snapping */
+        .snap-x { scroll-snap-type: x mandatory; }
+        .snap-center { scroll-snap-align: center; }
 
         /* === THEMES === */
         .light .bg-base { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
@@ -378,7 +386,7 @@
         .nav-hidden { transform: translateY(-100%); }
 
         /* Hero */
-        .hero-section { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
+        .hero-section { position: relative; min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; overflow: hidden; }
         @media (min-width: 768px) {
             .hero-section::before {
                 content: ''; position: absolute; inset: 0;
@@ -515,115 +523,160 @@
             opacity: 0.02; pointer-events: none; z-index: 1;
         }
 
-        /* === ATOMIC CHATBOT (Mobile Fix) === */
+        /* === ATOMIC CHATBOT 2.0 (Mobile Native Feel) === */
         #atomic-chat-widget { 
             z-index: var(--z-chat-widget); font-family: 'Inter', sans-serif; line-height: 1.5; 
-            pointer-events: none; /* CORREÇÃO: Permite clicar nos elementos atrás do container */
+            pointer-events: none;
             position: fixed; inset: 0;
+            overflow: hidden; /* Evita scroll na página principal ao arrastar bolha */
         }
         
         .chat-bubble {
             position: absolute; 
-            bottom: calc(20px + env(safe-area-inset-bottom)); 
-            left: 20px; 
-            width: 65px; height: 65px;
-            border-radius: 50%; background: #000; border: 3px solid #FFD700;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: grab; z-index: calc(var(--z-chat-widget) + 1);
+            bottom: calc(24px + env(safe-area-inset-bottom)); 
+            right: 24px; 
+            width: 60px; height: 60px;
+            border-radius: 50%; background: #000; border: 2px solid #FFD700;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4); cursor: grab; z-index: calc(var(--z-chat-widget) + 1);
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; 
-            touch-action: none; /* CRÍTICO: Impede que o browser interfira no toque */
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: auto; /* Reativa cliques na bolha */
+            overflow: visible;
+            touch-action: none; /* ESSENCIAL PARA DRAG AND DROP */
+            
+            /* FIX FLUIDITY: Default transition for interactions, but allow JS to override */
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+            
+            pointer-events: auto;
+            will-change: transform, left, top;
         }
-        .chat-bubble:active { cursor: grabbing; transform: scale(0.90); }
-        .chat-bubble img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        /* Class to disable transition during drag */
+        .chat-bubble.no-transition { transition: none !important; }
+        
+        .chat-bubble.snapping { transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); } /* Snap suave */
+        
+        .chat-bubble img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; pointer-events: none; }
         
         .chat-bubble-badge {
-            position: absolute; top: 0; right: 0; width: 22px; height: 22px;
+            position: absolute; top: -5px; right: -5px; width: 22px; height: 22px;
             background: #ef4444; color: white; border-radius: 50%; font-size: 11px;
             font-weight: bold; display: flex; align-items: center; justify-content: center;
-            border: 2px solid #fff;
+            border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .chat-window {
-            position: absolute; bottom: 100px; left: 20px; width: 350px; height: 550px; max-height: 80vh;
-            background: #ffffff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            position: absolute; bottom: 100px; right: 24px; width: 380px; height: 600px; max-height: calc(100vh - 120px);
+            background: #ffffff; border-radius: 24px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3);
             display: flex; flex-direction: column; overflow: hidden; z-index: var(--z-chat-widget);
-            transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1); border: 1px solid rgba(0,0,0,0.1);
+            transform-origin: bottom right;
+            transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.19, 1, 0.22, 1); border: 1px solid rgba(0,0,0,0.1);
         }
-        .chat-window.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+        .chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
         
         .chat-header {
-            background: linear-gradient(135deg, #FFD700, #FF8C00); padding: 15px;
+            background: var(--gradient-gold); padding: 16px 20px;
             display: flex; align-items: center; justify-content: space-between; color: #000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 10;
         }
-        .chat-header-info { display: flex; align-items: center; gap: 10px; }
-        .chat-avatar-small { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.3); }
+        .chat-header-info { display: flex; align-items: center; gap: 12px; }
+        .chat-avatar-small { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.5); background: #000; }
         .chat-avatar-small img { width: 100%; height: 100%; object-fit: cover; }
-        .chat-status h4 { font-size: 14px; font-weight: 800; margin: 0; line-height: 1.1; }
-        .chat-status span { font-size: 11px; opacity: 0.8; display: flex; align-items: center; gap: 4px; }
+        .chat-status { display: flex; flex-direction: column; }
+        .chat-status h4 { font-size: 15px; font-weight: 800; margin: 0; line-height: 1.1; }
+        .chat-status span { font-size: 11px; font-weight: 600; opacity: 0.7; display: flex; align-items: center; gap: 5px; }
         
         .chat-close-btn {
-            background: rgba(255,255,255,0.2); border: none; width: 32px; height: 32px;
+            background: rgba(255,255,255,0.2); border: none; width: 36px; height: 36px;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: background 0.2s;
         }
         .chat-close-btn:hover { background: rgba(255,255,255,0.4); }
 
         .chat-messages {
-            flex: 1; min-height: 0; background: #f3f4f6; padding: 15px;
-            overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 12px;
+            flex: 1; min-height: 0; background: #f0f2f5; padding: 20px;
+            overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 16px;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-        .dark .chat-messages { background: #0f172a; }
+        .dark .chat-messages { background-color: #0f172a; background-image: none; }
         .dark .chat-window { background: #1e293b; border-color: #334155; }
 
-        .message { display: flex; gap: 8px; max-width: 90%; animation: slideUp 0.3s ease; }
+        .message { display: flex; gap: 8px; max-width: 85%; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .message.bot { align-self: flex-start; }
         .message.user { align-self: flex-end; flex-direction: row-reverse; }
         
-        .message-avatar { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
-        
         .message-bubble {
-            padding: 10px 14px; border-radius: 14px; font-size: 13px;
-            line-height: 1.4; position: relative; word-wrap: break-word;
+            padding: 12px 16px; border-radius: 18px; font-size: 14px;
+            line-height: 1.5; position: relative; word-wrap: break-word;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .message.bot .message-bubble { background: #fff; color: #1f2937; border-bottom-left-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* Bot Bubble Style */
+        .message.bot .message-bubble { background: #fff; color: #1f2937; border-top-left-radius: 4px; }
         .dark .message.bot .message-bubble { background: #334155; color: #fff; }
-        .message.user .message-bubble { background: #000; color: #FFD700; border-bottom-right-radius: 2px; }
+        /* User Bubble Style */
+        .message.user .message-bubble { background: #000; color: #FFD700; border-top-right-radius: 4px; }
+        .dark .message.user .message-bubble { background: #FFD700; color: #000; }
 
-        .chat-products-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0 10px 0; width: 100%; scrollbar-width: none; }
+        /* Typing Indicator */
+        .typing-indicator { display: flex; gap: 4px; padding: 4px 0; }
+        .typing-dot { width: 6px; height: 6px; background: #888; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        .chat-products-scroll { 
+            display: flex; gap: 12px; overflow-x: auto; padding: 8px 4px 12px 4px; width: 100%; 
+            scrollbar-width: none; scroll-snap-type: x mandatory; 
+        }
         .chat-products-scroll::-webkit-scrollbar { display: none; }
         
         .chat-product-card {
-            min-width: 140px; max-width: 140px; background: #fff; border-radius: 10px;
-            padding: 8px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; align-items: center;
+            min-width: 150px; max-width: 150px; background: #fff; border-radius: 12px;
+            padding: 10px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; align-items: center;
+            scroll-snap-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         .dark .chat-product-card { background: #1e293b; border-color: #475569; }
-        .chat-product-card img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 5px; }
-        .chat-product-title { font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 4px; height: 30px; overflow: hidden; line-height: 1.2; color: #000; }
+        .chat-product-card img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 8px; }
+        .chat-product-title { font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 4px; height: 32px; overflow: hidden; line-height: 1.2; color: #000; }
         .dark .chat-product-title { color: #fff; }
-        .chat-product-price { font-size: 12px; color: #16a34a; font-weight: 800; margin-bottom: 6px; }
+        .chat-product-price { font-size: 13px; color: #16a34a; font-weight: 800; margin-bottom: 8px; }
         .chat-add-btn {
-            width: 100%; background: #FFD700; color: #000; border: none; font-size: 10px;
-            font-weight: bold; padding: 6px; border-radius: 6px; cursor: pointer;
+            width: 100%; background: #000; color: #FFD700; border: none; font-size: 11px;
+            font-weight: bold; padding: 8px; border-radius: 8px; cursor: pointer; transition: transform 0.2s;
         }
+        .chat-add-btn:active { transform: scale(0.95); }
 
-        .chat-input-area { padding: 10px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; }
+        .chat-input-area { padding: 16px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; gap: 10px; align-items: center; }
         .dark .chat-input-area { background: #1e293b; border-color: #334155; }
         .chat-input {
-            flex: 1; padding: 10px 14px; border-radius: 20px; border: 1px solid #e5e7eb;
-            background: #f9fafb; outline: none; font-size: 14px; color: #000;
+            flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid #e2e8f0;
+            background: #f8fafc; outline: none; font-size: 15px; color: #000; transition: border-color 0.2s;
         }
+        .chat-input:focus { border-color: #FFD700; background: #fff; }
         .dark .chat-input { background: #334155; border-color: #475569; color: #fff; }
         .chat-send-btn {
-            width: 42px; height: 42px; border-radius: 50%; background: #000; color: #FFD700;
+            width: 46px; height: 46px; border-radius: 50%; background: #000; color: #FFD700;
             border: none; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 18px; transition: transform 0.2s;
+            cursor: pointer; font-size: 20px; transition: transform 0.2s; flex-shrink: 0;
         }
-        .chat-send-btn:hover { transform: scale(1.1); }
+        .chat-send-btn:active { transform: scale(0.9); }
+
+        /* === MOBILE RESPONSIVE CHAT === */
+        @media (max-width: 480px) {
+            .chat-window {
+                width: 100% !important;
+                height: 100% !important;
+                height: 100dvh !important;
+                max-height: none !important;
+                top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+                border-radius: 0 !important;
+                transform: translateY(100%);
+                transform-origin: center bottom;
+            }
+            .chat-window.open { transform: translateY(0); }
+            .chat-messages { padding-bottom: 20px; }
+            .chat-bubble { width: 56px; height: 56px; bottom: 20px; right: 20px; }
+        }
 
         /* === RESPONSIVE === */
         @media (max-width: 768px) {
@@ -652,7 +705,8 @@
             .bento-card summary, .bento-card .text-muted { padding: 1rem !important; }
             footer { padding-top: 3rem; padding-bottom: 2rem; }
             .mobile-menu { width: 85%; max-width: 320px; }
-            #backToTop { bottom: 20px; right: 20px; left: auto; width: 48px; height: 48px; }
+            /* CORREÇÃO: Botão flutuante na esquerda para não conflitar com chat */
+            #backToTop { bottom: 20px; left: 20px; right: auto; width: 48px; height: 48px; }
             .hero-section [role="list"] { gap: 0.75rem; }
             .hero-section [role="listitem"] { font-size: 0.75rem; }
             .hero-section [role="listitem"] .w-8 { width: 28px; height: 28px; }
@@ -671,23 +725,6 @@
             .filter-btn { padding: 0.5rem 0.75rem; font-size: 0.7rem; }
             h1 { font-size: 1.75rem !important; }
             h2 { font-size: 1.5rem !important; }
-            /* CORREÇÃO DO CHAT MOBILE: Não ocupa mais a tela toda */
-            .chat-window {
-                right: 16px !important;
-                left: 16px !important;
-                bottom: 16px !important;
-                top: auto !important;
-                width: auto !important;
-                height: 65vh !important; /* Altura menor que 100vh */
-                max-height: 600px !important;
-                border-radius: 24px !important; /* Bordas arredondadas de volta */
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-                transform: translateY(20px) scale(0.95);
-            }
-            .chat-window.open {
-                transform: translateY(0) scale(1);
-            }
-            .chat-bubble { bottom: 20px; left: 20px; }
         }
         
         @media (min-width: 769px) and (max-width: 1024px) {
@@ -718,32 +755,39 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
 
-    <!-- Back To Top -->
-    <button id="backToTop" class="fixed bottom-6 right-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
+    <!-- Back To Top (MOVIDO PARA A ESQUERDA) -->
+    <button id="backToTop" class="fixed bottom-6 left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
         <i class="ph-bold ph-arrow-up text-xl"></i>
     </button>
 
     <!-- ============================================
-         ATOMIC CHAT WIDGET
+         ATOMIC CHAT WIDGET 2.0
          ============================================ -->
     <div id="atomic-chat-widget">
+        <!-- Floating Bubble -->
         <div id="chatBubble" class="chat-bubble">
             <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
             <div id="chatBadge" class="chat-bubble-badge">1</div>
         </div>
+        
+        <!-- Main Chat Window -->
         <div id="chatWindow" class="chat-window">
-            <div class="chat-header">
+            <header class="chat-header">
                 <div class="chat-header-info">
                     <div class="chat-avatar-small"><img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Thiago"></div>
-                    <div class="chat-status"><h4>Thiago - Atomic</h4><span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online</span></div>
+                    <div class="chat-status"><h4>Thiago - Atomic</h4><span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online Agora</span></div>
                 </div>
-                <button id="closeChatBtn" class="chat-close-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg></button>
+                <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
+            </header>
+            
+            <div id="chatMessages" class="chat-messages">
+                <!-- Messages Injected Here -->
             </div>
-            <div id="chatMessages" class="chat-messages"></div>
-            <div class="chat-input-area">
+            
+            <footer class="chat-input-area">
                 <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
-                <button id="sendBtn" class="chat-send-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"></path></svg></button>
-            </div>
+                <button id="sendBtn" class="chat-send-btn" aria-label="Enviar"><i class="ph-fill ph-paper-plane-right"></i></button>
+            </footer>
         </div>
     </div>
 
@@ -1593,130 +1637,157 @@
             });
         });
 
-        // === CHATBOT (IIFE) - REVISADO PARA MOBILE ===
+        // === CHATBOT 2.0 (FLUID & MAGNETIC) ===
         (function() {
-            const els = { bubble: document.getElementById('chatBubble'), win: document.getElementById('chatWindow'), msgs: document.getElementById('chatMessages'), input: document.getElementById('chatInput') };
-            let isOpen = false;
+            const els = { 
+                bubble: document.getElementById('chatBubble'), 
+                win: document.getElementById('chatWindow'), 
+                msgs: document.getElementById('chatMessages'), 
+                input: document.getElementById('chatInput'),
+                badge: document.getElementById('chatBadge')
+            };
+            
+            let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
             let sessionId = localStorage.getItem('chat_sess_id');
-            let isDragging = false;
-            let startPos = { x: 0, y: 0 };
-            let initialBubblePos = { x: 0, y: 0 };
 
+            // --- UI LOGIC ---
             function toggle() {
-                isOpen = !isOpen;
-                els.win.classList.toggle('open', isOpen);
-                document.getElementById('chatBadge').style.display = isOpen ? 'none' : 'flex';
-                document.body.classList.toggle('chat-open', isOpen);
+                state.isOpen = !state.isOpen;
+                els.win.classList.toggle('open', state.isOpen);
+                els.badge.style.display = state.isOpen ? 'none' : 'flex';
+                document.body.classList.toggle('chat-open', state.isOpen);
                 
-                // CORREÇÃO: Oculta a bolha suavemente quando aberto
-                if (isOpen) {
+                // Animate Bubble Out/In
+                if (state.isOpen) {
+                    els.bubble.style.transform = 'scale(0.8) translateY(20px)';
                     els.bubble.style.opacity = '0';
                     els.bubble.style.pointerEvents = 'none';
-                    els.bubble.style.transform = 'scale(0.8)';
+                    if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 300);
+                    scrollToBottom();
                 } else {
+                    els.bubble.style.transform = 'scale(1)';
                     els.bubble.style.opacity = '1';
                     els.bubble.style.pointerEvents = 'auto';
-                    els.bubble.style.transform = 'scale(1)';
                 }
-
-                if(isOpen) { if(window.innerWidth > 768) els.input.focus(); scrollToBottom(); }
             }
 
             function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-            // Helper para parsear texto com negrito e quebra de linha de forma segura
+            // --- DRAG & MAGNETIC SNAP PHYSICS ---
+            if(els.bubble) {
+                // Initialize Position logic
+                const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
+                
+                els.bubble.addEventListener('touchstart', (e) => {
+                    const t = e.touches[0];
+                    state.startX = t.clientX; state.startY = t.clientY;
+                    const rect = els.bubble.getBoundingClientRect();
+                    state.initialLeft = rect.left; state.initialTop = rect.top;
+                    state.isDragging = false;
+                    
+                    // Kill transition for 1:1 movement
+                    els.bubble.classList.add('no-transition');
+                    els.bubble.classList.remove('snapping');
+                    
+                    els.bubble.style.transform = 'scale(0.95)';
+                    // Switch to left/top positioning instantly to prevent jumps
+                    els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
+                    updatePos(rect.left, rect.top);
+                }, { passive: true });
+
+                els.bubble.addEventListener('touchmove', (e) => {
+                    const t = e.touches[0];
+                    const dx = t.clientX - state.startX;
+                    const dy = t.clientY - state.startY;
+                    
+                    if (Math.sqrt(dx*dx + dy*dy) > 5) state.isDragging = true;
+                    if (state.isDragging) {
+                        e.preventDefault();
+                        updatePos(state.initialLeft + dx, state.initialTop + dy);
+                    }
+                }, { passive: false });
+
+                els.bubble.addEventListener('touchend', (e) => {
+                    // Re-enable transition for the snap animation
+                    els.bubble.classList.remove('no-transition');
+                    els.bubble.style.transform = 'scale(1)';
+                    
+                    if (!state.isDragging) {
+                        e.preventDefault(); toggle();
+                    } else {
+                        // Magnetic Snap Logic
+                        els.bubble.classList.add('snapping');
+                        const rect = els.bubble.getBoundingClientRect();
+                        const midX = window.innerWidth / 2;
+                        const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
+                        
+                        // Bound Y to screen
+                        let snapY = rect.top;
+                        if(snapY < 20) snapY = 20;
+                        if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
+
+                        updatePos(snapX, snapY);
+                    }
+                    state.isDragging = false;
+                });
+                
+                // Desktop Click
+                els.bubble.addEventListener('click', (e) => { if(e.detail) toggle(); });
+            }
+
+            // --- MESSAGING LOGIC ---
             function parseText(text) {
                 const frag = document.createDocumentFragment();
-                const lines = text.split('\n');
-                lines.forEach((line, i) => {
-                    if (i > 0) frag.appendChild(document.createElement('br'));
-                    // Simple bold parser: split by **, even indices are normal, odd are bold
-                    const parts = line.split('**');
-                    parts.forEach((part, j) => {
-                        if (j % 2 === 1) { // Bold
-                            const b = document.createElement('b');
-                            b.textContent = part;
-                            frag.appendChild(b);
-                        } else {
-                            if (part) frag.appendChild(document.createTextNode(part));
-                        }
+                text.split('\n').forEach((line, i) => {
+                    if(i>0) frag.appendChild(document.createElement('br'));
+                    line.split('**').forEach((part, j) => {
+                        j%2 ? frag.appendChild(Object.assign(document.createElement('b'),{textContent:part})) 
+                            : frag.appendChild(document.createTextNode(part));
                     });
                 });
                 return frag;
             }
 
-            function addMsg(role, text, prods, link) {
+            function addMsg(role, content, prods, link) {
                 const div = document.createElement('div'); div.className = `message ${role}`;
+                const bubble = document.createElement('div'); bubble.className = 'message-bubble';
                 
-                const avatar = document.createElement('div');
-                avatar.className = 'message-avatar';
-                if (role === 'bot') {
-                    const img = document.createElement('img');
-                    img.src = 'https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg';
-                    avatar.appendChild(img);
-                } else {
-                    const userDiv = document.createElement('div');
-                    userDiv.style.cssText = 'width:100%;height:100%;background:#333;color:#FFD700;display:flex;align-items:center;justify-content:center;font-size:10px';
-                    userDiv.textContent = 'EU';
-                    avatar.appendChild(userDiv);
-                }
-
-                const bubble = document.createElement('div');
-                bubble.className = 'message-bubble';
+                if(content) bubble.appendChild(parseText(content));
                 
-                // Texto Principal
-                bubble.appendChild(parseText(text));
-
-                // Produtos Sugeridos
                 if(prods?.length) {
-                    const scroll = document.createElement('div');
-                    scroll.className = 'chat-products-scroll';
+                    const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
                     prods.forEach(p => {
-                        const card = document.createElement('div');
-                        card.className = 'chat-product-card';
-                        
-                        const img = document.createElement('img');
-                        img.src = p.image || 'https://placehold.co/100';
-                        
-                        const title = document.createElement('div');
-                        title.className = 'chat-product-title';
-                        title.textContent = p.name || p.nome;
-                        
-                        const price = document.createElement('div');
-                        price.className = 'chat-product-price';
-                        price.textContent = p.price || p.preco;
-                        
-                        const btn = document.createElement('button');
-                        btn.className = 'chat-add-btn';
-                        btn.textContent = 'VER';
+                        const card = document.createElement('div'); card.className = 'chat-product-card';
+                        card.innerHTML = `<img src="${p.image||'https://placehold.co/100'}" loading="lazy">
+                                          <div class="chat-product-title">${p.name||p.nome}</div>
+                                          <div class="chat-product-price">${p.price||p.preco}</div>`;
+                        const btn = document.createElement('button'); btn.className='chat-add-btn'; btn.innerText='VER';
                         btn.onclick = () => window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
-                        
-                        card.append(img, title, price, btn);
-                        scroll.appendChild(card);
+                        card.appendChild(btn); scroll.appendChild(card);
                     });
                     bubble.appendChild(scroll);
                 }
 
-                // Link de Ação
                 if(link) {
-                    const a = document.createElement('a');
-                    a.href = link;
-                    a.target = '_blank';
-                    a.style.cssText = 'display:block;margin-top:8px;background:#22c55e;color:white;text-align:center;padding:8px;border-radius:6px;font-weight:bold;font-size:12px';
-                    a.textContent = 'NEGOCIAR';
-                    bubble.appendChild(a);
+                   const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
+                   btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs';
+                   btn.innerText = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
                 }
-                
-                div.appendChild(avatar);
-                div.appendChild(bubble);
+
+                div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
+            }
+
+            function addTyping() {
+                const div = document.createElement('div'); div.id='typing'; div.className='message bot';
+                div.innerHTML = `<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
                 els.msgs.appendChild(div); scrollToBottom();
             }
 
             async function send() {
                 const txt = els.input.value.trim();
                 if(!txt) return;
-                els.input.value = ''; addMsg('user', txt);
-                const loadDiv = document.createElement('div'); loadDiv.id='typing'; loadDiv.style.cssText='padding:10px;font-style:italic;color:#888;font-size:12px'; loadDiv.innerText='Digitando...'; els.msgs.appendChild(loadDiv); scrollToBottom();
+                els.input.value = ''; addMsg('user', txt); addTyping();
+                
                 try {
                     const res = await fetch(CONFIG.CHAT_API, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
                     const data = await res.json();
@@ -1724,65 +1795,21 @@
                     if(data.success) {
                         if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
                         addMsg('bot', data.response, data.produtos_sugeridos, data.action_link);
-                    } else addMsg('bot', 'Erro no sistema.');
-                } catch { document.getElementById('typing').remove(); addMsg('bot', 'Sem conexão.'); }
+                    } else addMsg('bot', 'Desculpe, tive um erro técnico.');
+                } catch { 
+                    document.getElementById('typing').remove(); 
+                    addMsg('bot', 'Sem conexão com a internet.'); 
+                }
             }
 
-            if(els.bubble) {
-                // Mensagem inicial garantida
-                if(els.msgs.children.length === 0) {
-                   addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?');
-                }
-
-                // Lógica Robusta de Toque/Arrasto
-                els.bubble.addEventListener('touchstart', (e) => {
-                    const t = e.touches[0];
-                    startPos = { x: t.clientX, y: t.clientY };
-                    const rect = els.bubble.getBoundingClientRect();
-                    initialBubblePos = { x: rect.left, y: rect.top };
-                    isDragging = false;
-                    els.bubble.style.transform = 'scale(0.9)';
-                }, { passive: true });
-
-                els.bubble.addEventListener('touchmove', (e) => {
-                    const t = e.touches[0];
-                    const dx = t.clientX - startPos.x;
-                    const dy = t.clientY - startPos.y;
-
-                    // Se moveu mais que 10px, considera arrasto
-                    if (Math.sqrt(dx*dx + dy*dy) > 10) {
-                        isDragging = true;
-                        e.preventDefault(); // Impede scroll da página
-                        
-                        // Move a bolha
-                        els.bubble.style.bottom = 'auto';
-                        els.bubble.style.right = 'auto';
-                        els.bubble.style.left = `${initialBubblePos.x + dx}px`;
-                        els.bubble.style.top = `${initialBubblePos.y + dy}px`;
-                    }
-                }, { passive: false });
-
-                els.bubble.addEventListener('touchend', (e) => {
-                    els.bubble.style.transform = 'scale(1)';
-                    if (!isDragging) {
-                        // Se não arrastou, é CLIQUE. 
-                        // Impede o evento de mouse subsequente (ghost click)
-                        e.preventDefault(); 
-                        toggle();
-                    }
-                    isDragging = false;
-                });
-
-                // Fallback para Desktop (Mouse)
-                els.bubble.addEventListener('click', (e) => {
-                    // Se veio de um toque (já tratado no touchend), ignora
-                    // Se é desktop, abre normal
-                    if (e.detail > 0) toggle(); // e.detail > 0 geralmente indica clique real de mouse/trackpad
-                });
-                
-                document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); toggle(); };
-                document.getElementById('sendBtn').onclick = send;
-                els.input.onkeypress = e => e.key==='Enter' && send();
+            // Init Chat
+            document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); toggle(); };
+            document.getElementById('sendBtn').onclick = send;
+            els.input.onkeypress = e => e.key==='Enter' && send();
+            
+            // First Load
+            if(els.msgs.children.length === 0) {
+               setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?'), 1000);
             }
         })();
     </script>
