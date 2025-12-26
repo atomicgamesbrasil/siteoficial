@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Atomic Games e Informática - Site Oficial</title>
     
+    <!-- Canonical Tag (SEO) -->
+    <link rel="canonical" href="https://atomicgames.com.br">
+
     <!-- Skip Link for Accessibility -->
     <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
     
@@ -19,6 +22,41 @@
     <meta property="og:image" content="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="pt_BR">
+
+    <!-- Schema.org (JSON-LD) - Local Business -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ElectronicsStore",
+      "name": "Atomic Games e Informática",
+      "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
+      "description": "A melhor loja de games e assistência técnica de Madureira, RJ. Especializada em PlayStation, Xbox, Nintendo e PC Gamer.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Av. Ministro Edgard Romero, 81, Loja 3",
+        "addressLocality": "Rio de Janeiro",
+        "addressRegion": "RJ",
+        "addressCountry": "BR"
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "09:00",
+          "closes": "19:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Saturday",
+          "opens": "09:00",
+          "closes": "14:00"
+        }
+      ],
+      "priceRange": "$$",
+      "telephone": "+5521995969378",
+      "url": "https://atomicgames.com.br"
+    }
+    </script>
     
     <!-- Preload Critical Resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,6 +81,17 @@
             --glass-dark: rgba(17, 24, 39, 0.7);
             --blur: 20px;
             --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+
+            /* Z-Index Architecture */
+            --z-negative: -1;
+            --z-base: 1;
+            --z-nav: 50;
+            --z-overlay: 90;
+            --z-menu: 95;
+            --z-modal: 100;
+            --z-toast: 200;
+            --z-chat-widget: 999;
+            --z-skip-link: 10000;
         }
         
         * { box-sizing: border-box; }
@@ -83,7 +132,7 @@
             padding: 1rem 2rem;
             border-radius: 0 0 1rem 1rem;
             font-weight: 700;
-            z-index: 9999;
+            z-index: var(--z-skip-link);
             transition: top 0.3s;
         }
         .skip-link:focus { top: 0; }
@@ -128,7 +177,7 @@
         .mesh-gradient {
             position: fixed;
             inset: 0;
-            z-index: -1;
+            z-index: var(--z-negative);
             opacity: 0.4;
             pointer-events: none;
             contain: strict;
@@ -326,9 +375,10 @@
         }
 
         /* Video Facade */
-        .video-facade {
+        button.video-facade {
             position: relative; width: 100%; height: 100%; background: #000;
             cursor: pointer; overflow: hidden;
+            border: none; padding: 0; display: block; text-align: left; /* Button Reset */
         }
         .video-facade img {
             width: 100%; height: 100%; object-fit: cover; opacity: 0.8;
@@ -347,13 +397,13 @@
         /* Modals & Overlays */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-            z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+            z-index: var(--z-overlay); opacity: 0; pointer-events: none; transition: opacity 0.4s;
         }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
 
         .cart-modal {
             position: fixed; top: 0; right: 0; height: 100%; width: 100%; max-width: 440px;
-            z-index: 100; transform: translateX(100%);
+            z-index: var(--z-modal); transform: translateX(100%);
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex; flex-direction: column;
         }
@@ -364,7 +414,7 @@
             transform: translate(-50%, -50%) scale(0.9);
             opacity: 0; pointer-events: none;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 100;
+            z-index: var(--z-modal);
         }
         .modal-base.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 
@@ -384,7 +434,7 @@
 
         .toast-container {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 200; display: flex; flex-direction: column; gap: 12px;
+            z-index: var(--z-toast); display: flex; flex-direction: column; gap: 12px;
         }
         .toast {
             padding: 16px 28px; border-radius: 16px; font-weight: 700; font-size: 0.95rem;
@@ -398,13 +448,13 @@
 
         /* Mobile Menu */
         .mobile-menu {
-            position: fixed; inset: 0; z-index: 90;
+            position: fixed; inset: 0; z-index: var(--z-menu);
             transform: translateX(-100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .mobile-menu.open { transform: translateX(0); }
         .mobile-menu-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
-            z-index: 89; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+            z-index: var(--z-overlay); opacity: 0; pointer-events: none; transition: opacity 0.4s;
         }
         .mobile-menu-overlay.open { opacity: 1; pointer-events: auto; }
 
@@ -449,7 +499,7 @@
 
         /* === ATOMIC CHATBOT (Mobile Fix) === */
         #atomic-chat-widget { 
-            z-index: 99999; font-family: 'Inter', sans-serif; line-height: 1.5; 
+            z-index: var(--z-chat-widget); font-family: 'Inter', sans-serif; line-height: 1.5; 
             pointer-events: none; /* CORREÇÃO: Permite clicar nos elementos atrás do container */
             position: fixed; inset: 0;
         }
@@ -460,7 +510,7 @@
             left: 20px; 
             width: 65px; height: 65px;
             border-radius: 50%; background: #000; border: 3px solid #FFD700;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: grab; z-index: 100000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); cursor: grab; z-index: calc(var(--z-chat-widget) + 1);
             display: flex; align-items: center; justify-content: center;
             overflow: hidden; 
             touch-action: none; /* CRÍTICO: Impede que o browser interfira no toque */
@@ -480,7 +530,7 @@
         .chat-window {
             position: absolute; bottom: 100px; left: 20px; width: 350px; height: 550px; max-height: 80vh;
             background: #ffffff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-            display: flex; flex-direction: column; overflow: hidden; z-index: 99999;
+            display: flex; flex-direction: column; overflow: hidden; z-index: var(--z-chat-widget);
             transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none;
             transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1); border: 1px solid rgba(0,0,0,0.1);
         }
@@ -651,9 +701,7 @@
     <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
 
     <!-- Back To Top -->
-    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" id="backToTop" 
-            class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold"
-            aria-label="Voltar ao topo da página">
+    <button id="backToTop" class="fixed bottom-6 right-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
         <i class="ph-bold ph-arrow-up text-xl"></i>
     </button>
 
@@ -682,11 +730,11 @@
     </div>
 
     <!-- Product Detail Modal -->
-    <div id="productDetailOverlay" class="modal-overlay" onclick="closeProductDetail()" aria-hidden="true"></div>
+    <div id="productDetailOverlay" class="modal-overlay" aria-hidden="true"></div>
     <article id="productDetailModal" class="modal-base w-11/12 max-w-4xl bg-card-solid rounded-3xl shadow-2xl border border-base overflow-hidden" role="dialog" aria-labelledby="modalProductName" aria-modal="true">
         <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
             <span class="text-sm font-bold text-muted uppercase tracking-wider">Detalhes do Produto</span>
-            <button onclick="closeProductDetail()" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar detalhes do produto"><i class="ph-bold ph-x text-xl"></i></button>
+            <button id="closeDetailBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar detalhes do produto"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="p-6 md:p-8 grid md:grid-cols-2 gap-6 md:gap-8 max-h-[80vh] overflow-y-auto">
             <figure class="relative bg-base rounded-2xl p-6 flex items-center justify-center min-h-64">
@@ -706,7 +754,7 @@
     </article>
 
     <!-- Mobile Menu Overlay -->
-    <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="toggleMobileMenu()" aria-hidden="true"></div>
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true"></div>
     
     <!-- Mobile Menu -->
     <nav class="mobile-menu bg-card-solid" id="mobileMenu" aria-label="Menu de navegação móvel">
@@ -716,23 +764,23 @@
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="" class="h-12 w-12 rounded-full shadow-lg bg-black glow-gold">
                     <span class="font-bold text-xl brand-font">ATOMIC</span>
                 </div>
-                <button onclick="toggleMobileMenu()" class="p-3 rounded-xl bg-base hover:bg-card transition" aria-label="Fechar menu"><i class="ph-bold ph-x text-xl"></i></button>
+                <button id="closeMobileMenuBtn" class="p-3 rounded-xl bg-base hover:bg-card transition" aria-label="Fechar menu"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             
             <div class="flex-grow space-y-2">
-                <a href="#store" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
+                <a href="#store" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-fill ph-storefront text-2xl text-black"></i></div>
                     <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span><p class="text-xs text-muted">Produtos e ofertas</p></div>
                 </a>
-                <a href="#services" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
+                <a href="#services" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-wrench text-2xl text-white"></i></div>
                     <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Assistência</span><p class="text-xs text-muted">Reparos especializados</p></div>
                 </a>
-                <a href="#dashboard" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
+                <a href="#dashboard" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-star text-2xl text-white"></i></div>
                     <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Depoimentos</span><p class="text-xs text-muted">O que falam da gente</p></div>
                 </a>
-                <a href="#location" onclick="toggleMobileMenu()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
+                <a href="#location" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-map-pin text-2xl text-white"></i></div>
                     <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Localização</span><p class="text-xs text-muted">Visite nosso QG</p></div>
                 </a>
@@ -750,28 +798,28 @@
     </nav>
 
     <!-- Cart Overlay -->
-    <div class="modal-overlay" id="cartOverlay" onclick="toggleCart()" aria-hidden="true"></div>
+    <div class="modal-overlay" id="cartOverlay" aria-hidden="true"></div>
     <aside class="cart-modal bg-card-solid border-l border-base shadow-2xl" id="cartModal" role="dialog" aria-labelledby="cartTitle" aria-modal="true">
         <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
             <h2 id="cartTitle" class="font-bold text-xl flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-shopping-cart text-black"></i></div>
                 Seu Carrinho
             </h2>
-            <button onclick="toggleCart()" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar carrinho"><i class="ph-bold ph-x text-xl"></i></button>
+            <button id="closeCartBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar carrinho"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="flex-grow overflow-y-auto p-5 space-y-4" id="cartItemsContainer"></div>
         <div class="p-5 border-t border-base bg-base">
             <div class="flex justify-between items-center mb-4"><span class="text-muted font-medium">Subtotal</span><span id="cartTotal" class="font-bold text-2xl text-gradient">R$ 0,00</span></div>
-            <button onclick="checkoutWhatsApp()" class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" id="checkoutBtn" disabled><i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp</button>
+            <button class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" id="checkoutBtn" disabled><i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp</button>
             <p class="text-center text-xs text-muted mt-3">Pagamento e entrega combinados no chat</p>
         </div>
     </aside>
 
     <!-- Navbar -->
-    <header class="sticky top-0 z-50 glass border-b border-base shadow-sm transition-all duration-300" id="navbar">
+    <header class="sticky top-0 z-[var(--z-nav)] glass border-b border-base shadow-sm transition-all duration-300" id="navbar">
         <nav class="container mx-auto px-4 lg:px-8 h-20 flex justify-between items-center" aria-label="Navegação principal">
             <div class="flex items-center gap-4">
-                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl hover:bg-base transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobileMenu"><i class="ph-bold ph-list text-2xl"></i></button>
+                <button id="mobileMenuOpenBtn" class="md:hidden p-2 rounded-xl hover:bg-base transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobileMenu"><i class="ph-bold ph-list text-2xl"></i></button>
                 <a href="#top" class="flex items-center gap-3 hover:opacity-90 transition transform hover:scale-105 duration-300" aria-label="Atomic Games - Página inicial">
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo Atomic Games" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50 glow-gold">
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic Games" class="h-7 w-auto hidden sm:block">
@@ -788,7 +836,7 @@
                     <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
                     <i class="ph ph-moon text-2xl block dark:hidden text-slate-700"></i>
                 </button>
-                <button onclick="toggleCart()" class="relative p-3 rounded-xl hover:bg-base transition group" aria-label="Abrir carrinho de compras">
+                <button id="openCartBtn" class="relative p-3 rounded-xl hover:bg-base transition group" aria-label="Abrir carrinho de compras">
                     <i class="ph-bold ph-shopping-cart text-2xl group-hover:text-yellow-500 transition"></i>
                     <span id="cartCount" class="badge hidden" aria-live="polite">0</span>
                 </button>
@@ -822,7 +870,7 @@
                 </div>
                 <div class="md:w-1/2 w-full flex justify-center reveal" style="transition-delay: 200ms;">
                     <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
-                        <div class="video-facade" id="videoFacade" onclick="loadVideo()" data-video-id="YCsT_InlNWw" role="button" tabindex="0" aria-label="Reproduzir vídeo" onkeydown="if(event.key==='Enter')loadVideo()">
+                        <button class="video-facade" id="videoFacade" data-video-id="YCsT_InlNWw" type="button" aria-label="Reproduzir vídeo">
                             <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail Vídeo" onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
                             <div class="play-btn" aria-hidden="true"><i class="ph-fill ph-play text-3xl text-black ml-1"></i></div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
@@ -830,7 +878,7 @@
                                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-youtube-logo text-black text-xl"></i></div>
                                 <div class="text-white"><p class="font-bold text-sm">Conheça a Atomic</p><p class="text-xs opacity-80">Assista ao vídeo</p></div>
                             </div>
-                        </div>
+                        </button>
                         <div id="videoContainer" class="w-full h-full hidden"></div>
                     </div>
                 </div>
@@ -1060,6 +1108,7 @@
 
         // Utils
         const formatPrice = p => typeof p === 'number' ? p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (String(p).includes('R$') ? p : parseFloat(String(p).replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+        
         const showToast = (msg, type = 'success') => {
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
@@ -1067,9 +1116,10 @@
             els.toastContainer.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px) scale(0.8)'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
+        
         const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
-        // Logic
+        // Core Functions
         async function loadGamesFromGitHub() {
             try {
                 const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
@@ -1101,29 +1151,78 @@
             els.loadMore.classList.toggle('hidden', forceAll || term || filtered.length <= limit);
             els.noResults.classList.toggle('hidden', filtered.length > 0);
             
-            if (!filtered.length) { els.productGrid.innerHTML = ''; return; }
+            els.productGrid.innerHTML = '';
+            
+            if (!filtered.length) return;
 
             const frag = document.createDocumentFragment();
+            
             toShow.forEach((p, i) => {
                 const card = document.createElement('article');
                 card.className = 'product-card bg-card border border-base flex flex-col h-full group';
                 card.style.animationDelay = `${i * 50}ms`;
-                card.innerHTML = `
-                    <div class="product-img-box" onclick="showProductDetail('${p.id}')" role="button" tabindex="0">
-                        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC'">
-                        <span class="category-tag ${getCategoryClass(p.category)} absolute top-3 left-3">${p.category}</span>
-                    </div>
-                    <div class="p-4 md:p-5 flex-grow flex flex-col">
-                        <h3 class="font-bold text-sm md:text-base mb-1 leading-tight group-hover:text-yellow-500 transition line-clamp-2">${p.name}</h3>
-                        <p class="text-xs text-muted mb-4 flex-grow line-clamp-2">${p.desc}</p>
-                        <div class="mt-auto flex items-center justify-between gap-2">
-                            <span class="font-black text-base md:text-lg text-gradient">${p.price}</span>
-                            <button onclick="addToCart('${p.id}')" class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg hover:scale-105"><i class="ph-bold ph-plus text-lg"></i></button>
-                        </div>
-                    </div>`;
+                
+                // Image Box
+                const imgBox = document.createElement('div');
+                imgBox.className = 'product-img-box';
+                imgBox.role = 'button';
+                imgBox.tabIndex = 0;
+                imgBox.addEventListener('click', () => showProductDetail(p.id));
+                imgBox.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && showProductDetail(p.id));
+
+                const img = document.createElement('img');
+                img.src = p.image;
+                img.alt = p.name;
+                img.loading = 'lazy';
+                img.onerror = function() { this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC' };
+
+                const tag = document.createElement('span');
+                tag.className = `category-tag ${getCategoryClass(p.category)} absolute top-3 left-3`;
+                tag.textContent = p.category;
+
+                imgBox.appendChild(img);
+                imgBox.appendChild(tag);
+
+                // Content Box
+                const contentBox = document.createElement('div');
+                contentBox.className = 'p-4 md:p-5 flex-grow flex flex-col';
+                
+                const title = document.createElement('h3');
+                title.className = 'font-bold text-sm md:text-base mb-1 leading-tight group-hover:text-yellow-500 transition line-clamp-2';
+                title.textContent = p.name;
+
+                const desc = document.createElement('p');
+                desc.className = 'text-xs text-muted mb-4 flex-grow line-clamp-2';
+                desc.textContent = p.desc;
+
+                const footer = document.createElement('div');
+                footer.className = 'mt-auto flex items-center justify-between gap-2';
+                
+                const price = document.createElement('span');
+                price.className = 'font-black text-base md:text-lg text-gradient';
+                price.textContent = p.price;
+
+                const addBtn = document.createElement('button');
+                addBtn.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg hover:scale-105';
+                addBtn.ariaLabel = `Adicionar ${p.name} ao carrinho`;
+                addBtn.innerHTML = '<i class="ph-bold ph-plus text-lg"></i>';
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    addToCart(p.id);
+                });
+
+                footer.appendChild(price);
+                footer.appendChild(addBtn);
+
+                contentBox.appendChild(title);
+                contentBox.appendChild(desc);
+                contentBox.appendChild(footer);
+
+                card.appendChild(imgBox);
+                card.appendChild(contentBox);
                 frag.appendChild(card);
             });
-            els.productGrid.innerHTML = '';
+            
             els.productGrid.appendChild(frag);
         }
 
@@ -1142,30 +1241,65 @@
             const frag = document.createDocumentFragment();
             cart.forEach((item, idx) => {
                 total += parseFloat(item.price.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 0;
+                
                 const div = document.createElement('div');
                 div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
-                div.innerHTML = `
-                    <img src="${item.image}" class="w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow" onerror="this.src='https://placehold.co/100?text=ATOMIC'">
-                    <div class="flex-grow min-w-0"><p class="font-bold text-sm line-clamp-1">${item.name}</p><p class="text-xs text-muted line-clamp-1">${item.desc}</p><p class="text-sm font-bold text-gradient mt-1">${item.price}</p></div>
-                    <button onclick="removeFromCart(${idx})" class="self-center p-2 text-red-500 hover:bg-red-100 rounded-xl transition"><i class="ph-bold ph-trash text-lg"></i></button>`;
+                
+                const img = document.createElement('img');
+                img.src = item.image;
+                img.className = 'w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow';
+                img.onerror = function() { this.src='https://placehold.co/100?text=ATOMIC' };
+
+                const info = document.createElement('div');
+                info.className = 'flex-grow min-w-0';
+                info.innerHTML = `<p class="font-bold text-sm line-clamp-1">${item.name}</p><p class="text-xs text-muted line-clamp-1">${item.desc}</p><p class="text-sm font-bold text-gradient mt-1">${item.price}</p>`;
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'self-center p-2 text-red-500 hover:bg-red-100 rounded-xl transition';
+                delBtn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
+                delBtn.ariaLabel = "Remover item";
+                delBtn.addEventListener('click', () => removeFromCart(idx));
+
+                div.appendChild(img);
+                div.appendChild(info);
+                div.appendChild(delBtn);
                 frag.appendChild(div);
             });
+            
             els.cartItems.innerHTML = '';
             els.cartItems.appendChild(frag);
             els.cartTotal.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        // Global Handlers
-        window.addToCart = id => { const p = allProducts.find(x => x.id == id); if(p){ cart.push(p); updateCartUI(); showToast(`${p.name} adicionado!`); } };
-        window.removeFromCart = idx => { cart.splice(idx, 1); updateCartUI(); showToast('Produto removido', 'error'); };
-        window.toggleCart = () => { const open = els.cartModal.classList.toggle('open'); els.cartOverlay.classList.toggle('open'); document.body.style.overflow = open ? 'hidden' : ''; };
-        window.toggleMobileMenu = () => { const open = els.mobileMenu.classList.toggle('open'); els.mobileOverlay.classList.toggle('open'); document.body.style.overflow = open ? 'hidden' : ''; };
-        window.checkoutWhatsApp = () => {
+        // Logic Helpers
+        function addToCart(id) { 
+            const p = allProducts.find(x => x.id == id); 
+            if(p){ cart.push(p); updateCartUI(); showToast(`${p.name} adicionado!`); } 
+        }
+        
+        function removeFromCart(idx) { 
+            cart.splice(idx, 1); updateCartUI(); showToast('Produto removido', 'error'); 
+        }
+        
+        function toggleCart() { 
+            const open = els.cartModal.classList.toggle('open'); 
+            els.cartOverlay.classList.toggle('open'); 
+            document.body.style.overflow = open ? 'hidden' : ''; 
+        }
+        
+        function toggleMobileMenu() { 
+            const open = els.mobileMenu.classList.toggle('open'); 
+            els.mobileOverlay.classList.toggle('open'); 
+            document.body.style.overflow = open ? 'hidden' : ''; 
+        }
+        
+        function checkoutWhatsApp() {
             if (!cart.length) return showToast('Carrinho vazio!', 'error');
             const msg = "Olá! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${els.cartTotal.textContent}*`;
             window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
-        };
-        window.showProductDetail = id => {
+        }
+        
+        function showProductDetail(id) {
             const p = allProducts.find(x => x.id == id);
             if (!p) return;
             document.getElementById('modalProductImage').src = p.image;
@@ -1174,17 +1308,31 @@
             document.getElementById('modalProductPrice').textContent = p.price;
             document.getElementById('modalProductCategory').className = `category-tag absolute top-4 left-4 ${getCategoryClass(p.category)}`;
             document.getElementById('modalProductCategory').textContent = p.category;
-            document.getElementById('modalAddToCartBtn').dataset.id = id;
-            document.getElementById('modalAddToCartBtn').onclick = () => { window.addToCart(id); window.closeProductDetail(); };
+            
+            // Clean up old event listener by replacing the button clone
+            const oldBtn = document.getElementById('modalAddToCartBtn');
+            const newBtn = oldBtn.cloneNode(true);
+            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+            
+            newBtn.onclick = () => { addToCart(id); closeProductDetail(); };
+            
             document.getElementById('modalWhatsappBtn').href = `https://wa.me/5521995969378?text=${encodeURIComponent(`Interesse em: ${p.name}`)}`;
-            els.detailModal.classList.add('open'); els.detailOverlay.classList.add('open'); document.body.style.overflow = 'hidden';
-        };
-        window.closeProductDetail = () => { els.detailModal.classList.remove('open'); els.detailOverlay.classList.remove('open'); document.body.style.overflow = ''; };
-        window.loadVideo = () => { 
+            els.detailModal.classList.add('open'); 
+            els.detailOverlay.classList.add('open'); 
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeProductDetail() { 
+            els.detailModal.classList.remove('open'); 
+            els.detailOverlay.classList.remove('open'); 
+            document.body.style.overflow = ''; 
+        }
+        
+        function loadVideo() { 
             const f = document.getElementById('videoFacade'); 
             document.getElementById('videoContainer').innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${f.dataset.videoId}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             f.style.display = 'none'; document.getElementById('videoContainer').classList.remove('hidden');
-        };
+        }
 
         // Charts
         function initCharts(theme) {
@@ -1283,7 +1431,30 @@
             const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-            // Events
+            // Event Listeners (Replaced inline onclicks)
+            document.getElementById('backToTop')?.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+            document.getElementById('videoFacade')?.addEventListener('click', loadVideo);
+            
+            // Product Modal
+            document.getElementById('productDetailOverlay')?.addEventListener('click', closeProductDetail);
+            document.getElementById('closeDetailBtn')?.addEventListener('click', closeProductDetail);
+            
+            // Mobile Menu
+            document.getElementById('mobileMenuOverlay')?.addEventListener('click', toggleMobileMenu);
+            document.getElementById('mobileMenuOpenBtn')?.addEventListener('click', toggleMobileMenu);
+            document.getElementById('closeMobileMenuBtn')?.addEventListener('click', toggleMobileMenu);
+            // Add listeners to links inside mobile menu to close it on click
+            document.querySelectorAll('.mobile-menu a').forEach(link => {
+                link.addEventListener('click', toggleMobileMenu);
+            });
+
+            // Cart
+            document.getElementById('cartOverlay')?.addEventListener('click', toggleCart);
+            document.getElementById('openCartBtn')?.addEventListener('click', toggleCart);
+            document.getElementById('closeCartBtn')?.addEventListener('click', toggleCart);
+            document.getElementById('checkoutBtn')?.addEventListener('click', checkoutWhatsApp);
+
+            // Filters & Search
             document.getElementById('btnLoadMore')?.addEventListener('click', () => renderProducts(currentFilter, els.searchInput.value, true));
             document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', e => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1293,11 +1464,13 @@
             }));
             els.searchInput?.addEventListener('input', e => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => renderProducts(currentFilter, e.target.value), 300); });
             
+            // Theme
             document.getElementById('themeToggle')?.addEventListener('click', () => {
                 const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
                 document.documentElement.className = newTheme; localStorage.setItem('theme', newTheme); initCharts(newTheme);
             });
 
+            // Service Form
             document.getElementById('serviceForm')?.addEventListener('submit', e => {
                 e.preventDefault();
                 const fd = new FormData(e.target);
@@ -1328,9 +1501,9 @@
 
             document.addEventListener('keydown', e => {
                 if (e.key === 'Escape') {
-                    if (els.cartModal.classList.contains('open')) window.toggleCart();
-                    if (els.mobileMenu.classList.contains('open')) window.toggleMobileMenu();
-                    if (els.detailModal.classList.contains('open')) window.closeProductDetail();
+                    if (els.cartModal.classList.contains('open')) toggleCart();
+                    if (els.mobileMenu.classList.contains('open')) toggleMobileMenu();
+                    if (els.detailModal.classList.contains('open')) closeProductDetail();
                 }
             });
         });
