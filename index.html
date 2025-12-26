@@ -2,7 +2,7 @@
 <html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Atomic Games e Informática - Site Oficial</title>
     
     <!-- Skip Link for Accessibility -->
@@ -46,6 +46,13 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             overflow-x: hidden; 
             line-height: 1.6;
+        }
+
+        /* Prevent body scroll when mobile chat is open */
+        body.chat-open {
+            overflow: hidden !important;
+            position: fixed;
+            width: 100%;
         }
         
         h1, h2, h3, h4, .brand-font { 
@@ -991,9 +998,11 @@
         /* Messages Area */
         .chat-messages {
             flex: 1;
+            min-height: 0; /* Correção para flexbox scroll no mobile */
             background: #f3f4f6;
             padding: 15px;
             overflow-y: auto;
+            overscroll-behavior: contain; /* Impede scroll do body ao chegar no fim */
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -1124,7 +1133,7 @@
         }
         .chat-send-btn:hover { transform: scale(1.1); }
 
-        /* Responsivo */
+        /* Responsivo - CORREÇÕES MOBILE */
         @media (max-width: 480px) {
             .chat-window {
                 right: 0 !important;
@@ -1132,15 +1141,18 @@
                 bottom: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
-                height: 100% !important;
-                max-height: 100% !important;
+                /* Usar 100dvh para evitar problemas com barra de endereço em iOS/Android */
+                height: 100dvh !important;
+                max-height: 100dvh !important;
                 border-radius: 0;
                 transform: translateY(100%);
             }
             .chat-window.open { transform: translateY(0); }
-            .chat-bubble { bottom: 15px; left: 15px; }
+            /* Mantém posição inicial via CSS e não JS */
+            .chat-bubble { bottom: 20px; left: 20px; }
         }
     </style>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body class="antialiased bg-base text-base transition-colors duration-500" id="top">
     
@@ -2475,11 +2487,11 @@
         });
 
         // ============================================
-        // LÓGICA DO ATOMIC CHATBOT (NOVO)
+        // LÓGICA DO ATOMIC CHATBOT (CORRIGIDO MOBILE)
         // ============================================
         (function() {
             const CONFIG = {
-                API_URL: 'https://atomic-thiago-backend.onrender.com/chat', // Backend correto
+                API_URL: 'https://atomic-thiago-backend.onrender.com/chat',
                 WELCOME_MSG: 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\n\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?'
             };
 
@@ -2497,15 +2509,12 @@
             let startX, startY, initialLeft, initialTop;
             let sessionId = localStorage.getItem('atomic_chat_session_id');
 
+            // Ajuste de sensibilidade para mobile (em pixels)
+            const DRAG_THRESHOLD = 10; 
+
             // --- 1. Inicialização ---
             function init() {
-                // Posiciona bolha inicial
                 if(bubble) {
-                    const rect = bubble.getBoundingClientRect();
-                    bubble.style.bottom = 'auto'; // Remove bottom fixo
-                    bubble.style.left = '20px';   // Fixa esquerda inicial
-                    bubble.style.top = (window.innerHeight - 90) + 'px'; // Posiciona embaixo
-                    
                     // Mensagem de boas vindas
                     addMessage('bot', CONFIG.WELCOME_MSG);
 
@@ -2516,7 +2525,7 @@
                         if (e.key === 'Enter') sendMessage();
                     });
 
-                    // Inicia Draggable
+                    // Inicia Draggable (Mobile & Desktop)
                     bubble.addEventListener('mousedown', onDragStart);
                     bubble.addEventListener('touchstart', onDragStart, { passive: false });
                 }
@@ -2524,7 +2533,7 @@
 
             // --- 2. Lógica de Arrastar (Draggable) ---
             function onDragStart(e) {
-                isDragging = true;
+                isDragging = false; // Só vira true se passar do threshold
                 hasMoved = false;
                 
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -2537,6 +2546,9 @@
                 initialLeft = rect.left;
                 initialTop = rect.top;
 
+                // Previne que o CSS bottom: 20px atrapalhe o cálculo top quando começamos a mover
+                // mas só aplicamos isso se realmente for mover, para evitar saltos.
+
                 if (e.type === 'touchstart') {
                     document.addEventListener('touchmove', onDragMove, { passive: false });
                     document.addEventListener('touchend', onDragEnd);
@@ -2547,40 +2559,47 @@
             }
 
             function onDragMove(e) {
-                if (!isDragging) return;
-                
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 
                 const dx = clientX - startX;
                 const dy = clientY - startY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
 
-                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                // Só considera "arrastar" se mover mais que o threshold (evita jitter no toque)
+                if (!isDragging && dist > DRAG_THRESHOLD) {
+                    isDragging = true;
                     hasMoved = true;
-                    if(e.cancelable) e.preventDefault(); 
+                    // Fixar posição absoluta para iniciar movimento suave
+                    bubble.style.bottom = 'auto';
+                    bubble.style.right = 'auto';
                 }
 
-                let newLeft = initialLeft + dx;
-                let newTop = initialTop + dy;
-                
-                // Limites da tela
-                const maxLeft = window.innerWidth - bubble.offsetWidth;
-                const maxTop = window.innerHeight - bubble.offsetHeight;
-                
-                newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-                newTop = Math.max(0, Math.min(newTop, maxTop));
+                if (isDragging) {
+                    if(e.cancelable) e.preventDefault(); // Impede scroll da tela enquanto arrasta a bolha
 
-                bubble.style.left = newLeft + 'px';
-                bubble.style.top = newTop + 'px';
+                    let newLeft = initialLeft + dx;
+                    let newTop = initialTop + dy;
+                    
+                    // Limites da tela
+                    const maxLeft = window.innerWidth - bubble.offsetWidth;
+                    const maxTop = window.innerHeight - bubble.offsetHeight;
+                    
+                    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                    newTop = Math.max(0, Math.min(newTop, maxTop));
+
+                    bubble.style.left = newLeft + 'px';
+                    bubble.style.top = newTop + 'px';
+                }
             }
 
             function onDragEnd() {
-                isDragging = false;
                 document.removeEventListener('mousemove', onDragMove);
                 document.removeEventListener('mouseup', onDragEnd);
                 document.removeEventListener('touchmove', onDragMove);
                 document.removeEventListener('touchend', onDragEnd);
 
+                // Se moveu pouco, considera clique
                 if (!hasMoved) toggleChat();
             }
 
@@ -2590,10 +2609,15 @@
                 if (isOpen) {
                     windowEl.classList.add('open');
                     badge.style.display = 'none';
+                    // Foco no input apenas em Desktop para evitar teclado abrindo na cara no mobile
                     if(window.innerWidth > 768) input.focus();
                     scrollToBottom();
+                    
+                    // Bloqueia scroll do body no mobile para melhor UX
+                    if(window.innerWidth <= 480) document.body.classList.add('chat-open');
                 } else {
                     windowEl.classList.remove('open');
+                    document.body.classList.remove('chat-open');
                 }
             }
 
@@ -2703,5 +2727,6 @@
 
         })();
     </script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>
