@@ -1003,7 +1003,7 @@
                 <nav class="flex justify-center gap-4 mb-8" aria-label="Redes sociais">
                     <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-instagram-logo"></i></a>
                     <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-facebook-logo"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:bg-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-tiktok-logo"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:text-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-tiktok-logo"></i></a>
                     <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-whatsapp-logo"></i></a>
                 </nav>
                 <div class="border-t border-base pt-8"><p class="text-sm text-muted">&copy; <time datetime="2025">2025</time> Atomic Games. Todos os direitos reservados.</p></div>
@@ -1175,21 +1175,62 @@
         function initCharts(theme) {
             const dark = theme === 'dark';
             const color = dark ? '#f1f5f9' : '#0f172a';
+            const gridColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            
             if (window.repChart) window.repChart.destroy();
             if (window.servChart) window.servChart.destroy();
             
             const c1 = document.getElementById('reputationChart');
             if (c1) window.repChart = new Chart(c1.getContext('2d'), {
                 type: 'radar',
-                data: { labels: ['Atendimento', 'Preço', 'Rapidez', 'Variedade', 'Confiança'], datasets: [{ label: 'Nota', data: [4.9, 4.7, 4.8, 4.6, 5.0], backgroundColor: 'rgba(255,215,0,0.2)', borderColor: '#FFD700', pointBackgroundColor: '#FFD700' }] },
-                options: { scales: { r: { max: 5, grid: { color: dark ? '#ffffff10' : '#00000010' }, pointLabels: { color } } }, plugins: { legend: { display: false } } }
+                data: { 
+                    labels: ['Atendimento', 'Preço', 'Rapidez', 'Variedade', 'Confiança'], 
+                    datasets: [{ 
+                        label: 'Nota', 
+                        data: [4.8, 4.2, 4.6, 4.4, 4.9], 
+                        backgroundColor: 'rgba(255, 215, 0, 0.25)', 
+                        borderColor: '#FFD700', 
+                        borderWidth: 3,
+                        pointBackgroundColor: '#FFD700',
+                        pointBorderColor: dark ? '#1e293b' : '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#FFD700',
+                        pointRadius: 4
+                    }] 
+                },
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        r: { 
+                            min: 0, 
+                            max: 5, 
+                            beginAtZero: true,
+                            grid: { 
+                                color: gridColor,
+                                circular: true 
+                            }, 
+                            angleLines: { color: gridColor },
+                            pointLabels: { 
+                                color: color,
+                                font: { size: 12, weight: '600', family: 'Inter' }
+                            },
+                            ticks: { 
+                                display: false,
+                                backdropColor: 'transparent'
+                            } 
+                        } 
+                    }, 
+                    plugins: { legend: { display: false } } 
+                }
             });
 
             const c2 = document.getElementById('servicesChart');
             if (c2) window.servChart = new Chart(c2.getContext('2d'), {
                 type: 'doughnut',
                 data: { labels: ['Manutenção', 'Jogos', 'Consoles', 'Peças'], datasets: [{ data: [40, 20, 25, 15], backgroundColor: ['#FFD700', '#10B981', '#3B82F6', '#8B5CF6'], borderWidth: 0 }] },
-                options: { cutout: '65%', plugins: { legend: { position: 'right', labels: { color, usePointStyle: true } } } }
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { color, usePointStyle: true, padding: 15, font: { family: 'Inter', size: 12 } } } } }
             });
         }
 
