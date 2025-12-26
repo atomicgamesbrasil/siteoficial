@@ -66,6 +66,24 @@
     
     <!-- Scripts Externos (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#FFD700',
+                        'gold-dark': '#E6C200',
+                        orange: '#FF8C00',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
@@ -1112,7 +1130,12 @@
         const showToast = (msg, type = 'success') => {
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            toast.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i><span>${msg}</span>`;
+            const icon = document.createElement('i');
+            icon.className = `ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl`;
+            const text = document.createElement('span');
+            text.textContent = msg;
+            toast.appendChild(icon);
+            toast.appendChild(text);
             els.toastContainer.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px) scale(0.8)'; setTimeout(() => toast.remove(), 300); }, 3000);
         };
@@ -1120,6 +1143,7 @@
         const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
         // Core Functions
+        // IMPORTANT: DO NOT ALTER THIS LOGIC TO PRESERVE GITHUB/PANEL INTEGRATION
         async function loadGamesFromGitHub() {
             try {
                 const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
@@ -1174,6 +1198,9 @@
                 img.src = p.image;
                 img.alt = p.name;
                 img.loading = 'lazy';
+                // Improves CLS by letting browser know aspect ratio (assuming square-ish for catalog)
+                img.width = 400; 
+                img.height = 400;
                 img.onerror = function() { this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC' };
 
                 const tag = document.createElement('span');
@@ -1205,7 +1232,11 @@
                 const addBtn = document.createElement('button');
                 addBtn.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg hover:scale-105';
                 addBtn.ariaLabel = `Adicionar ${p.name} ao carrinho`;
-                addBtn.innerHTML = '<i class="ph-bold ph-plus text-lg"></i>';
+                
+                const icon = document.createElement('i');
+                icon.className = 'ph-bold ph-plus text-lg';
+                addBtn.appendChild(icon);
+                
                 addBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     addToCart(p.id);
@@ -1231,8 +1262,13 @@
             els.cartCount.classList.toggle('hidden', !cart.length);
             els.checkoutBtn.disabled = !cart.length;
             
+            els.cartItems.innerHTML = ''; // Safer clear
+            
             if (!cart.length) {
-                els.cartItems.innerHTML = '<div class="text-center py-12"><div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base flex items-center justify-center"><i class="ph-duotone ph-shopping-cart-simple text-4xl text-muted"></i></div><p class="text-muted font-medium">Seu carrinho está vazio</p></div>';
+                const empty = document.createElement('div');
+                empty.className = 'text-center py-12';
+                empty.innerHTML = '<div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base flex items-center justify-center"><i class="ph-duotone ph-shopping-cart-simple text-4xl text-muted"></i></div><p class="text-muted font-medium">Seu carrinho está vazio</p>';
+                els.cartItems.appendChild(empty);
                 els.cartTotal.textContent = 'R$ 0,00';
                 return;
             }
@@ -1252,11 +1288,19 @@
 
                 const info = document.createElement('div');
                 info.className = 'flex-grow min-w-0';
-                info.innerHTML = `<p class="font-bold text-sm line-clamp-1">${item.name}</p><p class="text-xs text-muted line-clamp-1">${item.desc}</p><p class="text-sm font-bold text-gradient mt-1">${item.price}</p>`;
+                
+                const pName = document.createElement('p'); pName.className = 'font-bold text-sm line-clamp-1'; pName.textContent = item.name;
+                const pDesc = document.createElement('p'); pDesc.className = 'text-xs text-muted line-clamp-1'; pDesc.textContent = item.desc;
+                const pPrice = document.createElement('p'); pPrice.className = 'text-sm font-bold text-gradient mt-1'; pPrice.textContent = item.price;
+                
+                info.appendChild(pName);
+                info.appendChild(pDesc);
+                info.appendChild(pPrice);
 
                 const delBtn = document.createElement('button');
                 delBtn.className = 'self-center p-2 text-red-500 hover:bg-red-100 rounded-xl transition';
-                delBtn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
+                const icon = document.createElement('i'); icon.className = 'ph-bold ph-trash text-lg';
+                delBtn.appendChild(icon);
                 delBtn.ariaLabel = "Remover item";
                 delBtn.addEventListener('click', () => removeFromCart(idx));
 
@@ -1266,7 +1310,6 @@
                 frag.appendChild(div);
             });
             
-            els.cartItems.innerHTML = '';
             els.cartItems.appendChild(frag);
             els.cartTotal.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
@@ -1330,8 +1373,20 @@
         
         function loadVideo() { 
             const f = document.getElementById('videoFacade'); 
-            document.getElementById('videoContainer').innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${f.dataset.videoId}?autoplay=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-            f.style.display = 'none'; document.getElementById('videoContainer').classList.remove('hidden');
+            const container = document.getElementById('videoContainer');
+            // Using createElement for iframe to be safe
+            const iframe = document.createElement('iframe');
+            iframe.className = "w-full h-full";
+            iframe.src = `https://www.youtube.com/embed/${f.dataset.videoId}?autoplay=1&rel=0`;
+            iframe.frameBorder = "0";
+            iframe.allow = "autoplay; encrypted-media";
+            iframe.allowFullscreen = true;
+            
+            container.innerHTML = '';
+            container.appendChild(iframe);
+            
+            f.style.display = 'none'; 
+            container.classList.remove('hidden');
         }
 
         // Charts
@@ -1421,8 +1476,38 @@
             const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.className = theme;
             
-            // Render Static Content
-            document.getElementById('faqContainer').innerHTML = faqs.map((f, i) => `<details class="group bento-card overflow-hidden"${i===0?' open':''}><summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 md:p-6 bg-card transition-colors"><span class="text-base font-bold pr-4">${f.q}</span><div class="w-10 h-10 rounded-xl bg-base flex items-center justify-center transition-all flex-shrink-0"><i class="ph-bold ph-caret-down text-lg transition-transform group-open:rotate-180"></i></div></summary><div class="text-muted p-5 md:p-6 pt-0 leading-relaxed bg-base">${f.a}</div></details>`).join('');
+            // Render Static Content (FAQ)
+            const faqContainer = document.getElementById('faqContainer');
+            faqContainer.innerHTML = '';
+            faqs.forEach((f, i) => {
+                const details = document.createElement('details');
+                details.className = 'group bento-card overflow-hidden';
+                if(i === 0) details.open = true;
+                
+                const summary = document.createElement('summary');
+                summary.className = 'flex justify-between items-center font-medium cursor-pointer list-none p-5 md:p-6 bg-card transition-colors';
+                
+                const qSpan = document.createElement('span');
+                qSpan.className = 'text-base font-bold pr-4';
+                qSpan.textContent = f.q;
+                
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'w-10 h-10 rounded-xl bg-base flex items-center justify-center transition-all flex-shrink-0';
+                const icon = document.createElement('i');
+                icon.className = 'ph-bold ph-caret-down text-lg transition-transform group-open:rotate-180';
+                iconDiv.appendChild(icon);
+                
+                summary.appendChild(qSpan);
+                summary.appendChild(iconDiv);
+                
+                const ansDiv = document.createElement('div');
+                ansDiv.className = 'text-muted p-5 md:p-6 pt-0 leading-relaxed bg-base';
+                ansDiv.textContent = f.a;
+                
+                details.appendChild(summary);
+                details.appendChild(ansDiv);
+                faqContainer.appendChild(details);
+            });
             
             initCharts(theme);
             loadGamesFromGitHub();
@@ -1539,13 +1624,91 @@
 
             function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
+            // Helper para parsear texto com negrito e quebra de linha de forma segura
+            function parseText(text) {
+                const frag = document.createDocumentFragment();
+                const lines = text.split('\n');
+                lines.forEach((line, i) => {
+                    if (i > 0) frag.appendChild(document.createElement('br'));
+                    // Simple bold parser: split by **, even indices are normal, odd are bold
+                    const parts = line.split('**');
+                    parts.forEach((part, j) => {
+                        if (j % 2 === 1) { // Bold
+                            const b = document.createElement('b');
+                            b.textContent = part;
+                            frag.appendChild(b);
+                        } else {
+                            if (part) frag.appendChild(document.createTextNode(part));
+                        }
+                    });
+                });
+                return frag;
+            }
+
             function addMsg(role, text, prods, link) {
                 const div = document.createElement('div'); div.className = `message ${role}`;
-                let content = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-                if(prods?.length) content += `<div class="chat-products-scroll">${prods.map(p => `<div class="chat-product-card"><img src="${p.image||'https://placehold.co/100'}"><div class="chat-product-title">${p.name||p.nome}</div><div class="chat-product-price">${p.price||p.preco}</div><button class="chat-add-btn" onclick="window.open('https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}')">VER</button></div>`).join('')}</div>`;
-                if(link) content += `<a href="${link}" target="_blank" style="display:block;margin-top:8px;background:#22c55e;color:white;text-align:center;padding:8px;border-radius:6px;font-weight:bold;font-size:12px">NEGOCIAR</a>`;
                 
-                div.innerHTML = `<div class="message-avatar">${role==='bot' ? '<img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg">' : '<div style="width:100%;height:100%;background:#333;color:#FFD700;display:flex;align-items:center;justify-content:center;font-size:10px">EU</div>'}</div><div class="message-bubble">${content}</div>`;
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                if (role === 'bot') {
+                    const img = document.createElement('img');
+                    img.src = 'https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg';
+                    avatar.appendChild(img);
+                } else {
+                    const userDiv = document.createElement('div');
+                    userDiv.style.cssText = 'width:100%;height:100%;background:#333;color:#FFD700;display:flex;align-items:center;justify-content:center;font-size:10px';
+                    userDiv.textContent = 'EU';
+                    avatar.appendChild(userDiv);
+                }
+
+                const bubble = document.createElement('div');
+                bubble.className = 'message-bubble';
+                
+                // Texto Principal
+                bubble.appendChild(parseText(text));
+
+                // Produtos Sugeridos
+                if(prods?.length) {
+                    const scroll = document.createElement('div');
+                    scroll.className = 'chat-products-scroll';
+                    prods.forEach(p => {
+                        const card = document.createElement('div');
+                        card.className = 'chat-product-card';
+                        
+                        const img = document.createElement('img');
+                        img.src = p.image || 'https://placehold.co/100';
+                        
+                        const title = document.createElement('div');
+                        title.className = 'chat-product-title';
+                        title.textContent = p.name || p.nome;
+                        
+                        const price = document.createElement('div');
+                        price.className = 'chat-product-price';
+                        price.textContent = p.price || p.preco;
+                        
+                        const btn = document.createElement('button');
+                        btn.className = 'chat-add-btn';
+                        btn.textContent = 'VER';
+                        btn.onclick = () => window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
+                        
+                        card.append(img, title, price, btn);
+                        scroll.appendChild(card);
+                    });
+                    bubble.appendChild(scroll);
+                }
+
+                // Link de Ação
+                if(link) {
+                    const a = document.createElement('a');
+                    a.href = link;
+                    a.target = '_blank';
+                    a.style.cssText = 'display:block;margin-top:8px;background:#22c55e;color:white;text-align:center;padding:8px;border-radius:6px;font-weight:bold;font-size:12px';
+                    a.textContent = 'NEGOCIAR';
+                    bubble.appendChild(a);
+                }
+                
+                div.appendChild(avatar);
+                div.appendChild(bubble);
                 els.msgs.appendChild(div); scrollToBottom();
             }
 
