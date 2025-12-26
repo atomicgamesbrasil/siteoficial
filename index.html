@@ -561,6 +561,12 @@
             font-weight: bold; display: flex; align-items: center; justify-content: center;
             border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .badge-pulse { animation: pulse-red 2s infinite; }
 
         .chat-window {
             position: absolute; bottom: 100px; right: 24px; width: 380px; height: 600px; max-height: calc(100vh - 120px);
@@ -765,9 +771,9 @@
          ============================================ -->
     <div id="atomic-chat-widget">
         <!-- Floating Bubble -->
-        <div id="chatBubble" class="chat-bubble">
+        <div id="chatBubble" class="chat-bubble" role="button" aria-label="Abrir Chat" tabindex="0">
             <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
-            <div id="chatBadge" class="chat-bubble-badge">1</div>
+            <div id="chatBadge" class="chat-bubble-badge badge-pulse">1</div>
         </div>
         
         <!-- Main Chat Window -->
@@ -1672,22 +1678,25 @@
                 }
             }
 
+            // --- HISTORY API LOGIC (ANDROID BACK BUTTON FIX) ---
             function openChat() {
                 if(state.isOpen) return;
-                history.pushState({chat: true}, '', '#chat');
+                history.pushState({chat: true}, '', '#chat'); 
                 updateChatUI(true);
             }
 
             function closeChat() {
                 if(!state.isOpen) return;
-                // Importante: Voltar no histórico para disparar popstate e fechar corretamente
+                // Check if we have history state to go back to, otherwise just close UI
+                // For simplicity in single-page feel, we assume if open, user wants to go back.
+                // Using history.back() triggers popstate.
                 history.back(); 
             }
 
-            // History Listener (The Magic Fix)
+            // Listen for browser back button
             window.addEventListener('popstate', (e) => {
-                // Se o chat estiver aberto e o usuário apertar voltar, fechamos o chat
-                if (state.isOpen) {
+                if(state.isOpen) {
+                    // If chat was open, popstate means we are "closing" it (returning to previous state)
                     updateChatUI(false);
                 }
             });
@@ -1735,7 +1744,7 @@
                     
                     if (!state.isDragging) {
                         e.preventDefault(); 
-                        openChat(); // Use new open handler
+                        openChat(); // Use new open handler with History API
                     } else {
                         // Magnetic Snap Logic
                         els.bubble.classList.add('snapping');
