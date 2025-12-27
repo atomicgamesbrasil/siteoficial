@@ -26,13 +26,16 @@
             els.bubble.style.transform = 'scale(0.8) translateY(20px)';
             els.bubble.style.opacity = '0';
             els.bubble.style.pointerEvents = 'none';
-            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 300);
+            // Increase timeout slightly to allow CSS transition to finish before focusing
+            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 400);
             scrollToBottom();
         } else {
             // Close logic
             els.bubble.style.transform = 'scale(1)';
             els.bubble.style.opacity = '1';
             els.bubble.style.pointerEvents = 'auto';
+            // Remove focus to prevent keyboard from popping up on mobile if closing
+            els.input.blur();
         }
     }
 
@@ -202,11 +205,25 @@
 
     // Init Chat
     document.getElementById('sendBtn').onclick = send;
-    // Use keydown instead of keypress for mobile support
-    els.input.onkeydown = e => e.key==='Enter' && send();
-    // Stop propagation of clicks on input to avoid issues with parent overlays
-    els.input.addEventListener('touchend', e => e.stopPropagation());
     
+    // Desktop & Mobile Input Fixes
+    // 1. Use addEventListener for keydown to be safe
+    els.input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') send();
+        e.stopPropagation(); // Prevent bubbling up to any potential cancellers
+    });
+    
+    // 2. CRITICAL: Stop propagation of ALL pointer events on the input.
+    // This ensures that clicks on the input don't bubble up to the container 
+    // or body which might have 'pointer-events: none' logic or other handlers interfering.
+    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
+        els.input.addEventListener(evt, (e) => {
+            e.stopPropagation();
+            // On mouse down, explicitly focus just in case
+            if (evt === 'mousedown') els.input.focus();
+        });
+    });
+
     // First Load
     if(els.msgs.children.length === 0) {
        setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?'), 1000);
