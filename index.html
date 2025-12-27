@@ -1,21 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="light">
+<html lang="pt-BR" class="light scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <!-- ATUALIZAÇÃO: interactive-widget=resizes-content ajuda o layout a reagir ao teclado virtual -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Atomic Games e Informática - Site Oficial</title>
     
-    <!-- Canonical Tag (SEO) -->
     <link rel="canonical" href="https://atomicgames.com.br">
-
-    <!-- Skip Link for Accessibility -->
     <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
     
-    <!-- FAVICON -->
     <link rel="icon" type="image/webp" href="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
     
-    <!-- SEO & Meta -->
     <meta name="description" content="Atomic Games - A melhor loja de games e assistência técnica de Madureira, RJ. Consoles, jogos, acessórios e reparos especializados.">
     <meta name="theme-color" content="#FFD700">
     <meta property="og:title" content="Atomic Games e Informática - Site Oficial">
@@ -24,62 +18,28 @@
     <meta property="og:type" content="website">
     <meta property="og:locale" content="pt_BR">
 
-    <!-- Schema.org (JSON-LD) - Local Business -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "ElectronicsStore",
-      "name": "Atomic Games e Informática",
-      "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-      "description": "A melhor loja de games e assistência técnica de Madureira, RJ. Especializada em PlayStation, Xbox, Nintendo e PC Gamer.",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Av. Ministro Edgard Romero, 81, Loja 3",
-        "addressLocality": "Rio de Janeiro",
-        "addressRegion": "RJ",
-        "addressCountry": "BR"
-      },
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "09:00",
-          "closes": "19:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": "Saturday",
-          "opens": "09:00",
-          "closes": "14:00"
-        }
-      ],
-      "priceRange": "$$",
-      "telephone": "+5521995969378",
-      "url": "https://atomicgames.com.br"
-    }
-    </script>
-    
-    <!-- Preload Critical Resources -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Scripts Externos (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- STABLE TAILWIND V3 CDN (Works locally without server) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        gold: '#FFD700',
-                        'gold-dark': '#E6C200',
+                    colors: { 
+                        gold: '#FFD700', 
+                        'gold-dark': '#E6C200', 
                         orange: '#FF8C00',
+                        base: '#050505', // Absolute Black
+                        card: '#111111'  // Dark Gray
                     },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Space Grotesk', 'sans-serif'],
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'], 
+                        display: ['Space Grotesk', 'sans-serif'] 
                     }
                 }
             }
@@ -88,34 +48,25 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Hojas de Estilo Propias -->
+    <!-- Custom CSS (Neon Effects) -->
     <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="antialiased bg-base text-base transition-colors duration-500" id="top">
+<body class="antialiased bg-base text-gray-100 selection:bg-gold selection:text-black" id="top">
     
-    <!-- Mesh Gradient Background -->
     <div class="mesh-gradient" aria-hidden="true"></div>
+    <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
-
-    <!-- Back To Top (MOVIDO PARA A ESQUERDA) -->
-    <button id="backToTop" class="fixed bottom-6 left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
+    <!-- Back to Top -->
+    <button id="backToTop" class="fixed bottom-6 left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)] opacity-0 pointer-events-none data-[show=true]:opacity-100 data-[show=true]:pointer-events-auto" aria-label="Voltar ao topo">
         <i class="ph-bold ph-arrow-up text-xl"></i>
     </button>
 
-    <!-- ============================================
-         ATOMIC CHAT WIDGET 2.0
-         ============================================ -->
+    <!-- Chat Widget Container -->
     <div id="atomic-chat-widget">
-        <!-- Floating Bubble -->
         <div id="chatBubble" class="chat-bubble" role="button" aria-label="Abrir Chat" tabindex="0">
             <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
             <div id="chatBadge" class="chat-bubble-badge badge-pulse">1</div>
         </div>
-        
-        <!-- Main Chat Window -->
         <div id="chatWindow" class="chat-window">
             <header class="chat-header">
                 <div class="chat-header-info">
@@ -124,11 +75,7 @@
                 </div>
                 <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
             </header>
-            
-            <div id="chatMessages" class="chat-messages">
-                <!-- Messages Injected Here -->
-            </div>
-            
+            <div id="chatMessages" class="chat-messages"></div>
             <footer class="chat-input-area">
                 <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
                 <button id="sendBtn" class="chat-send-btn" aria-label="Enviar"><i class="ph-fill ph-paper-plane-right"></i></button>
@@ -136,155 +83,136 @@
         </div>
     </div>
 
-    <!-- Product Detail Modal -->
+    <!-- Product Modal -->
     <div id="productDetailOverlay" class="modal-overlay" aria-hidden="true"></div>
-    <article id="productDetailModal" class="modal-base w-11/12 max-w-4xl bg-card-solid rounded-3xl shadow-2xl border border-base overflow-hidden" role="dialog" aria-labelledby="modalProductName" aria-modal="true">
-        <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
-            <span class="text-sm font-bold text-muted uppercase tracking-wider">Detalhes do Produto</span>
-            <button id="closeDetailBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar detalhes do produto"><i class="ph-bold ph-x text-xl"></i></button>
+    <article id="productDetailModal" class="modal-base w-11/12 max-w-4xl bg-card border border-white/10 rounded-3xl shadow-2xl overflow-hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[var(--z-modal)] opacity-0 pointer-events-none transition-all duration-300 scale-95" role="dialog" aria-modal="true">
+        <div class="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
+            <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Detalhes do Produto</span>
+            <button id="closeDetailBtn" class="p-3 hover:bg-white/5 rounded-xl transition" aria-label="Fechar"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="p-6 md:p-8 grid md:grid-cols-2 gap-6 md:gap-8 max-h-[80vh] overflow-y-auto">
-            <figure class="relative bg-base rounded-2xl p-6 flex items-center justify-center min-h-64">
+            <figure class="relative bg-black/50 rounded-2xl p-6 flex items-center justify-center min-h-64">
                 <img id="modalProductImage" src="" alt="" class="max-h-80 w-auto object-contain drop-shadow-2xl">
                 <span id="modalProductCategory" class="category-tag absolute top-4 left-4"></span>
             </figure>
             <div class="space-y-6">
-                <h2 id="modalProductName" class="text-3xl font-bold text-base">Nome do Produto</h2>
-                <p id="modalProductDescription" class="text-muted text-lg leading-relaxed">Descrição detalhada do produto.</p>
-                <div class="flex items-center justify-between pt-4 border-t border-base">
-                    <span id="modalProductPrice" class="font-bold text-4xl text-gradient">R$ 0,00</span>
+                <h2 id="modalProductName" class="text-3xl font-bold text-white leading-tight"></h2>
+                <p id="modalProductDescription" class="text-gray-400 text-lg leading-relaxed"></p>
+                <div class="flex items-center justify-between pt-4 border-t border-white/10">
+                    <span id="modalProductPrice" class="font-bold text-4xl text-gradient"></span>
                     <button id="modalAddToCartBtn" class="flex items-center gap-2 btn-primary text-base px-6 py-3"><i class="ph-bold ph-plus text-xl"></i> Adicionar</button>
                 </div>
-                <a id="modalWhatsappBtn" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all hover:-translate-y-1"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp</a>
+                <a id="modalWhatsappBtn" href="#" target="_blank" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all hover:-translate-y-1"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp</a>
             </div>
         </div>
     </article>
 
-    <!-- Mobile Menu Overlay -->
-    <div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true"></div>
-    
     <!-- Mobile Menu -->
-    <nav class="mobile-menu bg-card-solid" id="mobileMenu" aria-label="Menu de navegação móvel">
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true"></div>
+    <nav class="mobile-menu bg-card border-r border-white/10" id="mobileMenu" aria-label="Menu móvel">
         <div class="h-full flex flex-col p-6">
             <div class="flex justify-between items-center mb-8">
                 <div class="flex items-center gap-3">
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="" class="h-12 w-12 rounded-full shadow-lg bg-black glow-gold">
-                    <span class="font-bold text-xl brand-font">ATOMIC</span>
+                    <span class="font-bold text-xl brand-font tracking-wide">ATOMIC</span>
                 </div>
-                <button id="closeMobileMenuBtn" class="p-3 rounded-xl bg-base hover:bg-card transition" aria-label="Fechar menu"><i class="ph-bold ph-x text-xl"></i></button>
+                <button id="closeMobileMenuBtn" class="p-3 rounded-xl bg-base hover:bg-white/5 transition"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            
             <div class="flex-grow space-y-2">
-                <a href="#store" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-fill ph-storefront text-2xl text-black"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span><p class="text-xs text-muted">Produtos e ofertas</p></div>
-                </a>
-                <a href="#services" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-wrench text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Assistência</span><p class="text-xs text-muted">Reparos especializados</p></div>
-                </a>
-                <a href="#dashboard" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-star text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Depoimentos</span><p class="text-xs text-muted">O que falam da gente</p></div>
-                </a>
-                <a href="#location" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-map-pin text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Localização</span><p class="text-xs text-muted">Visite nosso QG</p></div>
-                </a>
+                <a href="#store" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-fill ph-storefront text-2xl text-black"></i></div><div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span><p class="text-xs text-muted">Produtos e ofertas</p></div></a>
+                <a href="#services" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-wrench text-2xl text-white"></i></div><div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Assistência</span><p class="text-xs text-muted">Reparos especializados</p></div></a>
+                <a href="#dashboard" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-star text-2xl text-white"></i></div><div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Depoimentos</span><p class="text-xs text-muted">O que falam da gente</p></div></a>
+                <a href="#location" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-map-pin text-2xl text-white"></i></div><div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Localização</span><p class="text-xs text-muted">Visite nosso QG</p></div></a>
             </div>
-            
             <div class="mt-auto space-y-4">
-                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
+                <a href="https://wa.me/5521995969378" target="_blank" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
                 <div class="flex justify-center gap-4 pt-4">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Cart Overlay -->
+    <!-- Cart -->
     <div class="modal-overlay" id="cartOverlay" aria-hidden="true"></div>
-    <aside class="cart-modal bg-card-solid border-l border-base shadow-2xl" id="cartModal" role="dialog" aria-labelledby="cartTitle" aria-modal="true">
-        <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
+    <aside class="cart-modal bg-card border-l border-white/10 shadow-2xl" id="cartModal" role="dialog" aria-modal="true">
+        <div class="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
             <h2 id="cartTitle" class="font-bold text-xl flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-shopping-cart text-black"></i></div>
                 Seu Carrinho
             </h2>
-            <button id="closeCartBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar carrinho"><i class="ph-bold ph-x text-xl"></i></button>
+            <button id="closeCartBtn" class="p-3 hover:bg-white/5 rounded-xl transition" aria-label="Fechar"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="flex-grow overflow-y-auto p-5 space-y-4" id="cartItemsContainer"></div>
-        <div class="p-5 border-t border-base bg-base">
+        <div class="p-5 border-t border-white/10 bg-black/20">
             <div class="flex justify-between items-center mb-4"><span class="text-muted font-medium">Subtotal</span><span id="cartTotal" class="font-bold text-2xl text-gradient">R$ 0,00</span></div>
             <button class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" id="checkoutBtn" disabled><i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp</button>
-            <p class="text-center text-xs text-muted mt-3">Pagamento e entrega combinados no chat</p>
         </div>
     </aside>
 
     <!-- Navbar -->
-    <header class="sticky top-0 z-[var(--z-nav)] glass border-b border-base shadow-sm transition-all duration-300" id="navbar">
-        <nav class="container mx-auto px-4 lg:px-8 h-20 flex justify-between items-center" aria-label="Navegação principal">
+    <header class="sticky top-0 z-[var(--z-nav)] glass border-b border-white/10 shadow-sm transition-all duration-300" id="navbar">
+        <nav class="container mx-auto px-4 lg:px-8 h-20 flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <button id="mobileMenuOpenBtn" class="md:hidden p-2 rounded-xl hover:bg-base transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobileMenu"><i class="ph-bold ph-list text-2xl"></i></button>
-                <a href="#top" class="flex items-center gap-3 hover:opacity-90 transition transform hover:scale-105 duration-300" aria-label="Atomic Games - Página inicial">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo Atomic Games" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50 glow-gold">
+                <button id="mobileMenuOpenBtn" class="md:hidden p-2 rounded-xl hover:bg-white/5 transition" aria-label="Menu"><i class="ph-bold ph-list text-2xl"></i></button>
+                <a href="#top" class="flex items-center gap-3 hover:opacity-90 transition transform hover:scale-105 duration-300">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50 glow-gold">
                     <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic Games" class="h-7 w-auto hidden sm:block">
                 </a>
             </div>
-            <div class="hidden md:flex gap-8 font-semibold text-sm uppercase tracking-wide text-muted">
+            <div class="hidden md:flex gap-8 font-semibold text-sm uppercase tracking-wide text-gray-400">
                 <a href="#store" class="nav-link active">Loja Virtual</a>
                 <a href="#services" class="nav-link">Assistência</a>
                 <a href="#dashboard" class="nav-link">Depoimentos</a>
                 <a href="#location" class="nav-link">Localização</a>
             </div>
             <div class="flex items-center gap-3">
-                <button id="themeToggle" class="p-3 rounded-xl hover:bg-base transition" aria-label="Alternar entre tema claro e escuro">
-                    <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
-                    <i class="ph ph-moon text-2xl block dark:hidden text-slate-700"></i>
-                </button>
-                <button id="openCartBtn" class="relative p-3 rounded-xl hover:bg-base transition group" aria-label="Abrir carrinho de compras">
-                    <i class="ph-bold ph-shopping-cart text-2xl group-hover:text-yellow-500 transition"></i>
-                    <span id="cartCount" class="badge hidden" aria-live="polite">0</span>
-                </button>
-                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="hidden lg:flex items-center gap-2 btn-primary text-sm"><i class="ph-bold ph-whatsapp-logo text-lg"></i><span>Fale Conosco</span></a>
+                <button id="themeToggle" class="p-3 rounded-xl hover:bg-white/5 transition"><i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i><i class="ph ph-moon text-2xl block dark:hidden text-slate-700"></i></button>
+                <button id="openCartBtn" class="relative p-3 rounded-xl hover:bg-white/5 transition group"><i class="ph-bold ph-shopping-cart text-2xl group-hover:text-yellow-500 transition"></i><span id="cartCount" class="badge hidden">0</span></button>
+                <a href="https://wa.me/5521995969378" target="_blank" class="hidden lg:flex items-center gap-2 btn-primary text-sm"><i class="ph-bold ph-whatsapp-logo text-lg"></i><span>Fale Conosco</span></a>
             </div>
         </nav>
     </header>
 
     <main id="main-content">
-        <!-- Hero Section -->
-        <section class="hero-section" aria-labelledby="hero-title">
+        <!-- Hero -->
+        <section class="hero-section">
             <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-10 md:gap-16">
                 <div class="md:w-1/2 space-y-7 flex flex-col items-center md:items-start text-center md:text-left reveal">
+                    <!-- Mobile Banner -->
                     <div class="block md:hidden w-[calc(100%+2rem)] -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-3xl shadow-2xl relative h-48">
-                        <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" alt="Atomic Games Banner" class="w-full h-full object-cover" loading="eager">
+                        <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" alt="Banner" class="w-full h-full object-cover">
                     </div>
+                    
                     <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full text-xs font-extrabold uppercase tracking-wider shadow-lg transform hover:scale-105 transition cursor-default glow-gold">
                         <i class="ph-fill ph-map-pin icon-bounce"></i> Madureira - RJ
                     </div>
-                    <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] text-base">O Quartel General do <span class="text-gradient">Gamer Carioca</span></h1>
-                    <p class="text-lg md:text-xl text-muted font-medium max-w-lg leading-relaxed">Console quebrado? PC lento? Ou procurando aquele upgrade? Somos <strong class="text-base">especialistas em assistência técnica</strong> e a loja mais completa da região.</p>
+                    
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] text-white">
+                        O Quartel General do <span class="text-gradient">Gamer Carioca</span>
+                    </h1>
+                    
+                    <p class="text-lg md:text-xl text-gray-400 font-medium max-w-lg leading-relaxed">
+                        Console quebrado? PC lento? Ou procurando aquele upgrade? Somos <strong class="text-white">especialistas</strong>.
+                    </p>
+                    
                     <div class="flex flex-col sm:flex-row gap-4 pt-2 w-full md:w-auto">
                         <a href="#store" class="btn-primary pulse-glow flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-shopping-bag text-lg"></i> Ver Produtos</a>
                         <a href="#services" class="btn-secondary flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-wrench"></i> Assistência Técnica</a>
                     </div>
-                    <div class="flex flex-wrap justify-center md:justify-start gap-6 pt-4" role="list" aria-label="Diferenciais">
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"><i class="ph-fill ph-shield-check text-green-500 text-lg"></i></div><span>Garantia Real</span></div>
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center"><i class="ph-fill ph-star text-yellow-500 text-lg"></i></div><span>4.9 no Google</span></div>
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"><i class="ph-fill ph-users text-blue-500 text-lg"></i></div><span>+5000 Clientes</span></div>
+                    
+                    <div class="flex flex-wrap justify-center md:justify-start gap-6 pt-4">
+                        <div class="flex items-center gap-2 text-sm text-gray-400"><div class="w-8 h-8 rounded-lg bg-green-900/30 flex items-center justify-center"><i class="ph-fill ph-shield-check text-green-500 text-lg"></i></div><span>Garantia Real</span></div>
+                        <div class="flex items-center gap-2 text-sm text-gray-400"><div class="w-8 h-8 rounded-lg bg-yellow-900/30 flex items-center justify-center"><i class="ph-fill ph-star text-yellow-500 text-lg"></i></div><span>4.9 no Google</span></div>
                     </div>
                 </div>
+                
                 <div class="md:w-1/2 w-full flex justify-center reveal" style="transition-delay: 200ms;">
                     <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
-                        <button class="video-facade" id="videoFacade" data-video-id="YCsT_InlNWw" type="button" aria-label="Reproduzir vídeo">
-                            <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail Vídeo" onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
-                            <div class="play-btn" aria-hidden="true"><i class="ph-fill ph-play text-3xl text-black ml-1"></i></div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-4 left-4 right-4 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-youtube-logo text-black text-xl"></i></div>
-                                <div class="text-white"><p class="font-bold text-sm">Conheça a Atomic</p><p class="text-xs opacity-80">Assista ao vídeo</p></div>
-                            </div>
+                        <button class="video-facade" id="videoFacade" data-video-id="YCsT_InlNWw" type="button">
+                            <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Video">
+                            <div class="play-btn"><i class="ph-fill ph-play text-3xl text-black ml-1"></i></div>
                         </button>
                         <div id="videoContainer" class="w-full h-full hidden"></div>
                     </div>
@@ -292,198 +220,126 @@
             </div>
         </section>
 
-        <!-- Store Section -->
-        <section id="store" class="py-24 bg-base scroll-mt-20" aria-labelledby="store-title">
+        <!-- Store -->
+        <section id="store" class="py-24 bg-base scroll-mt-20">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 reveal">
                     <div>
-                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-storefront"></i> Nossa Loja</span>
-                        <h2 id="store-title" class="text-4xl md:text-5xl font-black mb-3 text-base">Catálogo <span class="text-gradient">Atomic</span></h2>
-                        <p class="text-muted text-lg max-w-md">Adicione itens ao carrinho e finalize pelo WhatsApp. Preços imbatíveis!</p>
+                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-900/30 text-yellow-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-storefront"></i> Nossa Loja</span>
+                        <h2 class="text-4xl md:text-5xl font-black mb-3 text-white">Catálogo <span class="text-gradient">Atomic</span></h2>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                        <div class="relative group w-full sm:w-72">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-magnifying-glass text-muted group-focus-within:text-yellow-500 transition"></i></div>
-                            <label for="searchInput" class="sr-only">Buscar produto</label>
-                            <input type="search" id="searchInput" placeholder="Buscar produto..." class="w-full bg-card text-base border-2 border-base rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-yellow-500 transition-all duration-300 text-sm font-medium shadow-sm hover:border-yellow-500/50">
-                        </div>
+                    <div class="relative group w-full sm:w-72">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-magnifying-glass text-muted group-focus-within:text-yellow-500 transition"></i></div>
+                        <input type="search" id="searchInput" placeholder="Buscar produto..." class="w-full bg-card text-white border-2 border-white/10 rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-yellow-500 transition-all">
                     </div>
                 </header>
-                <div class="flex overflow-x-auto pb-4 md:pb-0 mb-12 gap-3 snap-x hide-scrollbar reveal" id="categoryFilters" role="group" aria-label="Filtros">
-                    <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 snap-center" data-category="all" aria-pressed="true"><i class="ph-fill ph-lightning mr-2"></i> Destaques</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all snap-center" data-category="console" aria-pressed="false"><i class="ph-bold ph-game-controller mr-2"></i> Consoles</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-green-400 hover:text-green-600 transition-all snap-center" data-category="games" aria-pressed="false"><i class="ph-bold ph-disc mr-2"></i> Jogos</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-purple-400 hover:text-purple-600 transition-all snap-center" data-category="acessorios" aria-pressed="false"><i class="ph-bold ph-headphones mr-2"></i> Acessórios</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-red-400 hover:text-red-600 transition-all snap-center" data-category="hardware" aria-pressed="false"><i class="ph-bold ph-cpu mr-2"></i> Hardware</button>
+                
+                <!-- Filters -->
+                <div class="flex overflow-x-auto pb-4 md:pb-0 mb-12 gap-3 snap-x hide-scrollbar reveal" id="categoryFilters">
+                    <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold snap-center" data-category="all"><i class="ph-fill ph-lightning mr-2"></i> Destaques</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-white/10 bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all snap-center" data-category="console"><i class="ph-bold ph-game-controller mr-2"></i> Consoles</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-white/10 bg-card text-muted hover:border-green-400 hover:text-green-600 transition-all snap-center" data-category="games"><i class="ph-bold ph-disc mr-2"></i> Jogos</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-white/10 bg-card text-muted hover:border-purple-400 hover:text-purple-600 transition-all snap-center" data-category="acessorios"><i class="ph-bold ph-headphones mr-2"></i> Acessórios</button>
+                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-white/10 bg-card text-muted hover:border-red-400 hover:text-red-600 transition-all snap-center" data-category="hardware"><i class="ph-bold ph-cpu mr-2"></i> Hardware</button>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6 reveal" id="productGrid" role="list" aria-live="polite">
-                    <div class="col-span-full py-16 text-center text-muted">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-card flex items-center justify-center animate-pulse"><i class="ph-duotone ph-spinner text-3xl"></i></div>
-                        <p>Carregando catálogo...</p>
-                    </div>
-                </div>
-                <div id="loadMoreContainer" class="hidden text-center mt-14 reveal">
-                    <button id="btnLoadMore" class="group px-10 py-4 border-2 border-base bg-card text-base rounded-2xl font-bold hover:border-yellow-500 hover:text-yellow-600 transition-all shadow-sm hover:shadow-lg">Ver Todos os Produtos <i class="ph-bold ph-caret-down ml-2 group-hover:translate-y-1 transition-transform inline-block"></i></button>
-                </div>
-                <div id="noResults" class="hidden text-center py-20">
-                    <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-card flex items-center justify-center"><i class="ph-duotone ph-magnifying-glass text-5xl text-muted"></i></div>
-                    <h3 class="text-2xl font-bold mb-2">Nenhum produto encontrado</h3><p class="text-muted">Tente buscar por outro termo</p>
-                </div>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6 reveal" id="productGrid"></div>
+                
+                <div id="loadMoreContainer" class="hidden text-center mt-14 reveal"><button id="btnLoadMore" class="group px-10 py-4 border-2 border-white/10 bg-card text-white rounded-2xl font-bold hover:border-yellow-500 hover:text-yellow-600 transition-all">Ver Todos</button></div>
+                <div id="noResults" class="hidden text-center py-20"><h3 class="text-2xl font-bold mb-2">Nenhum produto encontrado</h3></div>
             </div>
         </section>
 
-        <!-- Services Section -->
-        <section id="services" class="py-24 bg-card scroll-mt-20" aria-labelledby="services-title">
+        <!-- Services -->
+        <section id="services" class="py-24 bg-card scroll-mt-20">
             <div class="container mx-auto px-4 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-wrench"></i> Assistência Técnica</span>
-                    <h2 id="services-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-10">Assistência Técnica de <span class="text-gradient">Elite</span></h2>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-900/30 text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-wrench"></i> Assistência Técnica</span>
+                    <h2 class="text-3xl md:text-4xl lg:text-5xl font-black mb-10">Assistência Técnica de <span class="text-gradient">Elite</span></h2>
                     <div class="space-y-4">
-                        <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-clock-countdown"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Orçamento Rápido</h3><p class="text-muted text-lg">Diagnóstico ágil para você não ficar sem jogar.</p></div>
-                        </div>
-                        <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-circuitry"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Laboratório Próprio</h3><p class="text-muted text-lg">Peças originais e ferramentas de precisão.</p></div>
-                        </div>
-                        <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-shield-check"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Garantia Real</h3><p class="text-muted text-lg">3 meses de garantia em todos os serviços.</p></div>
-                        </div>
+                        <div class="service-feature flex gap-5"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-clock-countdown"></i></div><div><h3 class="font-bold text-xl mb-1">Orçamento Rápido</h3><p class="text-muted text-lg">Diagnóstico ágil.</p></div></div>
+                        <div class="service-feature flex gap-5"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-circuitry"></i></div><div><h3 class="font-bold text-xl mb-1">Laboratório Próprio</h3><p class="text-muted text-lg">Peças originais.</p></div></div>
                     </div>
                 </div>
                 <div class="bento-card p-8 md:p-10 relative overflow-hidden reveal noise-overlay">
-                    <div class="absolute top-0 right-0 w-40 h-40 bg-yellow-500/20 rounded-full blur-3xl animate-pulse" aria-hidden="true"></div>
-                    <div class="flex items-center gap-4 mb-8 relative z-10">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-wrench text-2xl text-black"></i></div>
-                        <div><h3 class="text-2xl font-bold">Simular Reparo</h3><p class="text-sm text-muted">Preencha e receba um orçamento</p></div>
-                    </div>
+                    <div class="flex items-center gap-4 mb-8 relative z-10"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-wrench text-2xl text-black"></i></div><div><h3 class="text-2xl font-bold">Simular Reparo</h3></div></div>
                     <form id="serviceForm" class="space-y-5 relative z-10">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div><label for="clientName" class="block text-sm font-semibold mb-2 text-muted">Seu Nome</label><input type="text" id="clientName" name="clientName" placeholder="João Silva" required autocomplete="name" class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition"></div>
-                            <div><label for="clientPhone" class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label><input type="tel" id="clientPhone" name="clientPhone" placeholder="(21) 99999-9999" required autocomplete="tel" class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition"></div>
+                            <div><label class="block text-sm font-semibold mb-2 text-muted">Seu Nome</label><input type="text" id="clientName" name="clientName" required class="w-full p-4 rounded-2xl bg-base border-2 border-white/10 focus:border-yellow-500 outline-none transition-colors"></div>
+                            <div><label class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label><input type="tel" id="clientPhone" name="clientPhone" required class="w-full p-4 rounded-2xl bg-base border-2 border-white/10 focus:border-yellow-500 outline-none transition-colors"></div>
                         </div>
-                        <div><label for="deviceSelect" class="block text-sm font-semibold mb-2 text-muted">Aparelho</label><select id="deviceSelect" name="device" required class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer"><option value="">Selecione o aparelho...</option><option value="PS5">PlayStation 5</option><option value="PS4">PlayStation 4</option><option value="Xbox Series">Xbox Series S/X</option><option value="Nintendo Switch">Nintendo Switch</option><option value="PC">Computador / Notebook</option></select></div>
-                        <div><label for="issueSelect" class="block text-sm font-semibold mb-2 text-muted">Qual o defeito?</label><select id="issueSelect" name="issue" required class="w-full p-4 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer"><option value="">Selecione o problema...</option><option value="Limpeza">Limpeza / Aquecimento</option><option value="Nao Liga">Não Liga</option><option value="Sem Imagem">Sem Imagem (HDMI)</option><option value="Controle">Drift no Controle</option><option value="Outro">Outro Defeito</option></select></div>
-                        <div id="serviceResult" class="hidden p-5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl border border-yellow-500/30" role="status" aria-live="polite">
-                            <div class="flex items-center gap-3"><i class="ph-fill ph-clock text-2xl text-yellow-600"></i><div><p class="text-sm text-muted">Tempo estimado de reparo</p><p class="font-bold text-lg text-yellow-600 dark:text-yellow-400" id="timeEstimate">--</p></div></div>
-                        </div>
-                        <button type="submit" class="w-full py-4 btn-primary flex items-center justify-center gap-3 text-lg"><i class="ph-bold ph-whatsapp-logo text-xl"></i> Agendar via WhatsApp</button>
+                        <div><label class="block text-sm font-semibold mb-2 text-muted">Aparelho</label><select id="deviceSelect" name="device" required class="w-full p-4 rounded-2xl bg-base border-2 border-white/10"><option value="">Selecione...</option><option value="PS5">PlayStation 5</option><option value="PS4">PlayStation 4</option><option value="Xbox Series">Xbox Series</option><option value="Nintendo Switch">Switch</option><option value="PC">PC / Notebook</option></select></div>
+                        <div><label class="block text-sm font-semibold mb-2 text-muted">Defeito</label><select id="issueSelect" name="issue" required class="w-full p-4 rounded-2xl bg-base border-2 border-white/10"><option value="">Selecione...</option><option value="Limpeza">Limpeza</option><option value="Nao Liga">Não Liga</option><option value="Sem Imagem">Sem Imagem</option><option value="Controle">Drift</option><option value="Outro">Outro</option></select></div>
+                        <div id="serviceResult" class="hidden p-5 bg-yellow-900/20 rounded-2xl border border-yellow-500/30"><div class="flex items-center gap-3"><i class="ph-fill ph-clock text-2xl text-yellow-600"></i><div><p class="text-sm text-muted">Estimativa</p><p class="font-bold text-lg text-yellow-600" id="timeEstimate">--</p></div></div></div>
+                        <button type="submit" class="w-full py-4 btn-primary flex items-center justify-center gap-3 text-lg">Agendar via WhatsApp</button>
                     </form>
                 </div>
             </div>
         </section>
 
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="py-24 bg-base scroll-mt-20" aria-labelledby="dashboard-title">
+        <!-- Dashboard -->
+        <section id="dashboard" class="py-24 bg-base scroll-mt-20">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="text-center max-w-3xl mx-auto mb-16 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-chart-line-up"></i> Nossa Reputação</span>
-                    <h2 id="dashboard-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Aprovado pelos <span class="text-gradient">Gamers</span></h2>
-                    <p class="text-muted text-lg">Transparência total: veja nossos números e o que dizem nossos clientes.</p>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-900/30 text-green-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-chart-line-up"></i> Reputação</span>
+                    <h2 class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Aprovado pelos <span class="text-gradient">Gamers</span></h2>
                 </header>
                 <div class="grid md:grid-cols-2 gap-8 mb-16 reveal">
-                    <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-star text-black text-xl"></i></div> Pontos Fortes (Média)</h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de radar"><canvas id="reputationChart"></canvas></div>
-                    </div>
-                    <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center"><i class="ph-fill ph-chart-pie-slice text-white text-xl"></i></div> Distribuição de Serviços</h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de pizza"><canvas id="servicesChart"></canvas></div>
-                    </div>
+                    <div class="bento-card p-6 md:p-8"><h3 class="font-bold text-lg mb-6">Pontos Fortes</h3><div class="chart-box"><canvas id="reputationChart"></canvas></div></div>
+                    <div class="bento-card p-6 md:p-8"><h3 class="font-bold text-lg mb-6">Serviços</h3><div class="chart-box"><canvas id="servicesChart"></canvas></div></div>
                 </div>
-                <article id="reviews" class="bento-card p-8 md:p-12 relative overflow-hidden reveal noise-overlay" aria-labelledby="reviews-title">
-                    <div class="absolute top-4 right-4 opacity-5" aria-hidden="true"><i class="ph-fill ph-google-logo text-[150px]"></i></div>
+                <article id="reviews" class="bento-card p-8 md:p-12 relative overflow-hidden reveal noise-overlay">
                     <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 relative z-10 gap-6">
                         <div>
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="flex gap-1" role="img" aria-label="5 estrelas"><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i></div>
-                                <span class="font-black text-3xl">4.9</span><span class="text-muted text-lg">/ 5.0</span>
-                            </div>
-                            <h3 id="reviews-title" class="text-2xl md:text-3xl font-bold">O que falam da Atomic?</h3>
+                            <div class="flex items-center gap-3 mb-3"><span class="font-black text-3xl">4.9</span><span class="text-muted text-lg">/ 5.0</span></div>
+                            <h3 class="text-2xl md:text-3xl font-bold">O que falam da Atomic?</h3>
                         </div>
-                        <a href="https://maps.app.goo.gl/9FpRW2ztsrE3j9Rz9" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"><i class="ph-fill ph-google-logo"></i> Ver no Google <i class="ph-bold ph-arrow-square-out"></i></a>
+                        <a href="https://maps.app.goo.gl/9FpRW2ztsrE3j9Rz9" target="_blank" class="flex items-center gap-2 px-6 py-3 bg-blue-900/20 text-blue-400 rounded-xl font-bold text-sm">Ver no Google</a>
                     </header>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                        <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white flex items-center justify-center font-bold text-lg">R</div><div class="flex-grow"><p class="font-bold">Rafael Costa</p><time class="text-xs text-muted">Há 2 semanas</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
-                            <blockquote class="text-muted leading-relaxed">"Levei meu PS5 que estava desligando sozinho. Fizeram a limpeza e troca da pasta térmica no mesmo dia. Atendimento nota 10!"</blockquote>
-                        </article>
-                        <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-lg">F</div><div class="flex-grow"><p class="font-bold">Felipe Martins</p><time class="text-xs text-muted">Há 1 mês</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
-                            <blockquote class="text-muted leading-relaxed">"Melhor preço do Rio pra comprar console. Comprei meu Xbox Series S lá, lacrado com garantia. Recomendo demais."</blockquote>
-                        </article>
-                        <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center font-bold text-lg">J</div><div class="flex-grow"><p class="font-bold">Juliana Alves</p><time class="text-xs text-muted">Há 3 dias</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
-                            <blockquote class="text-muted leading-relaxed">"Minha loja de confiança em Madureira. Já arrumei controle de Switch, comprei jogos e sempre fui bem atendida."</blockquote>
-                        </article>
+                        <article class="review-card bg-base p-6 rounded-2xl border border-white/10"><p class="font-bold">Rafael Costa</p><blockquote class="text-muted">"Atendimento nota 10!"</blockquote></article>
+                        <article class="review-card bg-base p-6 rounded-2xl border border-white/10"><p class="font-bold">Felipe Martins</p><blockquote class="text-muted">"Melhor preço do Rio."</blockquote></article>
+                        <article class="review-card bg-base p-6 rounded-2xl border border-white/10"><p class="font-bold">Juliana Alves</p><blockquote class="text-muted">"Minha loja de confiança."</blockquote></article>
                     </div>
                 </article>
             </div>
         </section>
 
-        <!-- Location Section -->
-        <section id="location" class="py-24 bg-base scroll-mt-20" aria-labelledby="location-title">
+        <!-- Location -->
+        <section id="location" class="py-24 bg-base scroll-mt-20">
             <div class="container mx-auto px-4 lg:px-8">
-                <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-map-pin"></i> Visite-nos</span>
-                    <h2 id="location-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Venha Conhecer Nosso <span class="text-gradient">QG</span></h2>
-                    <p class="text-muted text-lg">Fácil acesso no coração de Madureira.</p>
-                </header>
+                <header class="text-center mb-14 reveal"><h2 class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Venha Conhecer Nosso <span class="text-gradient">QG</span></h2></header>
                 <div class="bento-card overflow-hidden shadow-2xl flex flex-col md:flex-row reveal" style="min-height: 480px;">
                     <div class="md:w-2/5 p-8 md:p-12 flex flex-col justify-center space-y-8 relative z-10">
-                        <address class="not-italic">
-                            <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center flex-shrink-0 glow-gold"><i class="ph-fill ph-map-pin text-xl text-black"></i></div><div><h3 class="font-bold text-xl mb-2">Endereço</h3><p class="text-muted leading-relaxed">Av. Ministro Edgard Romero, 81<br>Loja 3 - Madureira<br>Rio de Janeiro - RJ</p></div></div>
-                        </address>
-                        <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0"><i class="ph-fill ph-clock text-xl text-white"></i></div><div><h3 class="font-bold text-xl mb-2">Horário</h3><p class="text-muted leading-relaxed">Segunda a Sexta: 09h às 19h<br>Sábado: 09h às 14h<br><span class="text-red-500 font-medium">Domingo: Fechado</span></p></div></div>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1"><i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota</a>
+                        <address class="not-italic"><h3 class="font-bold text-xl mb-2">Endereço</h3><p class="text-muted leading-relaxed">Av. Ministro Edgard Romero, 81<br>Loja 3 - Madureira</p></address>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games" target="_blank" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all">Traçar Rota</a>
                     </div>
                     <div class="md:w-3/5 h-64 md:h-auto bg-gray-200 map-container">
-                        <iframe src="https://maps.google.com/maps?q=Atomic%20Games%20Av.%20Ministro%20Edgard%20Romero%2081%20Madureira&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa Localização"></iframe>
+                        <iframe src="https://maps.google.com/maps?q=Atomic%20Games%20Av.%20Ministro%20Edgard%20Romero%2081%20Madureira&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" class="w-full h-full"></iframe>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- FAQ -->
-        <section id="faq" class="py-24 bg-card" aria-labelledby="faq-title">
+        <section id="faq" class="py-24 bg-card">
             <div class="container mx-auto px-4 lg:px-8 max-w-4xl">
-                <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-question"></i> Dúvidas</span>
-                    <h2 id="faq-title" class="text-3xl md:text-4xl font-black text-base">Perguntas Frequentes</h2>
-                </header>
-                <div class="space-y-4 reveal" id="faqContainer" role="list"></div>
+                <header class="text-center mb-14 reveal"><h2 class="text-3xl md:text-4xl font-black text-white">Perguntas Frequentes</h2></header>
+                <div class="space-y-4 reveal" id="faqContainer"></div>
             </div>
         </section>
     </main>
     
-    <!-- Footer -->
-    <footer class="bg-gradient-to-b from-base to-card border-t border-base py-16">
-        <div class="container mx-auto px-4 lg:px-8">
-            <div class="text-center">
-                <a href="#top" class="inline-block hover:opacity-90 transition transform hover:scale-110 duration-300 mb-6" aria-label="Voltar ao topo">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="h-20 w-20 mx-auto rounded-full shadow-2xl bg-black ring-4 ring-yellow-400/30 glow-gold" alt="Logo Atomic Games" loading="lazy">
-                </a>
-                <p class="font-bold text-2xl mb-2 brand-font">ATOMIC GAMES</p>
-                <p class="text-muted mb-8">Madureira - Rio de Janeiro</p>
-                <nav class="flex justify-center gap-4 mb-8" aria-label="Redes sociais">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-instagram-logo"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-facebook-logo"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:text-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-tiktok-logo"></i></a>
-                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-whatsapp-logo"></i></a>
-                </nav>
-                <div class="border-t border-base pt-8"><p class="text-sm text-muted">&copy; <time datetime="2025">2025</time> Atomic Games. Todos os direitos reservados.</p></div>
-            </div>
+    <footer class="bg-gradient-to-b from-base to-card border-t border-white/10 py-16">
+        <div class="container mx-auto px-4 lg:px-8 text-center">
+            <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="h-20 w-20 mx-auto rounded-full shadow-2xl mb-6" alt="Logo">
+            <p class="font-bold text-2xl mb-8 brand-font">ATOMIC GAMES</p>
+            <p class="text-sm text-muted">&copy; 2025 Atomic Games. Todos os direitos reservados.</p>
         </div>
     </footer>
 
-    <!-- Scripts Logic Split -->
+    <!-- Logic Scripts -->
     <script src="main.js" defer></script>
     <script src="chatbot.js" defer></script>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
