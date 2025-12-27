@@ -183,8 +183,7 @@
         if(!txt) return;
         els.input.value = ''; addMsg('user', txt); addTyping();
         
-        // Ensure CONFIG is available (it should be in global scope from main.js or defined here)
-        // For safety, we can default if not found, but it should be there.
+        // Ensure CONFIG is available
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
@@ -203,7 +202,10 @@
 
     // Init Chat
     document.getElementById('sendBtn').onclick = send;
-    els.input.onkeypress = e => e.key==='Enter' && send();
+    // Use keydown instead of keypress for mobile support
+    els.input.onkeydown = e => e.key==='Enter' && send();
+    // Stop propagation of clicks on input to avoid issues with parent overlays
+    els.input.addEventListener('touchend', e => e.stopPropagation());
     
     // First Load
     if(els.msgs.children.length === 0) {
