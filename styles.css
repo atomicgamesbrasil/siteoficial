@@ -482,10 +482,13 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
     display: flex; flex-direction: column; overflow: hidden; z-index: var(--z-chat-widget);
     transform-origin: bottom right;
     transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
-    transition: all 0.35s cubic-bezier(0.19, 1, 0.22, 1); border: 1px solid rgba(0,0,0,0.1);
+    /* FIX: Performance optimized transition */
+    transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.1);
     
-    /* FIX: Force new stacking context */
+    /* FIX: Force new stacking context and hardware acceleration hint */
     isolation: isolate;
+    will-change: transform, opacity;
 }
 .chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto !important; }
 
