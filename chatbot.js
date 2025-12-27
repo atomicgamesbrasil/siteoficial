@@ -16,27 +16,30 @@
 
     // --- UI LOGIC ---
     function updateChatUI(open) {
-        state.isOpen = open;
-        els.win.classList.toggle('open', open);
-        els.badge.style.display = open ? 'none' : 'flex';
-        document.body.classList.toggle('chat-open', open);
-        
-        if (open) {
-            // Open logic
-            els.bubble.style.transform = 'scale(0.8) translateY(20px)';
-            els.bubble.style.opacity = '0';
-            els.bubble.style.pointerEvents = 'none';
-            // Increase timeout slightly to allow CSS transition to finish before focusing
-            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 400);
-            scrollToBottom();
-        } else {
-            // Close logic
-            els.bubble.style.transform = 'scale(1)';
-            els.bubble.style.opacity = '1';
-            els.bubble.style.pointerEvents = 'auto';
-            // Remove focus to prevent keyboard from popping up on mobile if closing
-            els.input.blur();
-        }
+        // Use requestAnimationFrame for fluid visual update immediately on touch
+        requestAnimationFrame(() => {
+            state.isOpen = open;
+            els.win.classList.toggle('open', open);
+            els.badge.style.display = open ? 'none' : 'flex';
+            document.body.classList.toggle('chat-open', open);
+            
+            if (open) {
+                // Open logic - Immediate feedback
+                els.bubble.style.transform = 'scale(0.8) translateY(20px)';
+                els.bubble.style.opacity = '0';
+                els.bubble.style.pointerEvents = 'none';
+                
+                // Focus logic decoupled from visual update
+                if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
+                scrollToBottom();
+            } else {
+                // Close logic
+                els.bubble.style.transform = 'scale(1)';
+                els.bubble.style.opacity = '1';
+                els.bubble.style.pointerEvents = 'auto';
+                els.input.blur();
+            }
+        });
     }
 
     // --- HISTORY API LOGIC (ANDROID BACK BUTTON FIX) ---
@@ -48,22 +51,17 @@
 
     function closeChat() {
         if(!state.isOpen) return;
-        // Check if we have history state to go back to, otherwise just close UI
         history.back(); 
     }
 
-    // Listen for browser back button
     window.addEventListener('popstate', (e) => {
-        if(state.isOpen) {
-            updateChatUI(false);
-        }
+        if(state.isOpen) updateChatUI(false);
     });
 
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
     // --- DRAG & MAGNETIC SNAP PHYSICS ---
     if(els.bubble) {
-        // Initialize Position logic
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         
         els.bubble.addEventListener('touchstart', (e) => {
@@ -73,12 +71,12 @@
             state.initialLeft = rect.left; state.initialTop = rect.top;
             state.isDragging = false;
             
-            // Kill transition for 1:1 movement
+            // Visual feedback: Shrink slightly on press (Instant response)
             els.bubble.classList.add('no-transition');
             els.bubble.classList.remove('snapping');
-            
             els.bubble.style.transform = 'scale(0.95)';
-            // Switch to left/top positioning instantly to prevent jumps
+            
+            // Fix absolute positioning to prevent jump
             els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
             updatePos(rect.left, rect.top);
         }, { passive: true });
@@ -88,29 +86,35 @@
             const dx = t.clientX - state.startX;
             const dy = t.clientY - state.startY;
             
-            if (Math.sqrt(dx*dx + dy*dy) > 5) state.isDragging = true;
+            // INCREASED THRESHOLD: 15px (was 5px). 
+            // This prevents micro-movements from being interpreted as drags,
+            // ensuring the "click" action fires reliably.
+            if (Math.sqrt(dx*dx + dy*dy) > 15) {
+                state.isDragging = true;
+            }
+            
             if (state.isDragging) {
-                e.preventDefault();
+                e.preventDefault(); // Only prevent default if we are surely dragging
                 updatePos(state.initialLeft + dx, state.initialTop + dy);
             }
         }, { passive: false });
 
         els.bubble.addEventListener('touchend', (e) => {
-            // Re-enable transition for the snap animation
             els.bubble.classList.remove('no-transition');
-            els.bubble.style.transform = 'scale(1)';
             
             if (!state.isDragging) {
-                e.preventDefault(); 
-                openChat(); // Use new open handler with History API
+                // It was a tap!
+                e.preventDefault(); // Stop mouse click emulation
+                els.bubble.style.transform = 'scale(1)'; // Reset scale
+                openChat(); 
             } else {
-                // Magnetic Snap Logic
+                // It was a drag, snap to edge
+                els.bubble.style.transform = 'scale(1)';
                 els.bubble.classList.add('snapping');
                 const rect = els.bubble.getBoundingClientRect();
                 const midX = window.innerWidth / 2;
                 const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
                 
-                // Bound Y to screen
                 let snapY = rect.top;
                 if(snapY < 20) snapY = 20;
                 if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
@@ -122,7 +126,8 @@
         
         // Desktop Click
         els.bubble.addEventListener('click', (e) => { 
-            if(e.detail) {
+            // Only fire if not triggered by touch (detail check usually helps)
+            if(e.detail && !state.isDragging) {
                 if(state.isOpen) closeChat(); else openChat();
             } 
         });
@@ -186,7 +191,6 @@
         if(!txt) return;
         els.input.value = ''; addMsg('user', txt); addTyping();
         
-        // Ensure CONFIG is available
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
@@ -203,29 +207,29 @@
         }
     }
 
-    // Init Chat
     document.getElementById('sendBtn').onclick = send;
     
-    // Desktop & Mobile Input Fixes
-    // 1. Use addEventListener for keydown to be safe
     els.input.addEventListener('keydown', (e) => {
         if(e.key === 'Enter') send();
-        e.stopPropagation(); // Prevent bubbling up to any potential cancellers
+        e.stopPropagation(); 
     });
     
-    // 2. CRITICAL: Stop propagation of ALL pointer events on the input.
-    // This ensures that clicks on the input don't bubble up to the container 
-    // or body which might have 'pointer-events: none' logic or other handlers interfering.
     ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
         els.input.addEventListener(evt, (e) => {
             e.stopPropagation();
-            // On mouse down, explicitly focus just in case
             if (evt === 'mousedown') els.input.focus();
         });
     });
 
-    // First Load
     if(els.msgs.children.length === 0) {
        setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?'), 1000);
     }
+
+    // Warm-up request
+    setTimeout(() => {
+        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
+        const baseUrl = api.replace('/chat', ''); 
+        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
+    }, 1500);
+
 })();
