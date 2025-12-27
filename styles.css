@@ -476,20 +476,29 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
 }
 .badge-pulse { animation: pulse-red 2s infinite; }
 
+/* 
+   CHAT WINDOW ARCHITECTURE 
+   On Desktop: Floats near the button.
+   On Mobile: Fullscreen "Morphing" transformation.
+*/
 .chat-window {
     position: absolute; bottom: 100px; right: 24px; width: 380px; height: 600px; max-height: calc(100vh - 120px);
     background: #ffffff; border-radius: 24px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3);
     display: flex; flex-direction: column; overflow: hidden; z-index: var(--z-chat-widget);
     transform-origin: bottom right;
-    transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
-    /* FIX: Performance optimized transition */
+    
+    /* Desktop State: Hidden */
+    transform: scale(0.9) translateY(20px); 
+    opacity: 0; 
+    pointer-events: none;
+    
     transition: transform 0.3s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
     border: 1px solid rgba(0,0,0,0.1);
-    
-    /* FIX: Force new stacking context and hardware acceleration hint */
     isolation: isolate;
     will-change: transform, opacity;
 }
+
+/* Desktop State: Open */
 .chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto !important; }
 
 .chat-header {
@@ -610,21 +619,55 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
 }
 .chat-send-btn:active { transform: scale(0.9); }
 
-/* === MOBILE RESPONSIVE CHAT === */
+/* === MOBILE OPTIMIZATION === */
 @media (max-width: 480px) {
+    /* 
+       CRITICAL PERFORMANCE FIX FOR REDMI/ANDROID
+       1. No backdrop-filter (kills FPS).
+       2. Fixed positioning inset:0 (fullscreen).
+       3. Animation via scale() from center of bubble (Morphing effect).
+       4. Hardware acceleration enabled.
+    */
     .chat-window {
-        width: 100% !important;
-        height: 100% !important;
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100dvw !important;
         height: 100dvh !important;
         max-height: none !important;
         top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-        border-radius: 0 !important;
-        transform: translateY(100%);
-        transform-origin: center bottom;
+        margin: 0 !important;
+        
+        background: #ffffff !important; 
+        border: none !important;
+        
+        /* Start as a small circle (the bubble) */
+        border-radius: 50% !important;
+        transform: scale(0) !important; 
+        opacity: 0 !important;
+        
+        /* The origin will be set dynamically by JS to match bubble position, default bottom right */
+        transform-origin: bottom right; 
+        
+        /* Fast, snappy material design transition */
+        transition: 
+            transform 0.35s cubic-bezier(0.19, 1, 0.22, 1), 
+            opacity 0.2s ease-in,
+            border-radius 0.35s ease !important;
+            
+        will-change: transform, opacity, border-radius;
+        box-shadow: none !important; /* Shadows are heavy during expansion */
     }
-    .chat-window.open { transform: translateY(0); }
+    
+    .dark .chat-window { background: #111827 !important; }
+
+    .chat-window.open { 
+        transform: scale(1) !important; 
+        opacity: 1 !important; 
+        border-radius: 0 !important; /* Expand to full square */
+    }
+    
     .chat-messages { padding-bottom: 20px; }
-    .chat-bubble { width: 56px; height: 56px; bottom: 20px; right: 20px; }
+    .chat-bubble { width: 60px; height: 60px; bottom: 24px; right: 24px; }
 }
 
 /* === RESPONSIVE === */
