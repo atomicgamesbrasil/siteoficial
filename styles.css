@@ -483,6 +483,9 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
     transform-origin: bottom right;
     transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none;
     transition: all 0.35s cubic-bezier(0.19, 1, 0.22, 1); border: 1px solid rgba(0,0,0,0.1);
+    
+    /* FIX: Force new stacking context */
+    isolation: isolate;
 }
 .chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto !important; }
 
@@ -560,7 +563,7 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
 }
 .chat-add-btn:active { transform: scale(0.95); }
 
-/* --- INPUT FIX FOR MOBILE --- */
+/* --- INPUT FIX FOR MOBILE & DESKTOP --- */
 .chat-input-area { 
     padding: 16px; 
     background: #fff; 
@@ -578,7 +581,8 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
     background: #f8fafc; outline: none; font-size: 15px; transition: border-color 0.2s;
     
     /* FIX: Force colors and interactions */
-    color: #000 !important; 
+    color: #000 !important;
+    caret-color: #000 !important;
     opacity: 1 !important;
     pointer-events: auto !important;
     user-select: text !important;
@@ -586,12 +590,14 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
     z-index: 30;
     appearance: none; /* Remove browser default styling */
     -webkit-appearance: none;
+    cursor: text !important;
 }
 .chat-input:focus { border-color: #FFD700; background: #fff; }
 .dark .chat-input { 
     background: #334155; 
     border-color: #475569; 
     color: #fff !important; 
+    caret-color: #fff !important;
 }
 .chat-send-btn {
     width: 46px; height: 46px; border-radius: 50%; background: #000; color: #FFD700;
