@@ -16,30 +16,38 @@
 
     // --- UI LOGIC ---
     function updateChatUI(open) {
-        // Use requestAnimationFrame for fluid visual update immediately on touch
-        requestAnimationFrame(() => {
-            state.isOpen = open;
-            els.win.classList.toggle('open', open);
-            els.badge.style.display = open ? 'none' : 'flex';
-            document.body.classList.toggle('chat-open', open);
-            
-            if (open) {
-                // Open logic - Immediate feedback
-                els.bubble.style.transform = 'scale(0.8) translateY(20px)';
-                els.bubble.style.opacity = '0';
-                els.bubble.style.pointerEvents = 'none';
-                
-                // Focus logic decoupled from visual update
-                if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
-                scrollToBottom();
-            } else {
-                // Close logic
-                els.bubble.style.transform = 'scale(1)';
-                els.bubble.style.opacity = '1';
-                els.bubble.style.pointerEvents = 'auto';
-                els.input.blur();
+        // Direct DOM manipulation for maximum speed
+        state.isOpen = open;
+        els.win.classList.toggle('open', open);
+        els.badge.style.display = open ? 'none' : 'flex';
+        document.body.classList.toggle('chat-open', open);
+        
+        if (open) {
+            // == DYNAMIC TRANSFORM ORIGIN (THE MORPH TRICK) ==
+            // If on mobile, set the transform origin to the bubble's center
+            // This makes the square expand FROM the bubble location.
+            if(window.innerWidth <= 480) {
+                const rect = els.bubble.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                els.win.style.transformOrigin = `${centerX}px ${centerY}px`;
             }
-        });
+
+            // Hide bubble visually but keep it in DOM
+            els.bubble.style.transform = 'scale(0)'; // Scale to 0 instead of translate for morph effect
+            els.bubble.style.opacity = '0';
+            els.bubble.style.pointerEvents = 'none';
+            
+            // Focus logic
+            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
+            scrollToBottom();
+        } else {
+            // Close logic
+            els.bubble.style.transform = 'scale(1)';
+            els.bubble.style.opacity = '1';
+            els.bubble.style.pointerEvents = 'auto';
+            els.input.blur();
+        }
     }
 
     // --- HISTORY API LOGIC (ANDROID BACK BUTTON FIX) ---
@@ -86,15 +94,12 @@
             const dx = t.clientX - state.startX;
             const dy = t.clientY - state.startY;
             
-            // INCREASED THRESHOLD: 15px (was 5px). 
-            // This prevents micro-movements from being interpreted as drags,
-            // ensuring the "click" action fires reliably.
             if (Math.sqrt(dx*dx + dy*dy) > 15) {
                 state.isDragging = true;
             }
             
             if (state.isDragging) {
-                e.preventDefault(); // Only prevent default if we are surely dragging
+                e.preventDefault(); 
                 updatePos(state.initialLeft + dx, state.initialTop + dy);
             }
         }, { passive: false });
@@ -103,12 +108,10 @@
             els.bubble.classList.remove('no-transition');
             
             if (!state.isDragging) {
-                // It was a tap!
-                e.preventDefault(); // Stop mouse click emulation
-                els.bubble.style.transform = 'scale(1)'; // Reset scale
+                e.preventDefault(); 
+                els.bubble.style.transform = 'scale(1)'; 
                 openChat(); 
             } else {
-                // It was a drag, snap to edge
                 els.bubble.style.transform = 'scale(1)';
                 els.bubble.classList.add('snapping');
                 const rect = els.bubble.getBoundingClientRect();
@@ -126,7 +129,6 @@
         
         // Desktop Click
         els.bubble.addEventListener('click', (e) => { 
-            // Only fire if not triggered by touch (detail check usually helps)
             if(e.detail && !state.isDragging) {
                 if(state.isOpen) closeChat(); else openChat();
             } 
