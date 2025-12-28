@@ -1,3 +1,4 @@
+
 const CONFIG = {
     GITHUB_USER: "atomicgamesbrasil",
     GITHUB_REPO: "siteoficial",
@@ -34,22 +35,62 @@ const formatPrice = p => typeof p === 'number' ? p.toLocaleString('pt-BR', { sty
 
 const showToast = (msg, type = 'success') => {
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.className = `toast`; // Base class already has neon style from CSS update
+    
+    // Icon Logic
     const icon = document.createElement('i');
-    icon.className = `ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl`;
+    if (type === 'success') {
+        icon.className = `ph-bold ph-check-circle text-xl text-green-400`;
+    } else {
+        icon.className = `ph-bold ph-warning-circle text-xl text-red-500`;
+    }
+    
     const text = document.createElement('span');
     text.textContent = msg;
+    
     toast.appendChild(icon);
     toast.appendChild(text);
+    
     els.toastContainer.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px) scale(0.8)'; setTimeout(() => toast.remove(), 300); }, 3000);
+    
+    // Animation timing
+    setTimeout(() => { 
+        toast.style.opacity = '0'; 
+        toast.style.transform = 'translateY(20px) scale(0.8)'; 
+        setTimeout(() => toast.remove(), 300); 
+    }, 3000);
 };
 
 const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
+// SKELETON LOADING RENDERER
+function renderSkeletons() {
+    els.productGrid.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 8; i++) {
+        const card = document.createElement('article');
+        card.className = 'product-card bg-card border border-base flex flex-col h-full overflow-hidden';
+        card.innerHTML = `
+            <div class="h-56 bg-base/50 skeleton w-full relative"></div>
+            <div class="p-5 flex-grow flex flex-col gap-3">
+                <div class="h-6 w-3/4 bg-base/50 skeleton rounded-md"></div>
+                <div class="h-4 w-1/2 bg-base/50 skeleton rounded-md"></div>
+                <div class="mt-auto flex justify-between items-center pt-2">
+                    <div class="h-8 w-1/3 bg-base/50 skeleton rounded-md"></div>
+                    <div class="h-10 w-10 bg-base/50 skeleton rounded-xl"></div>
+                </div>
+            </div>
+        `;
+        frag.appendChild(card);
+    }
+    els.productGrid.appendChild(frag);
+}
+
 // Core Functions
 // IMPORTANT: DO NOT ALTER THIS LOGIC TO PRESERVE GITHUB/PANEL INTEGRATION
 async function loadGamesFromGitHub() {
+    renderSkeletons(); // Show skeletons immediately
+    
     try {
         const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
         if (res.ok) {
@@ -62,8 +103,16 @@ async function loadGamesFromGitHub() {
                 image: (p.image || "").replace('/img/', '/img%20site/') || "https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC",
                 desc: p.desc || "Sem descrição."
             }));
+            
+            // Live Status Update
+            const statusEl = document.getElementById('liveCatalogStatus');
+            if (statusEl) {
+                const now = new Date();
+                statusEl.innerHTML = `<span class="live-dot"></span> Catálogo Online • ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            }
         }
     } catch (e) { console.warn("Using fallback catalog"); }
+    
     renderProducts(currentFilter, els.searchInput.value);
 }
 
@@ -144,6 +193,10 @@ function renderProducts(filter, term = "", forceAll = false) {
         
         addBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            // MICRO-INTERACTION: Button Bounce
+            const btn = e.currentTarget;
+            btn.classList.add('btn-animate-click');
+            setTimeout(() => btn.classList.remove('btn-animate-click'), 300);
             addToCart(p.id);
         });
 
