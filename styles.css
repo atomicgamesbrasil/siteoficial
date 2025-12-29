@@ -10,15 +10,20 @@
     --blur: 20px;
     --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
 
-    /* Z-Index Architecture */
+    /* 
+       ARQUITETURA Z-INDEX (CORRIGIDA)
+       O Modal deve SEMPRE estar acima de tudo, inclusive do Chat e Toasts.
+    */
     --z-negative: -1;
     --z-base: 1;
     --z-nav: 50;
     --z-overlay: 90;
     --z-menu: 95;
-    --z-modal: 100;
+    --z-chat-bubble: 100; /* Bolha do chat */
+    --z-chat-window: 110; /* Janela do chat */
     --z-toast: 200;
-    --z-chat-widget: 999;
+    --z-modal-overlay: 9998; /* Overlay escuro do modal */
+    --z-modal: 9999; /* Modal de produto (topo absoluto) */
     --z-skip-link: 10000;
 }
 
@@ -334,8 +339,8 @@ button.video-facade {
 
 /* Modals & Overlays */
 .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-    z-index: var(--z-overlay); opacity: 0; pointer-events: none; transition: opacity 0.4s;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+    z-index: var(--z-modal-overlay); opacity: 0; pointer-events: none; transition: opacity 0.4s;
 }
 .modal-overlay.open { opacity: 1; pointer-events: auto; }
 
@@ -435,37 +440,63 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
     opacity: 0.02; pointer-events: none; z-index: 1;
 }
 
-/* === NEW: PROMO BANNERS AREA === */
+/* === PROMO BANNERS UNIFIED (CSS-Driven) === */
 #promoBannersContainer {
+    display: grid;
+    gap: 1.5rem;
     margin-bottom: 2.5rem;
+    width: 100%;
 }
 
-/* Mobile: Default Layout (Single Block, No Scroll) */
-#promoBannersContainer.mobile-slider {
+/* Default Mobile: Horizontal Scroll Snap (Slider) */
+@media (max-width: 768px) {
+    #promoBannersContainer {
+        display: flex;
+        grid-template-columns: none;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 1rem; /* Espaço para scrollbar se houver */
+        -webkit-overflow-scrolling: touch;
+        gap: 1rem;
+    }
+    
+    #promoBannersContainer::-webkit-scrollbar { display: none; }
+    
+    #promoBannersContainer > * {
+        flex: 0 0 100%; /* Cada banner ocupa 100% da largura */
+        scroll-snap-align: center;
+        width: 100%;
+    }
+}
+
+/* Desktop: Grid (2 Columns) */
+@media (min-width: 769px) {
+    #promoBannersContainer {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Common Banner Styles */
+.promo-banner-link {
     display: block;
     width: 100%;
-    position: relative;
-    overflow: hidden;
+    aspect-ratio: 3 / 1; /* Proporção fixa 3x1 */
+    background-color: #000;
     border-radius: 1rem;
+    overflow: hidden;
+    position: relative;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-/* Image Transitions for Slider */
-.promo-image {
-    transition: opacity 0.4s ease-in-out;
-    opacity: 1;
-}
-.promo-image.fade-out {
-    opacity: 0;
+.promo-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Garante que a imagem inteira apareça */
+    transition: transform 0.5s ease;
 }
 
-/* Desktop: Grid Layout */
-@media (min-width: 768px) {
-    #promoBannersContainer {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-    }
+.promo-banner-link:hover .promo-banner-img {
+    transform: scale(1.03);
 }
 
 /* === ATOMIC CHATBOT 2.0 (Mobile Native Feel) === */
@@ -482,7 +513,7 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
     right: 24px; 
     width: 60px; height: 60px;
     border-radius: 50%; background: #000; border: 2px solid #FFD700;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4); cursor: grab; z-index: calc(var(--z-chat-widget) + 1);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4); cursor: grab; z-index: var(--z-chat-bubble);
     display: flex; align-items: center; justify-content: center;
     overflow: visible;
     touch-action: none; /* ESSENCIAL PARA DRAG AND DROP */
@@ -521,7 +552,7 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
 .chat-window {
     position: absolute; bottom: 100px; right: 24px; width: 380px; height: 600px; max-height: calc(100vh - 120px);
     background: #ffffff; border-radius: 24px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3);
-    display: flex; flex-direction: column; overflow: hidden; z-index: var(--z-chat-widget);
+    display: flex; flex-direction: column; overflow: hidden; z-index: var(--z-chat-window);
     transform-origin: bottom right;
     
     /* Desktop State: Hidden */
