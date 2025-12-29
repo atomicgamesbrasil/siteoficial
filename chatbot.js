@@ -1,4 +1,4 @@
-// === CHATBOT 2.0 (FLUID & MAGNETIC) ===
+// === CHATBOT 2.1 (FLUID, MAGNETIC & SITE-AWARE) ===
 (function() {
     const els = { 
         bubble: document.getElementById('chatBubble'), 
@@ -16,16 +16,13 @@
 
     // --- UI LOGIC ---
     function updateChatUI(open) {
-        // Direct DOM manipulation for maximum speed
         state.isOpen = open;
         els.win.classList.toggle('open', open);
         els.badge.style.display = open ? 'none' : 'flex';
         document.body.classList.toggle('chat-open', open);
         
         if (open) {
-            // == DYNAMIC TRANSFORM ORIGIN (THE MORPH TRICK) ==
-            // If on mobile, set the transform origin to the bubble's center
-            // This makes the square expand FROM the bubble location.
+            // Morph effect for mobile
             if(window.innerWidth <= 480) {
                 const rect = els.bubble.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
@@ -33,16 +30,13 @@
                 els.win.style.transformOrigin = `${centerX}px ${centerY}px`;
             }
 
-            // Hide bubble visually but keep it in DOM
-            els.bubble.style.transform = 'scale(0)'; // Scale to 0 instead of translate for morph effect
+            els.bubble.style.transform = 'scale(0)'; 
             els.bubble.style.opacity = '0';
             els.bubble.style.pointerEvents = 'none';
             
-            // Focus logic
             if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
             scrollToBottom();
         } else {
-            // Close logic
             els.bubble.style.transform = 'scale(1)';
             els.bubble.style.opacity = '1';
             els.bubble.style.pointerEvents = 'auto';
@@ -50,7 +44,7 @@
         }
     }
 
-    // --- HISTORY API LOGIC (ANDROID BACK BUTTON FIX) ---
+    // --- HISTORY API ---
     function openChat() {
         if(state.isOpen) return;
         history.pushState({chat: true}, '', '#chat'); 
@@ -68,7 +62,7 @@
 
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- DRAG & MAGNETIC SNAP PHYSICS ---
+    // --- DRAG PHYSICS ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         
@@ -79,12 +73,9 @@
             state.initialLeft = rect.left; state.initialTop = rect.top;
             state.isDragging = false;
             
-            // Visual feedback: Shrink slightly on press (Instant response)
             els.bubble.classList.add('no-transition');
             els.bubble.classList.remove('snapping');
             els.bubble.style.transform = 'scale(0.95)';
-            
-            // Fix absolute positioning to prevent jump
             els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
             updatePos(rect.left, rect.top);
         }, { passive: true });
@@ -93,51 +84,30 @@
             const t = e.touches[0];
             const dx = t.clientX - state.startX;
             const dy = t.clientY - state.startY;
-            
-            if (Math.sqrt(dx*dx + dy*dy) > 15) {
-                state.isDragging = true;
-            }
-            
-            if (state.isDragging) {
-                e.preventDefault(); 
-                updatePos(state.initialLeft + dx, state.initialTop + dy);
-            }
+            if (Math.sqrt(dx*dx + dy*dy) > 15) state.isDragging = true;
+            if (state.isDragging) { e.preventDefault(); updatePos(state.initialLeft + dx, state.initialTop + dy); }
         }, { passive: false });
 
         els.bubble.addEventListener('touchend', (e) => {
             els.bubble.classList.remove('no-transition');
-            
             if (!state.isDragging) {
-                e.preventDefault(); 
-                els.bubble.style.transform = 'scale(1)'; 
-                openChat(); 
+                e.preventDefault(); els.bubble.style.transform = 'scale(1)'; openChat(); 
             } else {
                 els.bubble.style.transform = 'scale(1)';
                 els.bubble.classList.add('snapping');
                 const rect = els.bubble.getBoundingClientRect();
                 const midX = window.innerWidth / 2;
                 const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
-                
                 let snapY = rect.top;
                 if(snapY < 20) snapY = 20;
                 if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
-
                 updatePos(snapX, snapY);
             }
             state.isDragging = false;
         });
         
-        // Desktop Click
-        els.bubble.addEventListener('click', (e) => { 
-            if(e.detail && !state.isDragging) {
-                if(state.isOpen) closeChat(); else openChat();
-            } 
-        });
-        
-        document.getElementById('closeChatBtn').onclick = (e) => { 
-            e.stopPropagation(); 
-            closeChat(); 
-        };
+        els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
+        document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
     }
 
     // --- MESSAGING LOGIC ---
@@ -153,12 +123,13 @@
         return frag;
     }
 
-    function addMsg(role, content, prods, link) {
+    function addMsg(role, content, prods, link, actions = []) {
         const div = document.createElement('div'); div.className = `message ${role}`;
         const bubble = document.createElement('div'); bubble.className = 'message-bubble';
         
         if(content) bubble.appendChild(parseText(content));
         
+        // --- PRODUTOS (VITRINE NO CHAT) ---
         if(prods?.length) {
             const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
@@ -166,17 +137,60 @@
                 card.innerHTML = `<img src="${p.image||'https://placehold.co/100'}" loading="lazy">
                                   <div class="chat-product-title">${p.name||p.nome}</div>
                                   <div class="chat-product-price">${p.price||p.preco}</div>`;
-                const btn = document.createElement('button'); btn.className='chat-add-btn'; btn.innerText='VER';
-                btn.onclick = () => window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
+                
+                const btn = document.createElement('button'); 
+                btn.className='chat-add-btn'; 
+                btn.innerText='VER DETALHES';
+                
+                // CORREÇÃO: Abre o modal do site (showProductDetail) ao invés de ir para o Whats
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    // Tenta encontrar o ID correto. A API deve retornar 'id', mas se vier diferente, tentamos adaptar.
+                    const prodId = p.id; 
+                    
+                    if (window.showProductDetail && prodId) {
+                        window.showProductDetail(prodId);
+                    } else {
+                        // Fallback caso a função não exista ou ID esteja inválido
+                        window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
+                    }
+                };
+                
                 card.appendChild(btn); scroll.appendChild(card);
             });
             bubble.appendChild(scroll);
         }
 
+        // --- LINKS DE AÇÃO (Botão Verde Padrão) ---
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
-           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs';
+           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
            btn.innerText = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
+        }
+
+        // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
+        if (actions && actions.length > 0) {
+            const actionContainer = document.createElement('div');
+            actionContainer.className = 'mt-3 flex flex-col gap-2';
+            actions.forEach(act => {
+                const actBtn = document.createElement('button');
+                actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
+                actBtn.innerHTML = `<span>${act.label}</span> <i class="ph-bold ${act.icon}"></i>`;
+                actBtn.onclick = () => {
+                    if (act.targetId) {
+                        const target = document.getElementById(act.targetId);
+                        if(target) {
+                            // Fecha chat em mobile para ver o site, mantém em desktop
+                            if(window.innerWidth < 768) updateChatUI(false);
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    } else if (act.url) {
+                        window.open(act.url, '_blank');
+                    }
+                };
+                actionContainer.appendChild(actBtn);
+            });
+            bubble.appendChild(actionContainer);
         }
 
         div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
@@ -188,24 +202,68 @@
         els.msgs.appendChild(div); scrollToBottom();
     }
 
+    // --- CONTEXT AWARENESS (O Cérebro Local) ---
+    function checkSiteContext(text) {
+        const t = text.toLowerCase();
+        const actions = [];
+
+        // 1. Manutenção / Reparo / Limpeza
+        if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo') || t.includes('orçamento') || t.includes('arrumar') || t.includes('quebrado')) {
+            const serviceSec = document.getElementById('services');
+            let dir = '👇';
+            if(serviceSec) {
+                const rect = serviceSec.getBoundingClientRect();
+                if(rect.top < 0) dir = '👆'; // Se já passou, aponta pra cima
+            }
+            
+            actions.push({
+                label: `Abrir Simulador de Reparo ${dir}`,
+                icon: 'ph-wrench',
+                targetId: 'services' // ID da seção no HTML
+            });
+        }
+
+        // 2. Localização / Onde fica
+        if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização') || t.includes('chegar')) {
+            actions.push({
+                label: 'Ver Mapa e Endereço',
+                icon: 'ph-map-pin',
+                targetId: 'location'
+            });
+        }
+
+        return actions;
+    }
+
     async function send() {
         const txt = els.input.value.trim();
         if(!txt) return;
-        els.input.value = ''; addMsg('user', txt); addTyping();
         
+        els.input.value = ''; 
+        addMsg('user', txt); 
+        addTyping();
+        
+        // Verifica contexto local antes de enviar
+        const localActions = checkSiteContext(txt);
+
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
             const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
             const data = await res.json();
+            
             document.getElementById('typing').remove();
+            
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link);
-            } else addMsg('bot', 'Desculpe, tive um erro técnico.');
+                // Adiciona as ações locais junto com a resposta da IA
+                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
+            } else {
+                addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
+            }
         } catch { 
             document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
-            addMsg('bot', 'Sem conexão com a internet.'); 
+            addMsg('bot', 'Sem conexão com a internet.', [], null, localActions); 
         }
     }
 
@@ -224,7 +282,7 @@
     });
 
     if(els.msgs.children.length === 0) {
-       setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou ver acessórios?'), 1000);
+       setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
     }
 
     // Warm-up request
