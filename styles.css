@@ -1,3 +1,4 @@
+
 /* === CORE SETTINGS === */
 :root {
     --gold: #FFD700;
@@ -12,18 +13,21 @@
 
     /* 
        ARQUITETURA Z-INDEX (CORRIGIDA E REFORÇADA)
-       Correção: Chat elevado para a camada 9000+ para evitar sobreposição por elementos relativos.
+       Correção: Mobile Menu elevado para 9200 para ficar ACIMA do Chat Widget (9000).
+       Isso previne que a camada do chat bloqueie interações no menu em dispositivos Android/Xiaomi.
     */
     --z-negative: -1;
     --z-base: 1;
     --z-nav: 50;
-    --z-overlay: 90;
-    --z-menu: 95;
     
     /* Camada do Chat (Flutuante) */
     --z-chat-widget: 9000;  /* Container Base do Chat */
     --z-chat-bubble: 9001;  /* Bolha Flutuante */
     --z-chat-window: 9002;  /* Janela Aberta */
+    
+    /* Menu Mobile (Deve sobrepor o Chat) */
+    --z-overlay: 9199;      /* Fundo escuro do menu */
+    --z-menu: 9200;         /* O menu em si */
     
     /* Camada de Alertas e Modais (Topo Absoluto) */
     --z-toast: 9500;
