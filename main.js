@@ -121,13 +121,15 @@ function renderPromos() {
     
     if (window.innerWidth < 768) {
         // === MOBILE SLIDER MODE ===
-        container.className = 'mobile-slider relative w-full aspect-[2/1] rounded-2xl overflow-hidden shadow-lg';
+        // CORREÇÃO: Usando aspect-video (16:9) e bg-black para moldura
+        container.className = 'mobile-slider relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg bg-black';
         
         const link = document.createElement('a');
         link.className = 'block w-full h-full';
         
         const img = document.createElement('img');
-        img.className = 'w-full h-full object-cover promo-image';
+        // CORREÇÃO: Usando object-contain para a imagem caber 100% dentro da moldura sem cortar
+        img.className = 'w-full h-full object-contain promo-image';
         
         link.appendChild(img);
         container.appendChild(link);
