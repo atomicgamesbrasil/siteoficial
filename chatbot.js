@@ -14,6 +14,7 @@
 
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
     let sessionId = localStorage.getItem('chat_sess_id');
+    let msgHistory = []; // Local history storage
 
     // --- UI LOGIC ---
     function updateChatUI(open) {
@@ -113,6 +114,7 @@
 
     // --- MESSAGING LOGIC ---
     function parseText(text) {
+        if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
         text.split('\n').forEach((line, i) => {
             if(i>0) frag.appendChild(document.createElement('br'));
@@ -124,7 +126,7 @@
         return frag;
     }
 
-    function addMsg(role, content, prods, link, actions = []) {
+    function addMsg(role, content, prods, link, actions = [], save = true) {
         const div = document.createElement('div'); div.className = `message ${role}`;
         const bubble = document.createElement('div'); bubble.className = 'message-bubble';
         
@@ -196,6 +198,11 @@
         }
 
         div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
+
+        if (save) {
+            msgHistory.push({ role, content, prods, link, actions });
+            localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
+        }
     }
 
     function addTyping() {
@@ -278,9 +285,16 @@
         });
     });
 
-    if(els.msgs.children.length === 0) {
-       setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
-    }
+    // LOAD HISTORY
+    try {
+        const savedHist = localStorage.getItem('atomic_chat_history');
+        if (savedHist) {
+            msgHistory = JSON.parse(savedHist);
+            msgHistory.forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false));
+        } else {
+            setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
+        }
+    } catch(e) { console.error("History load error", e); }
 
     setTimeout(() => {
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
