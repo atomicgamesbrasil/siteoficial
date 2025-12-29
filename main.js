@@ -16,9 +16,8 @@ const initialProducts = [
     { id: "13", name: "Mouse Gamer Red Dragon", category: "acessorios", price: "R$ 149,90", image: "https://placehold.co/400x400/292524/FFD700?text=MOUSE", desc: "Mouse Redragon de alta precisão." }
 ];
 
-// Dados Iniciais de Banners (Fallback se o JSON falhar)
+// Dados Iniciais de Banners
 let promoBanners = [];
-let bannerInterval; // Variável para controlar o timer do slider mobile
 
 const faqs = [
     { q: "Vocês aceitam consoles usados na troca?", a: "Sim! Avaliamos seu console usado (PS4, Xbox One, Switch) como parte do pagamento." },
@@ -53,7 +52,6 @@ const showToast = (msg, type = 'success') => {
 const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
 // Core Functions
-// IMPORTANT: DO NOT ALTER THIS LOGIC TO PRESERVE GITHUB/PANEL INTEGRATION
 async function loadGamesFromGitHub() {
     try {
         const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
@@ -72,14 +70,13 @@ async function loadGamesFromGitHub() {
     renderProducts(currentFilter, els.searchInput.value);
 }
 
-// NOVA FUNÇÃO: Carregar banners do JSON no GitHub
 async function loadBannersFromGitHub() {
     try {
         const res = await fetch(`${BASE_IMG_URL}banners.json?t=${Date.now()}`);
         if (res.ok) {
             promoBanners = await res.json();
         } else {
-            console.warn("Banners JSON not found, hiding section or using default");
+            console.warn("Banners JSON not found");
             promoBanners = [];
         }
     } catch (e) {
@@ -89,14 +86,11 @@ async function loadBannersFromGitHub() {
     renderPromos();
 }
 
+// ARQUITETURA CORRIGIDA: Renderização única, layout controlado por CSS (styles.css)
 function renderPromos() {
     const container = document.getElementById('promoBannersContainer');
     if(!container) return;
 
-    // Limpa o intervalo anterior se existir (importante para resize)
-    if (bannerInterval) clearInterval(bannerInterval);
-
-    // Se não houver banners com imagens definidas, esconde o container
     const validBanners = promoBanners.filter(b => b.image && b.image.trim() !== '');
 
     if(!validBanners.length) {
@@ -105,109 +99,45 @@ function renderPromos() {
     }
 
     container.innerHTML = '';
-    container.style.display = ''; // Reset CSS display default
+    container.style.display = '';
 
-    // Ordenação fixa para garantir consistência
+    // Ordenação consistente
     const sortedBanners = [
         validBanners.find(b => b.id === 'banner_1'),
         validBanners.find(b => b.id === 'banner_2')
-    ].filter(b => b); // Filtra undefined
+    ].filter(b => b);
 
     if (sortedBanners.length === 0) return;
 
-    // LÓGICA RESPONSIVA:
-    // FIXO: 3x1 (aspect-[3/1]) em mobile e desktop para consistência total.
+    const frag = document.createDocumentFragment();
     
-    if (window.innerWidth < 768) {
-        // === MOBILE SLIDER MODE ===
-        // CORREÇÃO: Usando aspect-[3/1] fixo e bg-black para moldura.
-        container.className = 'mobile-slider relative w-full aspect-[3/1] rounded-2xl overflow-hidden shadow-lg bg-black';
-        
+    sortedBanners.forEach(banner => {
         const link = document.createElement('a');
-        link.className = 'block w-full h-full';
+        link.className = 'promo-banner-link group'; // Layout e proporção controlados via CSS
+        link.href = banner.link || '#';
         
+        if(banner.link && banner.link.startsWith('http')) {
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+        }
+        
+        const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(banner.image)}`;
         const img = document.createElement('img');
-        // CORREÇÃO: Usando object-contain para a imagem caber 100% dentro da moldura 3x1 sem cortar
-        img.className = 'w-full h-full object-contain promo-image';
+        img.src = imgUrl;
+        img.alt = banner.id;
+        img.className = 'promo-banner-img'; // Object-fit contain e fundo preto via CSS
+        img.loading = 'lazy';
+        
+        // Efeito de brilho (Shine)
+        const shine = document.createElement('div');
+        shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none';
         
         link.appendChild(img);
-        container.appendChild(link);
-
-        let currentIndex = 0;
-
-        const updateBanner = () => {
-            const b = sortedBanners[currentIndex];
-            const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(b.image)}`;
-            
-            // Link setup
-            link.href = b.link || '#';
-            if(b.link && b.link.startsWith('http')) {
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-            } else {
-                link.removeAttribute('target');
-            }
-
-            // Image Update with Fade
-            img.classList.add('fade-out'); // Começa transição de saída
-            
-            setTimeout(() => {
-                img.src = imgUrl;
-                img.alt = b.id;
-                
-                // Ao carregar (ou falhar), remove o fade
-                img.onload = () => img.classList.remove('fade-out');
-                img.onerror = () => img.classList.remove('fade-out'); 
-            }, 400); // Espera a animação CSS (que definimos como 0.4s)
-        };
-
-        // Inicializa o primeiro banner imediatamente
-        updateBanner();
-
-        // Se houver mais de um banner, inicia o ciclo
-        if (sortedBanners.length > 1) {
-            bannerInterval = setInterval(() => {
-                currentIndex = (currentIndex + 1) % sortedBanners.length;
-                updateBanner();
-            }, 3500); // Troca a cada 3.5 segundos
-        }
-
-    } else {
-        // === DESKTOP GRID MODE ===
-        container.className = ''; // Remove classe mobile se existir
-        
-        const frag = document.createDocumentFragment();
-        sortedBanners.forEach(banner => {
-            const link = document.createElement('a');
-            link.href = banner.link || '#';
-            if(banner.link && banner.link.startsWith('http')) {
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-            }
-            
-            // Fixando aspect-[3/1] também no Desktop para padronização
-            link.className = 'promo-banner block relative overflow-hidden rounded-2xl shadow-lg hover:shadow-gold/20 transition-all hover:scale-[1.02] group w-full aspect-[3/1] bg-black';
-            
-            const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(banner.image)}`;
-
-            const img = document.createElement('img');
-            img.src = imgUrl;
-            img.alt = banner.id;
-            // Usando object-contain para garantir que a imagem se adapte à moldura sem cortes
-            img.className = 'w-full h-full object-contain rounded-2xl'; 
-            img.loading = 'lazy';
-            
-            img.onerror = function() { this.style.display = 'none'; };
-
-            const shine = document.createElement('div');
-            shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none';
-            
-            link.appendChild(img);
-            link.appendChild(shine);
-            frag.appendChild(link);
-        });
-        container.appendChild(frag);
-    }
+        link.appendChild(shine);
+        frag.appendChild(link);
+    });
+    
+    container.appendChild(frag);
 }
 
 function renderProducts(filter, term = "", forceAll = false) {
@@ -246,7 +176,6 @@ function renderProducts(filter, term = "", forceAll = false) {
         img.src = p.image;
         img.alt = p.name;
         img.loading = 'lazy';
-        // Improves CLS by letting browser know aspect ratio (assuming square-ish for catalog)
         img.width = 400; 
         img.height = 400;
         img.onerror = function() { this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC' };
@@ -310,7 +239,7 @@ function updateCartUI() {
     els.cartCount.classList.toggle('hidden', !cart.length);
     els.checkoutBtn.disabled = !cart.length;
     
-    els.cartItems.innerHTML = ''; // Safer clear
+    els.cartItems.innerHTML = '';
     
     if (!cart.length) {
         const empty = document.createElement('div');
@@ -390,7 +319,8 @@ function checkoutWhatsApp() {
     window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
 }
 
-function showProductDetail(id) {
+// EXPOSTA GLOBALMENTE para o Chatbot
+window.showProductDetail = function(id) {
     const p = allProducts.find(x => x.id == id);
     if (!p) return;
     document.getElementById('modalProductImage').src = p.image;
@@ -400,7 +330,6 @@ function showProductDetail(id) {
     document.getElementById('modalProductCategory').className = `category-tag absolute top-4 left-4 ${getCategoryClass(p.category)}`;
     document.getElementById('modalProductCategory').textContent = p.category;
     
-    // Clean up old event listener by replacing the button clone
     const oldBtn = document.getElementById('modalAddToCartBtn');
     const newBtn = oldBtn.cloneNode(true);
     oldBtn.parentNode.replaceChild(newBtn, oldBtn);
@@ -422,7 +351,6 @@ function closeProductDetail() {
 function loadVideo() { 
     const f = document.getElementById('videoFacade'); 
     const container = document.getElementById('videoContainer');
-    // Using createElement for iframe to be safe
     const iframe = document.createElement('iframe');
     iframe.className = "w-full h-full";
     iframe.src = `https://www.youtube.com/embed/${f.dataset.videoId}?autoplay=1&rel=0`;
@@ -473,19 +401,10 @@ function initCharts(theme) {
                     min: 0, 
                     max: 5, 
                     beginAtZero: true,
-                    grid: { 
-                        color: gridColor,
-                        circular: true 
-                    }, 
+                    grid: { color: gridColor, circular: true }, 
                     angleLines: { color: gridColor },
-                    pointLabels: { 
-                        color: color,
-                        font: { size: 12, weight: '600', family: 'Inter' }
-                    },
-                    ticks: { 
-                        display: false,
-                        backdropColor: 'transparent'
-                    } 
+                    pointLabels: { color: color, font: { size: 12, weight: '600', family: 'Inter' } },
+                    ticks: { display: false, backdropColor: 'transparent' } 
                 } 
             }, 
             plugins: { legend: { display: false } } 
@@ -502,7 +421,6 @@ function initCharts(theme) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    // Cache Elements
     els = {
         toastContainer: document.getElementById('toastContainer'),
         cartCount: document.getElementById('cartCount'),
@@ -524,7 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.className = theme;
     
-    // Render Static Content (FAQ)
     const faqContainer = document.getElementById('faqContainer');
     if(faqContainer) {
         faqContainer.innerHTML = '';
@@ -561,45 +478,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     initCharts(theme);
     loadGamesFromGitHub();
-    loadBannersFromGitHub(); // NOVA CHAMADA: Carrega os banners
-
-    // Resize Handler para alternar layout de banners
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            renderPromos(); // Re-renderiza banners com o layout correto
-        }, 200);
-    });
+    loadBannersFromGitHub();
 
     // Intersection Observer
     const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // Event Listeners (Replaced inline onclicks)
+    // Listeners
     document.getElementById('backToTop')?.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
     document.getElementById('videoFacade')?.addEventListener('click', loadVideo);
     
-    // Product Modal
     document.getElementById('productDetailOverlay')?.addEventListener('click', closeProductDetail);
     document.getElementById('closeDetailBtn')?.addEventListener('click', closeProductDetail);
     
-    // Mobile Menu
     document.getElementById('mobileMenuOverlay')?.addEventListener('click', toggleMobileMenu);
     document.getElementById('mobileMenuOpenBtn')?.addEventListener('click', toggleMobileMenu);
     document.getElementById('closeMobileMenuBtn')?.addEventListener('click', toggleMobileMenu);
-    // Add listeners to links inside mobile menu to close it on click
-    document.querySelectorAll('.mobile-menu a').forEach(link => {
-        link.addEventListener('click', toggleMobileMenu);
-    });
+    document.querySelectorAll('.mobile-menu a').forEach(link => link.addEventListener('click', toggleMobileMenu));
 
-    // Cart
     document.getElementById('cartOverlay')?.addEventListener('click', toggleCart);
     document.getElementById('openCartBtn')?.addEventListener('click', toggleCart);
     document.getElementById('closeCartBtn')?.addEventListener('click', toggleCart);
     document.getElementById('checkoutBtn')?.addEventListener('click', checkoutWhatsApp);
 
-    // Filters & Search
     document.getElementById('btnLoadMore')?.addEventListener('click', () => renderProducts(currentFilter, els.searchInput.value, true));
     document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', e => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -609,13 +510,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     els.searchInput?.addEventListener('input', e => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => renderProducts(currentFilter, e.target.value), 300); });
     
-    // Theme
     document.getElementById('themeToggle')?.addEventListener('click', () => {
         const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
         document.documentElement.className = newTheme; localStorage.setItem('theme', newTheme); initCharts(newTheme);
     });
 
-    // Service Form
     document.getElementById('serviceForm')?.addEventListener('submit', e => {
         e.preventDefault();
         const fd = new FormData(e.target);
@@ -630,7 +529,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Scroll Handler
     let lastY = 0, ticking = false;
     window.addEventListener('scroll', () => {
         if(!ticking) {
