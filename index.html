@@ -173,7 +173,7 @@
         </div>
     </article>
 
-    <!-- Unified Install Guide Modal (iOS & Android Fallback) -->
+    <!-- Unified Install Guide Modal (Universal Support) -->
     <div id="installGuideModal" class="modal-overlay z-[var(--z-modal)]" aria-hidden="true">
         <div class="modal-base bg-card-solid p-8 rounded-3xl max-w-sm text-center shadow-2xl border border-base">
             <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center" id="guideIconContainer">
@@ -205,7 +205,7 @@
             </div>
             
             <div class="flex-grow space-y-2">
-                <!-- INSTALL BUTTON MOBILE (Always present if not installed) -->
+                <!-- INSTALL BUTTON MOBILE (Controlled via JS) -->
                 <button id="installAppBtnMobile" class="hidden w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 hover:bg-yellow-500/20 transition group text-left">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-bold ph-download-simple text-2xl text-black"></i></div>
                     <div><span class="font-bold text-lg text-yellow-600 dark:text-yellow-400">Instalar App</span><p class="text-xs text-muted">Acesso rápido na tela inicial</p></div>
@@ -276,7 +276,8 @@
             </div>
             <div class="flex items-center gap-3">
                 
-                <!-- INSTALL APP BTN DESKTOP -->
+                <!-- INSTALL APP BTN DESKTOP (Controlled via JS) -->
+                <!-- Removed 'hidden' class to rely on JS check on load -->
                 <button id="installAppBtnDesktop" class="hidden items-center gap-2 px-3 py-2 bg-black text-yellow-500 rounded-lg font-bold text-xs hover:bg-yellow-500 hover:text-black transition-all border border-yellow-500/50">
                     <i class="ph-bold ph-download-simple"></i> <span>Baixar App</span>
                 </button>
