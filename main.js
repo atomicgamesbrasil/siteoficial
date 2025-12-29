@@ -18,6 +18,7 @@ const initialProducts = [
 
 // Dados Iniciais de Banners (Fallback se o JSON falhar)
 let promoBanners = [];
+let bannerInterval; // Variável para controlar o timer do slider mobile
 
 const faqs = [
     { q: "Vocês aceitam consoles usados na troca?", a: "Sim! Avaliamos seu console usado (PS4, Xbox One, Switch) como parte do pagamento." },
@@ -92,6 +93,9 @@ function renderPromos() {
     const container = document.getElementById('promoBannersContainer');
     if(!container) return;
 
+    // Limpa o intervalo anterior se existir (importante para resize)
+    if (bannerInterval) clearInterval(bannerInterval);
+
     // Se não houver banners com imagens definidas, esconde o container
     const validBanners = promoBanners.filter(b => b.image && b.image.trim() !== '');
 
@@ -101,50 +105,106 @@ function renderPromos() {
     }
 
     container.innerHTML = '';
-    container.style.display = ''; // Reseta para o display do CSS (flex/grid)
+    container.style.display = ''; // Reset CSS display default
 
-    const frag = document.createDocumentFragment();
-
-    // Ordenação fixa: banner_1 primeiro, depois banner_2
+    // Ordenação fixa para garantir consistência
     const sortedBanners = [
-        promoBanners.find(b => b.id === 'banner_1'),
-        promoBanners.find(b => b.id === 'banner_2')
-    ].filter(b => b && b.image); // Filtra indefinidos ou sem imagem
+        validBanners.find(b => b.id === 'banner_1'),
+        validBanners.find(b => b.id === 'banner_2')
+    ].filter(b => b); // Filtra undefined
 
-    sortedBanners.forEach(banner => {
+    if (sortedBanners.length === 0) return;
+
+    // LÓGICA RESPONSIVA:
+    // Se for mobile (<768px), cria um slider com fade.
+    // Se for desktop (>=768px), cria o grid lado a lado.
+    
+    if (window.innerWidth < 768) {
+        // === MOBILE SLIDER MODE ===
+        container.className = 'mobile-slider relative w-full aspect-[2/1] rounded-2xl overflow-hidden shadow-lg';
+        
         const link = document.createElement('a');
-        link.href = banner.link || '#';
-        if(banner.link && banner.link.startsWith('http')) {
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-        }
+        link.className = 'block w-full h-full';
         
-        link.className = 'promo-banner snap-center shrink-0 block relative overflow-hidden rounded-2xl shadow-lg hover:shadow-gold/20 transition-all hover:scale-[1.02] group w-[90%] md:w-full';
-        
-        // CORREÇÃO: Pasta BANNER SAZIONAL (com espaço e encoding correto)
-        const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(banner.image)}`;
-
         const img = document.createElement('img');
-        img.src = imgUrl;
-        img.alt = banner.id === 'banner_1' ? 'Oferta Esquerda' : 'Oferta Direita';
-        img.className = 'w-full h-full object-cover aspect-[2/1] md:aspect-[3/1] rounded-2xl'; 
-        img.loading = 'lazy';
-        
-        // Tratamento de erro simples
-        img.onerror = function() {
-            this.style.display = 'none';
-        };
-
-        // Efeito de brilho
-        const shine = document.createElement('div');
-        shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700';
+        img.className = 'w-full h-full object-cover promo-image';
         
         link.appendChild(img);
-        link.appendChild(shine);
-        frag.appendChild(link);
-    });
+        container.appendChild(link);
 
-    container.appendChild(frag);
+        let currentIndex = 0;
+
+        const updateBanner = () => {
+            const b = sortedBanners[currentIndex];
+            const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(b.image)}`;
+            
+            // Link setup
+            link.href = b.link || '#';
+            if(b.link && b.link.startsWith('http')) {
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+            } else {
+                link.removeAttribute('target');
+            }
+
+            // Image Update with Fade
+            img.classList.add('fade-out'); // Começa transição de saída
+            
+            setTimeout(() => {
+                img.src = imgUrl;
+                img.alt = b.id;
+                
+                // Ao carregar (ou falhar), remove o fade
+                img.onload = () => img.classList.remove('fade-out');
+                img.onerror = () => img.classList.remove('fade-out'); 
+            }, 400); // Espera a animação CSS (que definimos como 0.4s)
+        };
+
+        // Inicializa o primeiro banner imediatamente
+        updateBanner();
+
+        // Se houver mais de um banner, inicia o ciclo
+        if (sortedBanners.length > 1) {
+            bannerInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % sortedBanners.length;
+                updateBanner();
+            }, 3500); // Troca a cada 3.5 segundos
+        }
+
+    } else {
+        // === DESKTOP GRID MODE ===
+        container.className = ''; // Remove classe mobile se existir
+        
+        const frag = document.createDocumentFragment();
+        sortedBanners.forEach(banner => {
+            const link = document.createElement('a');
+            link.href = banner.link || '#';
+            if(banner.link && banner.link.startsWith('http')) {
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+            }
+            
+            link.className = 'promo-banner block relative overflow-hidden rounded-2xl shadow-lg hover:shadow-gold/20 transition-all hover:scale-[1.02] group w-full';
+            
+            const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(banner.image)}`;
+
+            const img = document.createElement('img');
+            img.src = imgUrl;
+            img.alt = banner.id;
+            img.className = 'w-full h-full object-cover aspect-[3/1] rounded-2xl'; 
+            img.loading = 'lazy';
+            
+            img.onerror = function() { this.style.display = 'none'; };
+
+            const shine = document.createElement('div');
+            shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700';
+            
+            link.appendChild(img);
+            link.appendChild(shine);
+            frag.appendChild(link);
+        });
+        container.appendChild(frag);
+    }
 }
 
 function renderProducts(filter, term = "", forceAll = false) {
@@ -499,6 +559,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initCharts(theme);
     loadGamesFromGitHub();
     loadBannersFromGitHub(); // NOVA CHAMADA: Carrega os banners
+
+    // Resize Handler para alternar layout de banners
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            renderPromos(); // Re-renderiza banners com o layout correto
+        }, 200);
+    });
 
     // Intersection Observer
     const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
