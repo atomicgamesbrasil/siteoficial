@@ -54,7 +54,7 @@ h1, h2, h3, h4, .brand-font {
 /* Skip Link */
 .skip-link {
     position: absolute;
-    top: -100%;
+    top: -500px; /* Alterado de -100% para evitar glitches */
     left: 50%;
     transform: translateX(-50%);
     background: #FFD700;
@@ -63,9 +63,13 @@ h1, h2, h3, h4, .brand-font {
     border-radius: 0 0 1rem 1rem;
     font-weight: 700;
     z-index: var(--z-skip-link);
-    transition: top 0.3s;
+    transition: top 0.3s, opacity 0.3s;
+    opacity: 0; /* Invisível por padrão */
 }
-.skip-link:focus { top: 0; }
+.skip-link:focus { 
+    top: 0; 
+    opacity: 1; /* Visível quando focado */
+}
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 10px; }
