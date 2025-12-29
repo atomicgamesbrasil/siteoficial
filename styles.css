@@ -433,21 +433,33 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
 
 /* === NEW: PROMO BANNERS AREA === */
 #promoBannersContainer {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 1rem;
-    padding-bottom: 0.5rem;
-    margin-bottom: 2.5rem; /* Space before filters */
-    scrollbar-width: none;
+    margin-bottom: 2.5rem;
 }
-#promoBannersContainer::-webkit-scrollbar { display: none; }
 
+/* Mobile: Default Layout (Single Block, No Scroll) */
+#promoBannersContainer.mobile-slider {
+    display: block;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Image Transitions for Slider */
+.promo-image {
+    transition: opacity 0.4s ease-in-out;
+    opacity: 1;
+}
+.promo-image.fade-out {
+    opacity: 0;
+}
+
+/* Desktop: Grid Layout */
 @media (min-width: 768px) {
     #promoBannersContainer {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        overflow: visible;
         gap: 2rem;
     }
 }
