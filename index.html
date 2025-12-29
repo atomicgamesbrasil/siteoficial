@@ -205,11 +205,17 @@
             </div>
             
             <div class="flex-grow space-y-2">
-                <!-- INSTALL BUTTON MOBILE (Visible by default for Xiaomi/Fail-safe) -->
-                <!-- Added 'relative z-20' to force layering on top -->
-                <button id="installAppBtnMobile" class="relative z-20 w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 hover:bg-yellow-500/20 transition group text-left">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-bold ph-download-simple text-2xl text-black"></i></div>
-                    <div><span class="font-bold text-lg text-yellow-600 dark:text-yellow-400">Instalar App</span><p class="text-xs text-muted">Acesso rápido na tela inicial</p></div>
+                <!-- INSTALL BUTTON MOBILE (Redesigned for Visibility & Aesthetics) -->
+                <button id="installAppBtnMobile" class="relative z-20 w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg hover:shadow-orange-500/50 transition-all transform active:scale-95 mb-6 group overflow-hidden">
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <div class="flex items-center gap-4 relative z-10">
+                        <div class="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center"><i class="ph-fill ph-download-simple text-2xl"></i></div>
+                        <div class="text-left">
+                            <span class="font-bold text-lg leading-tight block">Instalar App</span>
+                            <span class="text-xs font-medium opacity-80 block">Acesso Offline & Rápido</span>
+                        </div>
+                    </div>
+                    <i class="ph-bold ph-caret-right text-xl relative z-10 opacity-70 group-hover:translate-x-1 transition-transform"></i>
                 </button>
 
                 <a href="#store" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
@@ -277,10 +283,9 @@
             </div>
             <div class="flex items-center gap-3">
                 
-                <!-- INSTALL APP BTN DESKTOP (Visible by default on MD screens) -->
-                <!-- Added 'relative z-20' here as well -->
-                <button id="installAppBtnDesktop" class="hidden md:flex relative z-20 items-center gap-2 px-3 py-2 bg-black text-yellow-500 rounded-lg font-bold text-xs hover:bg-yellow-500 hover:text-black transition-all border border-yellow-500/50">
-                    <i class="ph-bold ph-download-simple"></i> <span>Baixar App</span>
+                <!-- INSTALL APP BTN DESKTOP (Updated for Aesthetics) -->
+                <button id="installAppBtnDesktop" class="hidden md:flex relative z-20 items-center gap-2 px-4 py-2 bg-yellow-400/10 text-yellow-600 dark:text-yellow-400 border border-yellow-400/30 rounded-full font-bold text-xs hover:bg-yellow-400 hover:text-black transition-all shadow-sm">
+                    <i class="ph-bold ph-download-simple text-lg"></i> <span>Baixar App</span>
                 </button>
 
                 <button id="themeToggle" class="p-3 rounded-xl hover:bg-base transition" aria-label="Alternar entre tema claro e escuro">
