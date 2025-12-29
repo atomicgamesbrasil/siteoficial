@@ -73,7 +73,10 @@ function detectPlatform() {
 
 function updateInstallButtons() {
     // Check if App is already installed (Standalone Mode)
-    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone) || (window.matchMedia('(display-mode: standalone)').matches);
+    // Checks standard matchMedia, iOS navigator.standalone, and referrer (rare edge case)
+    const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) ||
+                               (window.navigator.standalone === true) || 
+                               (document.referrer.includes('android-app://'));
     
     const installBtnDesktop = document.getElementById('installAppBtnDesktop');
     const installBtnMobile = document.getElementById('installAppBtnMobile');
@@ -84,14 +87,21 @@ function updateInstallButtons() {
         if (installBtnMobile) installBtnMobile.classList.add('hidden');
     } else {
         // App NOT Installed: Force Show Buttons
+        // We do NOT check for platform here. If it's not installed, we show the button.
+        
+        // Mobile button (Sidebar)
         if (installBtnMobile) {
             installBtnMobile.classList.remove('hidden');
         }
-        if (installBtnDesktop && window.innerWidth >= 768) {
-            installBtnDesktop.classList.remove('hidden');
-            installBtnDesktop.classList.add('flex'); // Ensure flex display
-        } else if (installBtnDesktop) {
-            installBtnDesktop.classList.add('hidden');
+        
+        // Desktop button (Navbar) - Show on larger screens
+        if (installBtnDesktop) {
+            if (window.innerWidth >= 768) {
+                installBtnDesktop.classList.remove('hidden');
+                installBtnDesktop.classList.add('flex'); // Ensure flex display
+            } else {
+                installBtnDesktop.classList.add('hidden'); // Hide on small screens to avoid clutter
+            }
         }
     }
 }
