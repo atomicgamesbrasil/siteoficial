@@ -61,7 +61,7 @@ const showToast = (msg, type = 'success') => {
 
 const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
-// --- PWA LOGIC (ROBUST FOR ALL DEVICES) ---
+// --- PWA LOGIC (VISIBLE BY DEFAULT STRATEGY) ---
 function detectPlatform() {
     const ua = navigator.userAgent.toLowerCase();
     if (/iphone|ipad|ipod/.test(ua)) return 'ios';
@@ -72,8 +72,7 @@ function detectPlatform() {
 }
 
 function updateInstallButtons() {
-    // Check if App is already installed (Standalone Mode)
-    // Checks standard matchMedia, iOS navigator.standalone, and referrer (rare edge case)
+    // Robust Check for Standalone Mode (Installed)
     const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) ||
                                (window.navigator.standalone === true) || 
                                (document.referrer.includes('android-app://'));
@@ -82,27 +81,16 @@ function updateInstallButtons() {
     const installBtnMobile = document.getElementById('installAppBtnMobile');
 
     if (isInStandaloneMode) {
-        // App Installed: Hide buttons
-        if (installBtnDesktop) installBtnDesktop.classList.add('hidden');
-        if (installBtnMobile) installBtnMobile.classList.add('hidden');
+        // App IS Installed: FORCE HIDE buttons
+        // Using inline style to override any CSS or Tailwind classes
+        if (installBtnDesktop) installBtnDesktop.style.display = 'none';
+        if (installBtnMobile) installBtnMobile.style.display = 'none';
     } else {
-        // App NOT Installed: Force Show Buttons
-        // We do NOT check for platform here. If it's not installed, we show the button.
-        
-        // Mobile button (Sidebar)
-        if (installBtnMobile) {
-            installBtnMobile.classList.remove('hidden');
-        }
-        
-        // Desktop button (Navbar) - Show on larger screens
-        if (installBtnDesktop) {
-            if (window.innerWidth >= 768) {
-                installBtnDesktop.classList.remove('hidden');
-                installBtnDesktop.classList.add('flex'); // Ensure flex display
-            } else {
-                installBtnDesktop.classList.add('hidden'); // Hide on small screens to avoid clutter
-            }
-        }
+        // App NOT Installed: Reset inline styles
+        // Let CSS (Tailwind classes in HTML) control visibility
+        // Mobile btn has 'flex', Desktop btn has 'md:flex' in HTML
+        if (installBtnDesktop) installBtnDesktop.style.display = '';
+        if (installBtnMobile) installBtnMobile.style.display = '';
     }
 }
 
