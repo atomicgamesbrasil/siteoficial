@@ -79,18 +79,25 @@ function updateInstallButtons() {
     
     const installBtnDesktop = document.getElementById('installAppBtnDesktop');
     const installBtnMobile = document.getElementById('installAppBtnMobile');
+    const installBtnMobileHeader = document.getElementById('installAppBtnMobileHeader');
 
     if (isInStandaloneMode) {
         // App IS Installed: FORCE HIDE buttons
-        // Using inline style to override any CSS or Tailwind classes
         if (installBtnDesktop) installBtnDesktop.style.display = 'none';
         if (installBtnMobile) installBtnMobile.style.display = 'none';
+        if (installBtnMobileHeader) installBtnMobileHeader.style.display = 'none';
     } else {
-        // App NOT Installed: Reset inline styles
-        // Let CSS (Tailwind classes in HTML) control visibility
-        // Mobile btn has 'flex', Desktop btn has 'md:flex' in HTML
-        if (installBtnDesktop) installBtnDesktop.style.display = '';
-        if (installBtnMobile) installBtnMobile.style.display = '';
+        // App NOT Installed: Force specific display types (prevents weird CSS overrides on Xiaomi)
+        
+        // Desktop Button: Hidden on mobile (via CSS), Flex on Desktop
+        if (installBtnDesktop) installBtnDesktop.style.display = ''; // Let Tailwind handle md:flex hidden
+        
+        // Mobile Menu Button: Always Flex (Block) inside the menu
+        if (installBtnMobile) installBtnMobile.style.display = 'flex';
+        
+        // Mobile Header Button: Visible only on mobile screens
+        // Note: Tailwind handles md:hidden, but we ensure it's not 'none' style here
+        if (installBtnMobileHeader) installBtnMobileHeader.style.display = ''; 
     }
 }
 
@@ -586,10 +593,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const installBtnDesktop = document.getElementById('installAppBtnDesktop');
     const installBtnMobile = document.getElementById('installAppBtnMobile');
+    const installBtnMobileHeader = document.getElementById('installAppBtnMobileHeader');
     const guideModal = document.getElementById('installGuideModal');
 
     if(installBtnDesktop) installBtnDesktop.addEventListener('click', handleInstallClick);
     if(installBtnMobile) installBtnMobile.addEventListener('click', handleInstallClick);
+    if(installBtnMobileHeader) installBtnMobileHeader.addEventListener('click', handleInstallClick);
 
     // Close Guide Modal logic
     document.getElementById('closeGuideModal')?.addEventListener('click', () => {
