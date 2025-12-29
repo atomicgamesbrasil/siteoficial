@@ -110,6 +110,25 @@
         
         els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
         document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
+        
+        // --- CHAT RESET LOGIC ---
+        const resetBtn = document.getElementById('resetChatBtn');
+        if(resetBtn) {
+            resetBtn.onclick = (e) => {
+                e.stopPropagation();
+                if(confirm('Tem certeza que deseja limpar o histórico da conversa?')) {
+                    localStorage.removeItem('atomic_chat_history');
+                    localStorage.removeItem('chat_sess_id');
+                    msgHistory = [];
+                    els.msgs.innerHTML = '';
+                    sessionId = null;
+                    
+                    setTimeout(() => {
+                        addMsg('bot', 'Histórico limpo! Como posso ajudar agora?', [], null, [], false);
+                    }, 200);
+                }
+            };
+        }
     }
 
     // --- MESSAGING LOGIC ---
