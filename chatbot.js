@@ -1,3 +1,4 @@
+
 // === CHATBOT 2.1 (FLUID, MAGNETIC & SITE-AWARE) ===
 (function() {
     const els = { 
@@ -142,16 +143,18 @@
                 btn.className='chat-add-btn'; 
                 btn.innerText='VER DETALHES';
                 
-                // CORREÇÃO: Abre o modal do site (showProductDetail) ao invés de ir para o Whats
+                // CORREÇÃO CRÍTICA DE UX MOBILE
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    // Tenta encontrar o ID correto. A API deve retornar 'id', mas se vier diferente, tentamos adaptar.
                     const prodId = p.id; 
                     
                     if (window.showProductDetail && prodId) {
+                        // Se estiver no mobile, fecha o chat para mostrar o modal
+                        if(window.innerWidth <= 768) {
+                            updateChatUI(false); 
+                        }
                         window.showProductDetail(prodId);
                     } else {
-                        // Fallback caso a função não exista ou ID esteja inválido
                         window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
                     }
                 };
@@ -180,7 +183,6 @@
                     if (act.targetId) {
                         const target = document.getElementById(act.targetId);
                         if(target) {
-                            // Fecha chat em mobile para ver o site, mantém em desktop
                             if(window.innerWidth < 768) updateChatUI(false);
                             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
@@ -207,23 +209,21 @@
         const t = text.toLowerCase();
         const actions = [];
 
-        // 1. Manutenção / Reparo / Limpeza
         if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo') || t.includes('orçamento') || t.includes('arrumar') || t.includes('quebrado')) {
             const serviceSec = document.getElementById('services');
             let dir = '👇';
             if(serviceSec) {
                 const rect = serviceSec.getBoundingClientRect();
-                if(rect.top < 0) dir = '👆'; // Se já passou, aponta pra cima
+                if(rect.top < 0) dir = '👆';
             }
             
             actions.push({
                 label: `Abrir Simulador de Reparo ${dir}`,
                 icon: 'ph-wrench',
-                targetId: 'services' // ID da seção no HTML
+                targetId: 'services'
             });
         }
 
-        // 2. Localização / Onde fica
         if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização') || t.includes('chegar')) {
             actions.push({
                 label: 'Ver Mapa e Endereço',
@@ -243,9 +243,7 @@
         addMsg('user', txt); 
         addTyping();
         
-        // Verifica contexto local antes de enviar
         const localActions = checkSiteContext(txt);
-
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
@@ -256,7 +254,6 @@
             
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                // Adiciona as ações locais junto com a resposta da IA
                 addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
             } else {
                 addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
@@ -285,7 +282,6 @@
        setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
     }
 
-    // Warm-up request
     setTimeout(() => {
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
         const baseUrl = api.replace('/chat', ''); 
