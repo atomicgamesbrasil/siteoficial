@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Atomic Games e Informática - Site Oficial</title>
     
+    <!-- PWA Manifest & Meta -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FFD700">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
+    
     <!-- Canonical Tag (SEO) -->
     <link rel="canonical" href="https://atomicgames.com.br">
 
@@ -22,7 +29,6 @@
     
     <!-- SEO & Meta -->
     <meta name="description" content="Atomic Games - A melhor loja de games e assistência técnica de Madureira, RJ. Consoles, jogos, acessórios e reparos especializados.">
-    <meta name="theme-color" content="#FFD700">
     <meta property="og:title" content="Atomic Games e Informática - Site Oficial">
     <meta property="og:description" content="A melhor loja de games e assistência técnica de Madureira, RJ.">
     <meta property="og:image" content="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
@@ -95,7 +101,6 @@
     
     <!-- Hojas de Estilo Propias -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Removido link para /index.css pois styles.css já contém o core e tailwind é via CDN -->
 </head>
 <body class="antialiased bg-base text-base transition-colors duration-500" id="top">
     
@@ -127,7 +132,10 @@
                     <div class="chat-avatar-small"><img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Thiago"></div>
                     <div class="chat-status"><h4>Thiago - Atomic</h4><span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online Agora</span></div>
                 </div>
-                <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
+                <div class="flex gap-2">
+                    <button id="resetChatBtn" class="chat-close-btn text-white/80 hover:text-red-500 hover:bg-white/20" aria-label="Reiniciar Conversa" title="Reiniciar Conversa"><i class="ph-bold ph-trash text-lg"></i></button>
+                    <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
+                </div>
             </header>
             
             <div id="chatMessages" class="chat-messages">
@@ -497,6 +505,5 @@
     <!-- Scripts Logic Split -->
     <script src="main.js" defer></script>
     <script src="chatbot.js" defer></script>
-    <!-- DO NOT MODIFY: Removed React specific module import to adhere to standard HTML/JS project structure -->
 </body>
 </html>
