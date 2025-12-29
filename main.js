@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Check Status
     const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isMobile = /android|iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    // Removed specific mobile check regex for button visibility to ensure it shows on tablets/unusual UAs
     const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone) || (window.matchMedia('(display-mode: standalone)').matches);
 
     // 1. Capture standard event (Chrome/Edge/Samsung)
@@ -494,11 +494,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Button Visibility Logic (Force show if not installed)
     if (!isInStandaloneMode) {
         // Always show on mobile (fixes Xiaomi/Tablet hidden button issue)
-        if(installBtnMobile && isMobile) {
+        if(installBtnMobile) {
             installBtnMobile.classList.remove('hidden');
         }
-        // Show on Desktop if screen allows
-        if(installBtnDesktop && window.innerWidth > 1024) {
+        // Show on Desktop if screen allows (generic check)
+        if(installBtnDesktop && window.innerWidth >= 768) {
             installBtnDesktop.classList.remove('hidden');
             installBtnDesktop.classList.add('flex');
         }
@@ -526,6 +526,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = document.getElementById('guideText');
         const steps = document.getElementById('guideSteps');
         const icon = document.getElementById('guideMainIcon');
+
+        if(!title || !guideModal) return;
 
         if (isIos) {
             // iOS Instructions
