@@ -473,6 +473,80 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- PWA INSTALLATION LOGIC ---
+    let deferredPrompt;
+    const installBtnDesktop = document.getElementById('installAppBtnDesktop');
+    const installBtnMobile = document.getElementById('installAppBtnMobile');
+    const iosModal = document.getElementById('iosInstallModal');
+    
+    // Check if device is iOS
+    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+
+    // 1. Logic for Android/Desktop (Chrome/Edge)
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        
+        // Show the buttons
+        if(installBtnDesktop) installBtnDesktop.classList.remove('hidden');
+        if(installBtnMobile) installBtnMobile.classList.remove('hidden');
+        if(installBtnDesktop) installBtnDesktop.classList.add('flex');
+    });
+
+    // 2. Logic for iOS (Manual Instructions)
+    // Show buttons if iOS and NOT already installed
+    if (isIos && !isInStandaloneMode) {
+        if(installBtnMobile) installBtnMobile.classList.remove('hidden');
+        // On Desktop/iPad we might want to show it too
+        if(window.innerWidth > 1024 && installBtnDesktop) {
+             installBtnDesktop.classList.remove('hidden');
+             installBtnDesktop.classList.add('flex');
+        }
+    }
+
+    // Handler function
+    const handleInstallClick = () => {
+        if (isIos) {
+            // Show iOS instructions modal
+            iosModal.classList.add('open');
+        } else if (deferredPrompt) {
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        }
+    };
+
+    if(installBtnDesktop) installBtnDesktop.addEventListener('click', handleInstallClick);
+    if(installBtnMobile) installBtnMobile.addEventListener('click', handleInstallClick);
+
+    // Close iOS Modal logic
+    document.getElementById('closeIosModal')?.addEventListener('click', () => {
+        iosModal.classList.remove('open');
+    });
+    iosModal?.addEventListener('click', (e) => {
+        if(e.target === iosModal) iosModal.classList.remove('open');
+    });
+
+    // Handle App Installed Event
+    window.addEventListener('appinstalled', () => {
+        if(installBtnDesktop) installBtnDesktop.classList.add('hidden');
+        if(installBtnMobile) installBtnMobile.classList.add('hidden');
+        deferredPrompt = null;
+        console.log('PWA was installed');
+    });
+    // --- END PWA LOGIC ---
+
     els = {
         toastContainer: document.getElementById('toastContainer'),
         cartCount: document.getElementById('cartCount'),
