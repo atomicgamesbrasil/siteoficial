@@ -464,6 +464,15 @@ function initCharts(theme) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    // REGISTER SERVICE WORKER FOR PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(registration => console.log('SW registered: ', registration.scope))
+                .catch(err => console.log('SW registration failed: ', err));
+        });
+    }
+
     els = {
         toastContainer: document.getElementById('toastContainer'),
         cartCount: document.getElementById('cartCount'),
