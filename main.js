@@ -52,7 +52,38 @@ const showToast = (msg, type = 'success') => {
 const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
 // Core Functions
+
+// FUNCTION: Render Skeletons for smoother loading
+function renderSkeletons() {
+    els.productGrid.innerHTML = '';
+    els.loadMore.classList.add('hidden');
+    els.noResults.classList.add('hidden');
+    
+    const count = window.innerWidth < 768 ? 4 : 8;
+    const frag = document.createDocumentFragment();
+
+    for(let i=0; i<count; i++) {
+        const article = document.createElement('article');
+        article.className = 'product-card bg-card border border-base flex flex-col h-full opacity-80';
+        article.innerHTML = `
+            <div class="product-img-box skeleton h-48 w-full opacity-50"></div>
+            <div class="p-4 flex-grow flex flex-col gap-3">
+                <div class="skeleton h-4 w-3/4"></div>
+                <div class="skeleton h-3 w-full"></div>
+                <div class="mt-auto flex justify-between items-end">
+                    <div class="skeleton h-6 w-24"></div>
+                    <div class="skeleton h-10 w-10 rounded-xl"></div>
+                </div>
+            </div>
+        `;
+        frag.appendChild(article);
+    }
+    els.productGrid.appendChild(frag);
+}
+
 async function loadGamesFromGitHub() {
+    renderSkeletons(); // Show skeletons before fetch
+    
     try {
         const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
         if (res.ok) {
@@ -291,14 +322,26 @@ function updateCartUI() {
     els.cartTotal.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// Logic Helpers
+// Logic Helpers & Persistence
+function saveCart() {
+    localStorage.setItem('atomic_cart', JSON.stringify(cart));
+}
+
 function addToCart(id) { 
     const p = allProducts.find(x => x.id == id); 
-    if(p){ cart.push(p); updateCartUI(); showToast(`${p.name} adicionado!`); } 
+    if(p){ 
+        cart.push(p); 
+        saveCart(); // Save Persistence
+        updateCartUI(); 
+        showToast(`${p.name} adicionado!`); 
+    } 
 }
 
 function removeFromCart(idx) { 
-    cart.splice(idx, 1); updateCartUI(); showToast('Produto removido', 'error'); 
+    cart.splice(idx, 1); 
+    saveCart(); // Save Persistence
+    updateCartUI(); 
+    showToast('Produto removido', 'error'); 
 }
 
 function toggleCart() { 
@@ -441,6 +484,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.className = theme;
+
+    // LOAD CART FROM LOCAL STORAGE
+    const savedCart = localStorage.getItem('atomic_cart');
+    if (savedCart) {
+        try {
+            cart = JSON.parse(savedCart);
+            updateCartUI();
+        } catch(e) { console.error("Error loading cart", e); }
+    }
     
     const faqContainer = document.getElementById('faqContainer');
     if(faqContainer) {
