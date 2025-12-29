@@ -116,19 +116,18 @@ function renderPromos() {
     if (sortedBanners.length === 0) return;
 
     // LÓGICA RESPONSIVA:
-    // Se for mobile (<768px), cria um slider com fade.
-    // Se for desktop (>=768px), cria o grid lado a lado.
+    // FIXO: 3x1 (aspect-[3/1]) em mobile e desktop para consistência total.
     
     if (window.innerWidth < 768) {
         // === MOBILE SLIDER MODE ===
-        // CORREÇÃO: Usando aspect-video (16:9) e bg-black para moldura
-        container.className = 'mobile-slider relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg bg-black';
+        // CORREÇÃO: Usando aspect-[3/1] fixo e bg-black para moldura.
+        container.className = 'mobile-slider relative w-full aspect-[3/1] rounded-2xl overflow-hidden shadow-lg bg-black';
         
         const link = document.createElement('a');
         link.className = 'block w-full h-full';
         
         const img = document.createElement('img');
-        // CORREÇÃO: Usando object-contain para a imagem caber 100% dentro da moldura sem cortar
+        // CORREÇÃO: Usando object-contain para a imagem caber 100% dentro da moldura 3x1 sem cortar
         img.className = 'w-full h-full object-contain promo-image';
         
         link.appendChild(img);
@@ -186,20 +185,22 @@ function renderPromos() {
                 link.rel = 'noopener noreferrer';
             }
             
-            link.className = 'promo-banner block relative overflow-hidden rounded-2xl shadow-lg hover:shadow-gold/20 transition-all hover:scale-[1.02] group w-full';
+            // Fixando aspect-[3/1] também no Desktop para padronização
+            link.className = 'promo-banner block relative overflow-hidden rounded-2xl shadow-lg hover:shadow-gold/20 transition-all hover:scale-[1.02] group w-full aspect-[3/1] bg-black';
             
             const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(banner.image)}`;
 
             const img = document.createElement('img');
             img.src = imgUrl;
             img.alt = banner.id;
-            img.className = 'w-full h-full object-cover aspect-[3/1] rounded-2xl'; 
+            // Usando object-contain para garantir que a imagem se adapte à moldura sem cortes
+            img.className = 'w-full h-full object-contain rounded-2xl'; 
             img.loading = 'lazy';
             
             img.onerror = function() { this.style.display = 'none'; };
 
             const shine = document.createElement('div');
-            shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700';
+            shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none';
             
             link.appendChild(img);
             link.appendChild(shine);
