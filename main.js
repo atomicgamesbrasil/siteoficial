@@ -1,4 +1,14 @@
 
+// === GLOBAL PWA VARIABLES ===
+let deferredPrompt;
+
+// 1. Capture standard event immediately (Prevents race conditions)
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log("PWA install prompt captured");
+});
+
 const CONFIG = {
     GITHUB_USER: "atomicgamesbrasil",
     GITHUB_REPO: "siteoficial",
@@ -51,9 +61,114 @@ const showToast = (msg, type = 'success') => {
 
 const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
-// Core Functions
+// --- PWA LOGIC (ROBUST FOR ALL DEVICES) ---
+function detectPlatform() {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+    if (/android/.test(ua)) return 'android';
+    if (/mac os/.test(ua)) return 'mac';
+    if (/windows/.test(ua)) return 'windows';
+    return 'generic';
+}
 
-// FUNCTION: Render Skeletons for smoother loading
+function updateInstallButtons() {
+    // Check if App is already installed (Standalone Mode)
+    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone) || (window.matchMedia('(display-mode: standalone)').matches);
+    
+    const installBtnDesktop = document.getElementById('installAppBtnDesktop');
+    const installBtnMobile = document.getElementById('installAppBtnMobile');
+
+    if (isInStandaloneMode) {
+        // App Installed: Hide buttons
+        if (installBtnDesktop) installBtnDesktop.classList.add('hidden');
+        if (installBtnMobile) installBtnMobile.classList.add('hidden');
+    } else {
+        // App NOT Installed: Force Show Buttons
+        if (installBtnMobile) {
+            installBtnMobile.classList.remove('hidden');
+        }
+        if (installBtnDesktop && window.innerWidth >= 768) {
+            installBtnDesktop.classList.remove('hidden');
+            installBtnDesktop.classList.add('flex'); // Ensure flex display
+        } else if (installBtnDesktop) {
+            installBtnDesktop.classList.add('hidden');
+        }
+    }
+}
+
+function handleInstallClick() {
+    if (deferredPrompt) {
+        // 1. Standard Chrome/Edge/Samsung Method
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted install');
+            }
+            deferredPrompt = null;
+        });
+    } else {
+        // 2. Fallback: Show Manual Instructions (Xiaomi/iOS/Desktop Safari)
+        showManualGuide();
+    }
+}
+
+function showManualGuide() {
+    const guideModal = document.getElementById('installGuideModal');
+    const title = document.getElementById('guideTitle');
+    const text = document.getElementById('guideText');
+    const steps = document.getElementById('guideSteps');
+    const icon = document.getElementById('guideMainIcon');
+    const platform = detectPlatform();
+
+    if(!guideModal || !title) return;
+
+    if (platform === 'ios') {
+        // iOS
+        title.textContent = "Instalar no iPhone";
+        text.innerHTML = "Toque em <strong class='text-blue-500'>Compartilhar</strong> e depois em <strong class='text-base'>Adicionar à Tela de Início</strong>.";
+        icon.className = "ph-bold ph-share-network text-3xl text-blue-500";
+        steps.innerHTML = `
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">1. Toque aqui</span>
+                <i class="ph-bold ph-export text-2xl animate-bounce"></i>
+            </div>
+            <div class="w-px h-10 bg-base mx-2"></div>
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">2. Selecione</span>
+                <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-plus-square"></i> Tela de Início</div>
+            </div>`;
+    } else if (platform === 'android') {
+        // Android (Xiaomi/Manual)
+        title.textContent = "Instalar App";
+        text.innerHTML = "Toque no menu do navegador e selecione <strong class='text-base'>Instalar aplicativo</strong> ou <strong class='text-base'>Adicionar à tela inicial</strong>.";
+        icon.className = "ph-bold ph-download-simple text-3xl text-yellow-500";
+        steps.innerHTML = `
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">1. Menu</span>
+                <i class="ph-bold ph-dots-three-vertical text-2xl animate-bounce"></i>
+            </div>
+            <div class="w-px h-10 bg-base mx-2"></div>
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">2. Opção</span>
+                <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-download-simple"></i> Instalar</div>
+            </div>`;
+    } else {
+        // Desktop (Windows/Mac)
+        title.textContent = "Instalar no Computador";
+        text.innerHTML = "Procure pelo ícone de instalação <i class='ph-bold ph-download-simple'></i> na barra de endereço ou no menu do navegador.";
+        icon.className = "ph-bold ph-desktop text-3xl text-purple-500";
+        steps.innerHTML = `
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">Chrome / Edge</span>
+                <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold">Barra de Endereço</div>
+            </div>`;
+    }
+    
+    guideModal.classList.add('open');
+}
+// --- END PWA LOGIC ---
+
+// Core Functions
 function renderSkeletons() {
     els.productGrid.innerHTML = '';
     els.loadMore.classList.add('hidden');
@@ -82,8 +197,7 @@ function renderSkeletons() {
 }
 
 async function loadGamesFromGitHub() {
-    renderSkeletons(); // Show skeletons before fetch
-    
+    renderSkeletons(); 
     try {
         const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
         if (res.ok) {
@@ -117,7 +231,6 @@ async function loadBannersFromGitHub() {
     renderPromos();
 }
 
-// ARQUITETURA CORRIGIDA: Renderização única, layout controlado por CSS (styles.css)
 function renderPromos() {
     const container = document.getElementById('promoBannersContainer');
     if(!container) return;
@@ -132,7 +245,6 @@ function renderPromos() {
     container.innerHTML = '';
     container.style.display = '';
 
-    // Ordenação consistente
     const sortedBanners = [
         validBanners.find(b => b.id === 'banner_1'),
         validBanners.find(b => b.id === 'banner_2')
@@ -144,7 +256,7 @@ function renderPromos() {
     
     sortedBanners.forEach(banner => {
         const link = document.createElement('a');
-        link.className = 'promo-banner-link group'; // Layout e proporção controlados via CSS
+        link.className = 'promo-banner-link group';
         link.href = banner.link || '#';
         
         if(banner.link && banner.link.startsWith('http')) {
@@ -156,10 +268,9 @@ function renderPromos() {
         const img = document.createElement('img');
         img.src = imgUrl;
         img.alt = banner.id;
-        img.className = 'promo-banner-img'; // Object-fit contain e fundo preto via CSS
+        img.className = 'promo-banner-img'; 
         img.loading = 'lazy';
         
-        // Efeito de brilho (Shine)
         const shine = document.createElement('div');
         shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none';
         
@@ -195,7 +306,6 @@ function renderProducts(filter, term = "", forceAll = false) {
         card.className = 'product-card bg-card border border-base flex flex-col h-full group';
         card.style.animationDelay = `${i * 50}ms`;
         
-        // Image Box
         const imgBox = document.createElement('div');
         imgBox.className = 'product-img-box';
         imgBox.role = 'button';
@@ -218,7 +328,6 @@ function renderProducts(filter, term = "", forceAll = false) {
         imgBox.appendChild(img);
         imgBox.appendChild(tag);
 
-        // Content Box
         const contentBox = document.createElement('div');
         contentBox.className = 'p-4 md:p-5 flex-grow flex flex-col';
         
@@ -331,7 +440,7 @@ function addToCart(id) {
     const p = allProducts.find(x => x.id == id); 
     if(p){ 
         cart.push(p); 
-        saveCart(); // Save Persistence
+        saveCart(); 
         updateCartUI(); 
         showToast(`${p.name} adicionado!`); 
     } 
@@ -339,7 +448,7 @@ function addToCart(id) {
 
 function removeFromCart(idx) { 
     cart.splice(idx, 1); 
-    saveCart(); // Save Persistence
+    saveCart(); 
     updateCartUI(); 
     showToast('Produto removido', 'error'); 
 }
@@ -473,98 +582,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- PWA INSTALLATION LOGIC (ROBUST FOR XIAOMI/IOS) ---
-    let deferredPrompt;
+    // --- PWA INIT & EVENT LISTENERS ---
+    updateInstallButtons();
+    window.addEventListener('resize', updateInstallButtons);
+
     const installBtnDesktop = document.getElementById('installAppBtnDesktop');
     const installBtnMobile = document.getElementById('installAppBtnMobile');
     const guideModal = document.getElementById('installGuideModal');
-    
-    // Check Status
-    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    // Removed specific mobile check regex for button visibility to ensure it shows on tablets/unusual UAs
-    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone) || (window.matchMedia('(display-mode: standalone)').matches);
-
-    // 1. Capture standard event (Chrome/Edge/Samsung)
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        console.log("PWA install prompt captured");
-    });
-
-    // 2. Button Visibility Logic (Force show if not installed)
-    if (!isInStandaloneMode) {
-        // Always show on mobile (fixes Xiaomi/Tablet hidden button issue)
-        if(installBtnMobile) {
-            installBtnMobile.classList.remove('hidden');
-        }
-        // Show on Desktop if screen allows (generic check)
-        if(installBtnDesktop && window.innerWidth >= 768) {
-            installBtnDesktop.classList.remove('hidden');
-            installBtnDesktop.classList.add('flex');
-        }
-    }
-
-    // 3. Handle Click Logic (Smart Fallback)
-    const handleInstallClick = () => {
-        if (deferredPrompt) {
-            // Standard Chrome/Android way
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('User accepted install');
-                }
-                deferredPrompt = null;
-            });
-        } else {
-            // Fallback for iOS OR Blocked Android Browsers (Xiaomi)
-            showManualGuide();
-        }
-    };
-
-    function showManualGuide() {
-        const title = document.getElementById('guideTitle');
-        const text = document.getElementById('guideText');
-        const steps = document.getElementById('guideSteps');
-        const icon = document.getElementById('guideMainIcon');
-
-        if(!title || !guideModal) return;
-
-        if (isIos) {
-            // iOS Instructions
-            title.textContent = "Instalar no iPhone";
-            text.innerHTML = "Toque em <strong class='text-blue-500'>Compartilhar</strong> e depois em <strong class='text-base'>Adicionar à Tela de Início</strong>.";
-            icon.className = "ph-bold ph-share-network text-3xl text-blue-500";
-            steps.innerHTML = `
-                <div class="flex flex-col items-center gap-2">
-                    <span class="text-xs font-bold text-muted">1. Toque aqui</span>
-                    <i class="ph-bold ph-export text-2xl animate-bounce"></i>
-                </div>
-                <div class="w-px h-10 bg-base mx-2"></div>
-                <div class="flex flex-col items-center gap-2">
-                    <span class="text-xs font-bold text-muted">2. Selecione</span>
-                    <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-plus-square"></i> Tela de Início</div>
-                </div>
-            `;
-        } else {
-            // Android/Xiaomi Manual Instructions
-            title.textContent = "Instalar Aplicativo";
-            text.innerHTML = "Toque no menu do navegador e selecione <strong class='text-base'>Instalar aplicativo</strong> ou <strong class='text-base'>Adicionar à tela inicial</strong>.";
-            icon.className = "ph-bold ph-download-simple text-3xl text-yellow-500";
-            steps.innerHTML = `
-                <div class="flex flex-col items-center gap-2">
-                    <span class="text-xs font-bold text-muted">1. Menu</span>
-                    <i class="ph-bold ph-dots-three-vertical text-2xl animate-bounce"></i>
-                </div>
-                <div class="w-px h-10 bg-base mx-2"></div>
-                <div class="flex flex-col items-center gap-2">
-                    <span class="text-xs font-bold text-muted">2. Opção</span>
-                    <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-download-simple"></i> Instalar App</div>
-                </div>
-            `;
-        }
-        
-        guideModal.classList.add('open');
-    }
 
     if(installBtnDesktop) installBtnDesktop.addEventListener('click', handleInstallClick);
     if(installBtnMobile) installBtnMobile.addEventListener('click', handleInstallClick);
@@ -579,12 +603,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle App Installed Event
     window.addEventListener('appinstalled', () => {
-        if(installBtnDesktop) installBtnDesktop.classList.add('hidden');
-        if(installBtnMobile) installBtnMobile.classList.add('hidden');
+        updateInstallButtons(); // Logic inside will hide buttons
         deferredPrompt = null;
         console.log('PWA was installed');
     });
-    // --- END PWA LOGIC ---
+    // --- END PWA INIT ---
 
     els = {
         toastContainer: document.getElementById('toastContainer'),
