@@ -470,22 +470,20 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
-// --- INTEGRAÇÃO GARÇOM COM RETRY AUTOMÁTICO (CORREÇÃO DE SLEEP) ---
+// --- INTEGRAÇÃO GARÇOM COM KEEPALIVE (CRUCIAL PARA MOBILE) ---
 async function sendOrderWithRetry(data, retries = 2) {
     const url = `${CONFIG.SERVER_URL}/api/public/order`;
     for (let i = 0; i <= retries; i++) {
         try {
             console.log(`Tentativa ${i+1} de envio...`);
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
             
+            // Usamos fetch normal, mas com keepalive
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
-                signal: controller.signal
+                keepalive: true, // <--- O SEGREDO DO SUCESSO NO MOBILE
             });
-            clearTimeout(timeoutId);
             
             if (res.ok) {
                 console.log("✅ Pedido enviado com sucesso!");
@@ -509,21 +507,27 @@ async function checkoutWhatsApp() {
     const originalText = btn.innerHTML;
     if(btn.disabled) return;
     
+    // Feedback visual mais claro
     btn.disabled = true;
-    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Enviando...';
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Conectando...';
     btn.style.opacity = '0.8';
 
     const itemsSummary = cart.map(i => i.name).join(', ');
     const total = els.cartTotal.textContent;
 
-    // Tenta enviar com Retry (Sistema Anti-Sono)
+    // Tenta enviar com Retry (Sistema Anti-Sono + Keepalive)
     await sendOrderWithRetry({
         customer: "Cliente do Site", 
         items: itemsSummary,
         total: total
     });
 
-    // Redireciona SEMPRE (Mesmo se o servidor falhar, o cliente não perde a venda)
+    // Pequeno delay artificial para garantir que o usuário veja que algo aconteceu
+    // e dar tempo extra para o "handshake" do keepalive no mobile
+    btn.innerHTML = '<i class="ph-bold ph-check text-xl"></i> Redirecionando...';
+    await new Promise(r => setTimeout(r, 800));
+
+    // Redireciona
     const msg = "Olá Atomic! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${total}*`;
     const link = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
     
