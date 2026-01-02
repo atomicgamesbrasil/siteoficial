@@ -470,47 +470,65 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
-// --- INTEGRAÇÃO GARÇOM (ENVIA PEDIDO ANTES DO WHATSAPP) ---
+// --- INTEGRAÇÃO GARÇOM COM RETRY AUTOMÁTICO (CORREÇÃO DE SLEEP) ---
+async function sendOrderWithRetry(data, retries = 2) {
+    const url = `${CONFIG.SERVER_URL}/api/public/order`;
+    for (let i = 0; i <= retries; i++) {
+        try {
+            console.log(`Tentativa ${i+1} de envio...`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            if (res.ok) {
+                console.log("✅ Pedido enviado com sucesso!");
+                return true;
+            }
+        } catch (e) {
+            console.warn(`Erro na tentativa ${i+1}:`, e);
+            if (i < retries) {
+                // Se falhar (servidor dormindo), espera 2 segundos e tenta de novo
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
+    }
+    return false;
+}
+
 async function checkoutWhatsApp() {
     if (!cart.length) return showToast('Carrinho vazio!', 'error');
 
-    // 1. UI Feedback (Bloqueia botão)
     const btn = els.checkoutBtn;
     const originalText = btn.innerHTML;
     if(btn.disabled) return;
     
     btn.disabled = true;
-    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Processando...';
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Enviando...';
     btn.style.opacity = '0.8';
 
-    // 2. Prepara Dados
     const itemsSummary = cart.map(i => i.name).join(', ');
     const total = els.cartTotal.textContent;
 
-    // 3. Envia para o Painel (Sem travar se falhar)
-    try {
-        // USE ABSOLUTE URL FROM CONFIG
-        const res = await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                customer: "Cliente do Site", 
-                items: itemsSummary,
-                total: total
-            })
-        });
-        if(!res.ok) console.warn("Erro ao enviar pedido para painel:", res.status);
-    } catch(e) {
-        console.warn("API Order Error:", e);
-    }
+    // Tenta enviar com Retry (Sistema Anti-Sono)
+    await sendOrderWithRetry({
+        customer: "Cliente do Site", 
+        items: itemsSummary,
+        total: total
+    });
 
-    // 4. Redireciona para o WhatsApp
+    // Redireciona SEMPRE (Mesmo se o servidor falhar, o cliente não perde a venda)
     const msg = "Olá Atomic! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${total}*`;
     const link = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
     
     window.location.href = link;
 
-    // Restaura botão (caso usuário volte)
     setTimeout(() => {
         if(btn) {
             btn.innerHTML = originalText;
@@ -631,11 +649,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- WAKE UP SERVER & TRACK ANALYTICS ---
-    // 1. Acorda o servidor (Render free tier dorme)
+    // --- WAKE UP SERVER (CRUCIAL) ---
     fetch(`${CONFIG.SERVER_URL}/api/public/wake`, { method: 'GET' }).catch(() => {});
 
-    // 2. Analytics Track
+    // --- TRACK VISIT ---
     fetch(`${CONFIG.SERVER_URL}/api/public/track`, { method: 'POST' })
         .catch(e => console.log('Analytics silent fail:', e));
 
