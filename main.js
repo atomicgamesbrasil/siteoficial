@@ -490,7 +490,7 @@ async function checkoutWhatsApp() {
     // 3. Envia para o Painel (Sem travar se falhar)
     try {
         // USE ABSOLUTE URL FROM CONFIG
-        await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
+        const res = await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -499,6 +499,7 @@ async function checkoutWhatsApp() {
                 total: total
             })
         });
+        if(!res.ok) console.warn("Erro ao enviar pedido para painel:", res.status);
     } catch(e) {
         console.warn("API Order Error:", e);
     }
@@ -630,9 +631,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- AUTO ANALYTICS TRACKING ---
-    // Chama o endpoint de track ao carregar a página
-    // USE ABSOLUTE URL
+    // --- WAKE UP SERVER & TRACK ANALYTICS ---
+    // 1. Acorda o servidor (Render free tier dorme)
+    fetch(`${CONFIG.SERVER_URL}/api/public/wake`, { method: 'GET' }).catch(() => {});
+
+    // 2. Analytics Track
     fetch(`${CONFIG.SERVER_URL}/api/public/track`, { method: 'POST' })
         .catch(e => console.log('Analytics silent fail:', e));
 
