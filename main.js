@@ -448,6 +448,10 @@ function addToCart(id) {
         saveCart(); 
         updateCartUI(); 
         showToast(`${p.name} adicionado!`); 
+        
+        // --- NOVO: RASTREAMENTO IMEDIATO DE INTENÇÃO DE COMPRA ---
+        // Envia um sinal para o backend apenas registrando atividade
+        fetch(`${CONFIG.SERVER_URL}/api/public/track`, { method: 'POST' }).catch(() => {});
     } 
 }
 
@@ -461,7 +465,12 @@ function removeFromCart(idx) {
 function toggleCart() { 
     const open = els.cartModal.classList.toggle('open'); 
     els.cartOverlay.classList.toggle('open'); 
-    document.body.style.overflow = open ? 'hidden' : ''; 
+    document.body.style.overflow = open ? 'hidden' : '';
+    
+    // --- NOVO: RASTREAMENTO AO ABRIR CARRINHO ---
+    if(open) {
+        fetch(`${CONFIG.SERVER_URL}/api/public/track`, { method: 'POST' }).catch(() => {});
+    }
 }
 
 function toggleMobileMenu() { 
@@ -470,35 +479,30 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
-// --- INTEGRAÇÃO GARÇOM COM SEND BEACON (BLINDADO PARA REDIRECT) ---
-async function sendOrderWithRetry(data) {
+// --- FUNÇÃO DE ENVIO COM BLOQUEIO DE UX (SOLUÇÃO DEFINITIVA) ---
+async function sendOrderBlocking(data) {
     const url = `${CONFIG.SERVER_URL}/api/public/order`;
-    console.log("🚀 Tentando enviar pedido para:", url);
+    console.log("🔒 Iniciando envio bloqueante para:", url);
     
-    // ESTRATÉGIA 1: SEND BEACON (Tiro Rápido / Background)
-    // Perfeito para quando o site vai fechar/mudar de página.
-    if (navigator.sendBeacon) {
-        // Envia como Blob JSON
-        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-        const queued = navigator.sendBeacon(url, blob);
-        if (queued) {
-            console.log("✅ Beacon Enfileirado (Background Upload)");
-            return true;
-        }
-    }
-
-    // ESTRATÉGIA 2: FETCH KEEPALIVE (Fallback)
     try {
-        await fetch(url, {
+        // Tenta enviar. O await aqui é crucial.
+        // O navegador NÃO VAI redirecionar até que isso responda ou dê erro.
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
-            keepalive: true
+            keepalive: true // Mantém como segurança extra
         });
-        console.log("✅ Fetch enviado");
+        
+        console.log("✅ Resposta do servidor:", response.status);
         return true;
     } catch (e) {
-        console.error("❌ Erro no envio do pedido:", e);
+        console.error("❌ Falha no envio:", e);
+        // Tenta Beacon como último recurso se o fetch falhar
+        if (navigator.sendBeacon) {
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
+        }
         return false;
     }
 }
@@ -510,27 +514,32 @@ async function checkoutWhatsApp() {
     const originalText = btn.innerHTML;
     if(btn.disabled) return;
     
-    // Feedback visual
+    // 1. BLOQUEIO VISUAL
     btn.disabled = true;
-    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Enviando...';
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Processando...';
     btn.style.opacity = '0.8';
 
     const itemsSummary = cart.map(i => i.name).join(', ');
     const total = els.cartTotal.textContent;
 
-    // Dispara o envio (Beacon ou Fetch)
-    // O await aqui é curto porque Beacon é instantâneo
-    await sendOrderWithRetry({
-        customer: "Cliente do Site", 
+    // 2. ENVIO DE DADOS (CRÍTICO: O código para aqui e espera)
+    // Criamos uma Promise que espera o envio, MAS também tem um timeout de 3 segundos
+    // Isso impede que o site trave para sempre se o servidor estiver fora do ar
+    const orderPromise = sendOrderBlocking({
+        customer: "Cliente via WhatsApp", 
         items: itemsSummary,
         total: total
     });
+    
+    const timeoutPromise = new Promise(resolve => setTimeout(resolve, 2000)); // Espera mínima de 2s para UX
+    
+    // Espera os dois (o envio E o tempo visual mínimo)
+    await Promise.all([orderPromise, timeoutPromise]);
 
-    // Delay visual estendido para garantir UX e dar tempo ao buffer de rede
-    btn.innerHTML = '<i class="ph-bold ph-check text-xl"></i> Redirecionando...';
-    await new Promise(r => setTimeout(r, 1500));
+    // 3. FEEDBACK DE SUCESSO
+    btn.innerHTML = '<i class="ph-bold ph-check text-xl"></i> Abrindo WhatsApp...';
 
-    // Redireciona
+    // 4. REDIRECIONAMENTO (Só agora liberamos o navegador)
     const msg = "Olá Atomic! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${total}*`;
     const link = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
     
