@@ -12,7 +12,8 @@ const CONFIG = {
     GITHUB_USER: "atomicgamesbrasil",
     GITHUB_REPO: "siteoficial",
     GITHUB_BRANCH: "main",
-    CHAT_API: 'https://atomic-thiago-backend.onrender.com/chat'
+    // CRITICAL: Point this to your LIVE Render Backend URL
+    SERVER_URL: 'https://atomic-thiago-backend.onrender.com'
 };
 const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
 
@@ -469,49 +470,53 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
-// --- ATOMIC WAITER LOGIC (ATUALIZADA PARA MAIN.JS) ---
+// --- INTEGRAÇÃO GARÇOM (ENVIA PEDIDO ANTES DO WHATSAPP) ---
 async function checkoutWhatsApp() {
     if (!cart.length) return showToast('Carrinho vazio!', 'error');
 
-    // 1. UI Feedback (Travamento do botão)
+    // 1. UI Feedback (Bloqueia botão)
     const btn = els.checkoutBtn;
     const originalText = btn.innerHTML;
+    if(btn.disabled) return;
+    
     btn.disabled = true;
     btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Processando...';
+    btn.style.opacity = '0.8';
 
-    // 2. Tenta registrar o pedido no painel (assíncrono)
+    // 2. Prepara Dados
+    const itemsSummary = cart.map(i => i.name).join(', ');
+    const total = els.cartTotal.textContent;
+
+    // 3. Envia para o Painel (Sem travar se falhar)
     try {
-        const itemsSummary = cart.map(i => i.name).join(', ');
-        const total = els.cartTotal.textContent;
-
-        await fetch('/api/public/order', {
+        // USE ABSOLUTE URL FROM CONFIG
+        await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                customer: "Cliente do Site", // Futuramente capturar nome via modal
+                customer: "Cliente do Site", 
                 items: itemsSummary,
                 total: total
             })
         });
     } catch(e) {
-        console.error("Erro ao registrar pedido no painel:", e);
-        // Não bloqueia o fluxo, segue para o WhatsApp mesmo com erro
+        console.warn("API Order Error:", e);
     }
 
-    // 3. Monta a mensagem e Redireciona
-    const msg = "Olá Atomic! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${els.cartTotal.textContent}*`;
+    // 4. Redireciona para o WhatsApp
+    const msg = "Olá Atomic! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${total}*`;
     const link = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
     
-    // Usa location.href para redirecionar na mesma aba (mais confiável em mobile)
     window.location.href = link;
 
-    // 4. Restaura o botão caso o usuário volte (delay pequeno)
+    // Restaura botão (caso usuário volte)
     setTimeout(() => {
         if(btn) {
             btn.innerHTML = originalText;
             btn.disabled = false;
+            btn.style.opacity = '1';
         }
-    }, 2000);
+    }, 3000);
 }
 
 // EXPOSTA GLOBALMENTE para o Chatbot
@@ -624,6 +629,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(err => console.log('SW registration failed: ', err));
         });
     }
+
+    // --- AUTO ANALYTICS TRACKING ---
+    // Chama o endpoint de track ao carregar a página
+    // USE ABSOLUTE URL
+    fetch(`${CONFIG.SERVER_URL}/api/public/track`, { method: 'POST' })
+        .catch(e => console.log('Analytics silent fail:', e));
 
     // --- PWA INIT & EVENT LISTENERS ---
     updateInstallButtons();
