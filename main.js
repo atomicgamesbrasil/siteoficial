@@ -1,4 +1,3 @@
-
 // === GLOBAL PWA VARIABLES ===
 let deferredPrompt;
 
@@ -470,10 +469,49 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
-function checkoutWhatsApp() {
+// --- ATOMIC WAITER LOGIC (ATUALIZADA PARA MAIN.JS) ---
+async function checkoutWhatsApp() {
     if (!cart.length) return showToast('Carrinho vazio!', 'error');
-    const msg = "Olá! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${els.cartTotal.textContent}*`;
-    window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
+
+    // 1. UI Feedback (Travamento do botão)
+    const btn = els.checkoutBtn;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Processando...';
+
+    // 2. Tenta registrar o pedido no painel (assíncrono)
+    try {
+        const itemsSummary = cart.map(i => i.name).join(', ');
+        const total = els.cartTotal.textContent;
+
+        await fetch('/api/public/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                customer: "Cliente do Site", // Futuramente capturar nome via modal
+                items: itemsSummary,
+                total: total
+            })
+        });
+    } catch(e) {
+        console.error("Erro ao registrar pedido no painel:", e);
+        // Não bloqueia o fluxo, segue para o WhatsApp mesmo com erro
+    }
+
+    // 3. Monta a mensagem e Redireciona
+    const msg = "Olá Atomic! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${els.cartTotal.textContent}*`;
+    const link = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
+    
+    // Usa location.href para redirecionar na mesma aba (mais confiável em mobile)
+    window.location.href = link;
+
+    // 4. Restaura o botão caso o usuário volte (delay pequeno)
+    setTimeout(() => {
+        if(btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }, 2000);
 }
 
 // EXPOSTA GLOBALMENTE para o Chatbot
