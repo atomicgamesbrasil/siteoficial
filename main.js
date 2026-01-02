@@ -12,7 +12,7 @@ const CONFIG = {
     GITHUB_USER: "atomicgamesbrasil",
     GITHUB_REPO: "siteoficial",
     GITHUB_BRANCH: "main",
-    // CRITICAL: Point this to your LIVE Render Backend URL
+    // IMPORTANTE: VERIFIQUE SE ESTE LINK É O DO SEU RENDER
     SERVER_URL: 'https://atomic-thiago-backend.onrender.com'
 };
 const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
@@ -470,34 +470,37 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
-// --- INTEGRAÇÃO GARÇOM COM KEEPALIVE (CRUCIAL PARA MOBILE) ---
-async function sendOrderWithRetry(data, retries = 2) {
+// --- INTEGRAÇÃO GARÇOM COM SEND BEACON (BLINDADO PARA REDIRECT) ---
+async function sendOrderWithRetry(data) {
     const url = `${CONFIG.SERVER_URL}/api/public/order`;
-    for (let i = 0; i <= retries; i++) {
-        try {
-            console.log(`Tentativa ${i+1} de envio...`);
-            
-            // Usamos fetch normal, mas com keepalive
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-                keepalive: true, // <--- O SEGREDO DO SUCESSO NO MOBILE
-            });
-            
-            if (res.ok) {
-                console.log("✅ Pedido enviado com sucesso!");
-                return true;
-            }
-        } catch (e) {
-            console.warn(`Erro na tentativa ${i+1}:`, e);
-            if (i < retries) {
-                // Se falhar (servidor dormindo), espera 2 segundos e tenta de novo
-                await new Promise(r => setTimeout(r, 2000));
-            }
+    console.log("🚀 Tentando enviar pedido para:", url);
+    
+    // ESTRATÉGIA 1: SEND BEACON (Tiro Rápido / Background)
+    // Perfeito para quando o site vai fechar/mudar de página.
+    if (navigator.sendBeacon) {
+        // Envia como Blob JSON
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        const queued = navigator.sendBeacon(url, blob);
+        if (queued) {
+            console.log("✅ Beacon Enfileirado (Background Upload)");
+            return true;
         }
     }
-    return false;
+
+    // ESTRATÉGIA 2: FETCH KEEPALIVE (Fallback)
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            keepalive: true
+        });
+        console.log("✅ Fetch enviado");
+        return true;
+    } catch (e) {
+        console.error("❌ Erro no envio do pedido:", e);
+        return false;
+    }
 }
 
 async function checkoutWhatsApp() {
@@ -507,25 +510,25 @@ async function checkoutWhatsApp() {
     const originalText = btn.innerHTML;
     if(btn.disabled) return;
     
-    // Feedback visual mais claro
+    // Feedback visual
     btn.disabled = true;
-    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Conectando...';
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin text-xl"></i> Enviando...';
     btn.style.opacity = '0.8';
 
     const itemsSummary = cart.map(i => i.name).join(', ');
     const total = els.cartTotal.textContent;
 
-    // Tenta enviar com Retry (Sistema Anti-Sono + Keepalive)
+    // Dispara o envio (Beacon ou Fetch)
+    // O await aqui é curto porque Beacon é instantâneo
     await sendOrderWithRetry({
         customer: "Cliente do Site", 
         items: itemsSummary,
         total: total
     });
 
-    // Pequeno delay artificial para garantir que o usuário veja que algo aconteceu
-    // e dar tempo extra para o "handshake" do keepalive no mobile
+    // Delay visual estendido para garantir UX e dar tempo ao buffer de rede
     btn.innerHTML = '<i class="ph-bold ph-check text-xl"></i> Redirecionando...';
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 1500));
 
     // Redireciona
     const msg = "Olá Atomic! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${total}*`;
@@ -533,13 +536,14 @@ async function checkoutWhatsApp() {
     
     window.location.href = link;
 
+    // Restaura botão (caso o usuário volte a página)
     setTimeout(() => {
         if(btn) {
             btn.innerHTML = originalText;
             btn.disabled = false;
             btn.style.opacity = '1';
         }
-    }, 3000);
+    }, 4000);
 }
 
 // EXPOSTA GLOBALMENTE para o Chatbot
