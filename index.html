@@ -1,529 +1,229 @@
-<!DOCTYPE html>
-<html lang="pt-BR" class="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Atomic Games e Informática - Site Oficial</title>
-    
-    <!-- PWA & SEO -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#FFD700">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
-    <link rel="icon" type="image/webp" href="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
-    
-    <meta name="description" content="Atomic Games - A melhor loja de games e assistência técnica de Madureira, RJ. Consoles, jogos, acessórios e reparos especializados.">
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Frameworks -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: { 
-                        gold: '#FFD700', 
-                        orange: '#FF8C00',
-                        base: { light: '#ffffff', dark: '#0f172a' }
-                    },
-                    fontFamily: { 
-                        sans: ['Inter', 'sans-serif'], 
-                        display: ['Space Grotesk', 'sans-serif'] 
+/**
+ * ATOMIC GAMES - CLIENT SIDE APPLICATION
+ * Architecture: Hybrid Sync (Instant API + Static Fallback)
+ * VERSION: 3.0 (Premium)
+ */
+
+const AtomicApp = (() => {
+    const CONFIG = {
+        SERVER_URL: window.location.origin,
+        WHATSAPP: '5521995969378'
+    };
+
+    const State = {
+        products: [],
+        cart: JSON.parse(localStorage.getItem('atomic_cart') || '[]'),
+        filter: 'all'
+    };
+
+    const UI = {
+        grid: document.getElementById('productGrid'),
+        cartCount: document.getElementById('cartCount'),
+        searchInput: document.getElementById('searchInput'),
+        themeToggle: document.getElementById('themeToggle'),
+        videoFacade: document.getElementById('videoFacade'),
+        videoContainer: document.getElementById('videoContainer')
+    };
+
+    const Utils = {
+        formatPrice: (p) => {
+            if (typeof p === 'number') return p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            let clean = String(p).replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+            let val = parseFloat(clean) || 0;
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+    };
+
+    const Animation = {
+        init: () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
                     }
-                }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+    };
+
+    const Catalog = {
+        fetch: async () => {
+            console.log("📦 Sincronizando Arsenal Atomic...");
+            try {
+                // Tenta buscar da API pública do servidor (atualização em tempo real do Admin)
+                const res = await fetch(`${CONFIG.SERVER_URL}/api/public/products`);
+                if (!res.ok) throw new Error("Server API offline");
+                State.products = await res.json();
+            } catch (e) {
+                console.warn("⚠️ API offline, usando fallback do GitHub.");
+                const fb = await fetch(`https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/produtos.json?t=${Date.now()}`);
+                State.products = await fb.json();
+            } finally {
+                Catalog.render();
+            }
+        },
+
+        render: () => {
+            if (!UI.grid) return;
+            const term = (UI.searchInput ? UI.searchInput.value.toLowerCase() : "");
+            
+            const filtered = State.products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(term);
+                const matchesFilter = State.filter === 'all' || (p.category && p.category.toLowerCase() === State.filter);
+                return matchesSearch && matchesFilter;
+            });
+
+            UI.grid.innerHTML = '';
+            if (filtered.length === 0) {
+                UI.grid.innerHTML = '<div class="col-span-full py-20 text-center text-muted font-bold opacity-50">Nenhum item encontrado no arsenal.</div>';
+                return;
+            }
+
+            filtered.forEach(p => {
+                const card = document.createElement('article');
+                card.className = 'product-card bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 p-5 flex flex-col h-full reveal active shadow-sm group';
+                card.innerHTML = `
+                    <div class="relative h-44 mb-6 bg-slate-50 dark:bg-slate-900 rounded-2xl p-4 flex items-center justify-center overflow-hidden cursor-pointer" onclick="AtomicApp.Interface.showDetail('${p.id}')">
+                        <img src="${p.image}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-500">
+                        <span class="absolute top-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-md rounded-lg text-[10px] text-yellow-500 font-black uppercase tracking-widest">${p.category}</span>
+                    </div>
+                    <h3 class="font-bold text-sm mb-2 line-clamp-2 h-10">${p.name}</h3>
+                    <div class="mt-auto flex justify-between items-center pt-4">
+                        <span class="font-black text-xl text-gradient">${Utils.formatPrice(p.price)}</span>
+                        <button class="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center text-black hover:bg-yellow-400 active:scale-90 transition" onclick="AtomicApp.Cart.add('${p.id}')">
+                            <i class="ph-bold ph-plus"></i>
+                        </button>
+                    </div>
+                `;
+                UI.grid.appendChild(card);
+            });
+        }
+    };
+
+    const Cart = {
+        save: () => localStorage.setItem('atomic_cart', JSON.stringify(State.cart)),
+        add: (id) => {
+            const p = State.products.find(x => x.id === id);
+            if (p) {
+                State.cart.push(p);
+                Cart.save();
+                Cart.updateUI();
+                // Efeito sonoro ou haptic feedback poderia entrar aqui
+            }
+        },
+        updateUI: () => {
+            if (UI.cartCount) {
+                const count = State.cart.length;
+                UI.cartCount.textContent = count;
+                UI.cartCount.classList.toggle('hidden', count === 0);
+                if (count > 0) UI.cartCount.classList.add('animate-bounce');
+                setTimeout(() => UI.cartCount.classList.remove('animate-bounce'), 500);
             }
         }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <link rel="stylesheet" href="styles.css">
-    
-    <style>
-        /* Estilos Críticos Inlined para Garantir a Identidade Visual */
-        :root {
-            --gold: #FFD700;
-            --orange: #FF8C00;
-        }
+    };
 
-        .text-gradient {
-            background: linear-gradient(135deg, var(--gold), var(--orange));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    const Interface = {
+        init: () => {
+            // Theme
+            if (localStorage.getItem('atomic-theme') === 'dark') document.documentElement.classList.add('dark');
+            UI.themeToggle?.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('atomic-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            });
 
-        .glow-gold {
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-        }
+            // Video
+            UI.videoFacade?.addEventListener('click', function() {
+                const vidId = this.dataset.videoId;
+                UI.videoContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${vidId}?autoplay=1" width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="rounded-[2rem]"></iframe>`;
+                this.classList.add('hidden');
+                UI.videoContainer.classList.remove('hidden');
+            });
 
-        .mesh-gradient {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at 0% 0%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(255, 140, 0, 0.05) 0%, transparent 50%);
-            z-index: -1;
-            pointer-events: none;
-        }
+            // Filters
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-yellow-500', 'text-black'));
+                    e.currentTarget.classList.add('active', 'bg-yellow-500', 'text-black');
+                    State.filter = e.currentTarget.dataset.category;
+                    Catalog.render();
+                });
+            });
 
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
+            // Search
+            UI.searchInput?.addEventListener('input', () => Catalog.render());
 
-        .dark .glass {
-            background: rgba(15, 23, 42, 0.8);
-        }
+            // Modal Detail Closers
+            document.getElementById('closeDetailBtn')?.addEventListener('click', Interface.hideDetail);
+            document.getElementById('productDetailOverlay')?.addEventListener('click', Interface.hideDetail);
 
-        .product-card {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+            // Chat Widget
+            document.getElementById('chatBubble')?.addEventListener('click', () => {
+                document.getElementById('chatWindow').style.display = 'flex';
+            });
+            document.getElementById('closeChatBtn')?.addEventListener('click', () => {
+                document.getElementById('chatWindow').style.display = 'none';
+            });
 
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
+            // Chart Reputação
+            const ctx = document.getElementById('reputationChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Preço', 'Velocidade', 'Qualidade', 'Atendimento', 'Garantia'],
+                        datasets: [{
+                            data: [4.8, 4.5, 5, 4.9, 5],
+                            backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                            borderColor: '#FFD700',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#FFD700'
+                        }]
+                    },
+                    options: {
+                        scales: { r: { min: 0, max: 5, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.1)' } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        },
 
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Chat Widget */
-        .chat-bubble {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 64px;
-            height: 64px;
-            border-radius: 20px;
-            background: var(--gold);
-            cursor: pointer;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
-            transition: transform 0.3s;
-        }
-
-        .chat-bubble:hover { transform: scale(1.1); }
-        
-        .chat-window {
-            position: fixed;
-            bottom: 100px;
-            right: 24px;
-            width: 360px;
-            height: 500px;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .dark .chat-window { background: #1e293b; color: white; }
-        
-        .chat-header {
-            background: linear-gradient(135deg, var(--gold), var(--orange));
-            padding: 20px;
-            color: black;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Modal Base */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .modal-overlay.open { display: block; opacity: 1; }
-
-        .modal-base {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -40%);
-            z-index: 2001;
-            display: none;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .modal-base.open { display: block; opacity: 1; transform: translate(-50%, -50%); }
-
-        .video-facade {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .play-btn {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px; height: 80px;
-            background: var(--gold);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-        }
-    </style>
-</head>
-<body class="antialiased bg-base text-base transition-colors duration-500" id="top">
-    
-    <div class="mesh-gradient" aria-hidden="true"></div>
-
-    <!-- Back To Top -->
-    <button id="backToTop" class="fixed bottom-6 left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition z-[900]" aria-label="Voltar ao topo">
-        <i class="ph-bold ph-arrow-up text-xl"></i>
-    </button>
-
-    <!-- ATOMIC CHAT WIDGET -->
-    <div id="atomic-chat-widget">
-        <div id="chatBubble" class="chat-bubble">
-            <i class="ph-fill ph-chat-circle-dots text-3xl text-black"></i>
-            <div class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse"></div>
-        </div>
-        
-        <div id="chatWindow" class="chat-window">
-            <header class="chat-header">
-                <div class="flex items-center gap-3">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="w-8 h-8 rounded-full bg-black">
-                    <div>
-                        <p class="text-sm">Suporte Atomic</p>
-                        <p class="text-[10px] opacity-70">Online agora</p>
-                    </div>
-                </div>
-                <button id="closeChatBtn"><i class="ph-bold ph-x"></i></button>
-            </header>
-            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50 dark:bg-slate-900/50">
-                <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none shadow-sm max-w-[80%] text-sm">
-                    Olá! Bem-vindo à Atomic Games. Como podemos ajudar você hoje?
-                </div>
-            </div>
-            <footer class="p-4 border-t dark:border-slate-700 flex gap-2">
-                <input type="text" id="chatInput" placeholder="Sua mensagem..." class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 ring-yellow-400">
-                <button id="sendBtn" class="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center text-black"><i class="ph-fill ph-paper-plane-right"></i></button>
-            </footer>
-        </div>
-    </div>
-
-    <!-- Product Detail Modal -->
-    <div id="productDetailOverlay" class="modal-overlay"></div>
-    <div id="productDetailModal" class="modal-base w-[95%] max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
-        <div class="p-6 md:p-10 grid md:grid-cols-2 gap-10">
-            <div class="bg-slate-100 dark:bg-slate-800 rounded-2xl p-6 flex items-center justify-center">
-                <img id="modalProductImage" src="" alt="" class="max-h-80 w-auto object-contain drop-shadow-2xl">
-            </div>
-            <div class="space-y-6">
-                <div class="flex justify-between items-start">
-                    <h2 id="modalProductName" class="text-3xl font-black font-display"></h2>
-                    <button id="closeDetailBtn" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition"><i class="ph-bold ph-x text-2xl"></i></button>
-                </div>
-                <p id="modalProductDescription" class="text-muted leading-relaxed"></p>
-                <div class="pt-6 border-t dark:border-slate-800">
-                    <p class="text-sm text-muted mb-1">Preço à vista</p>
-                    <h3 id="modalProductPrice" class="text-4xl font-black text-gradient"></h3>
-                </div>
-                <div class="flex flex-col gap-3">
-                    <button id="modalAddToCartBtn" class="w-full py-4 bg-yellow-500 text-black font-black rounded-2xl hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20">ADICIONAR AO CARRINHO</button>
-                    <a id="modalWhatsappBtn" href="#" target="_blank" class="w-full py-4 bg-green-600 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-green-500 transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> NEGOCIAR NO WHATSAPP</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navbar -->
-    <header class="sticky top-0 z-[100] glass border-b border-slate-200 dark:border-slate-800 shadow-sm" id="navbar">
-        <nav class="container mx-auto px-4 h-20 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <a href="#top" class="flex items-center gap-3">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50 glow-gold">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic" class="h-7 w-auto hidden sm:block">
-                </a>
-            </div>
+        showDetail: (id) => {
+            const p = State.products.find(x => x.id === id);
+            if (!p) return;
             
-            <div class="hidden md:flex gap-8 font-bold text-xs uppercase tracking-widest text-muted">
-                <a href="#store" class="hover:text-gold transition">Loja Virtual</a>
-                <a href="#services" class="hover:text-gold transition">Assistência</a>
-                <a href="#dashboard" class="hover:text-gold transition">Reputação</a>
-                <a href="#location" class="hover:text-gold transition">Onde Estamos</a>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <button id="themeToggle" class="p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
-                    <i class="ph ph-moon text-2xl block dark:hidden text-slate-700"></i>
-                </button>
-                <div class="relative group" id="cartTrigger">
-                    <button class="p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                        <i class="ph-bold ph-shopping-cart text-2xl"></i>
-                        <span id="cartCount" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center hidden">0</span>
-                    </button>
-                </div>
-            </div>
-        </nav>
-    </header>
-
-    <main id="main-content">
-        <!-- Hero Section com Vídeo -->
-        <section class="min-h-[90vh] flex items-center relative overflow-hidden pt-10 pb-20">
-            <div class="container mx-auto px-4 grid lg:grid-cols-2 items-center gap-16">
-                <div class="space-y-8 reveal">
-                    <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-yellow-400/10 text-yellow-600 dark:text-yellow-400 rounded-full text-xs font-black uppercase tracking-widest border border-yellow-400/20">
-                        <i class="ph-fill ph-map-pin"></i> Madureira - Rio de Janeiro
-                    </div>
-                    <h1 class="text-5xl md:text-7xl font-black font-display leading-[1.05]">A Forja dos <span class="text-gradient">Campeões Gamers</span></h1>
-                    <p class="text-xl text-muted font-medium max-w-xl leading-relaxed">De Madureira para o mundo. Somos a autoridade máxima em assistência técnica especializada e a loja que respira a cultura gamer 24/7.</p>
-                    <div class="flex flex-col sm:flex-row gap-5 pt-4">
-                        <a href="#store" class="px-10 py-5 bg-yellow-500 text-black rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-yellow-500/30 hover:scale-105 hover:bg-yellow-400 transition-all">
-                            <i class="ph-bold ph-shopping-bag"></i> EXPLORAR LOJA
-                        </a>
-                        <a href="#services" class="px-10 py-5 border-2 border-slate-200 dark:border-slate-800 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                            <i class="ph-bold ph-wrench"></i> CONSERTAR MEU GAME
-                        </a>
-                    </div>
-                    <div class="flex items-center gap-6 pt-8 opacity-60">
-                        <div class="flex -space-x-3">
-                            <img src="https://i.pravatar.cc/100?u=1" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900">
-                            <img src="https://i.pravatar.cc/100?u=2" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900">
-                            <img src="https://i.pravatar.cc/100?u=3" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900">
-                        </div>
-                        <p class="text-sm font-bold">+5.000 Clientes Satisfeitos</p>
-                    </div>
-                </div>
-
-                <div class="relative reveal">
-                    <div class="absolute -inset-4 bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-[2.5rem] blur-2xl opacity-20 animate-pulse"></div>
-                    <div class="relative bg-black rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/10 aspect-video">
-                        <div id="videoFacade" class="video-facade w-full h-full group" data-video-id="YCsT_InlNWw">
-                            <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" class="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-700">
-                            <div class="play-btn group-hover:scale-110 transition-transform">
-                                <i class="ph-fill ph-play text-4xl text-black"></i>
-                            </div>
-                        </div>
-                        <div id="videoContainer" class="w-full h-full hidden"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Seção de Marcas (Marquee) -->
-        <section class="py-12 border-y border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 overflow-hidden">
-            <div class="container mx-auto px-4">
-                <div class="flex flex-wrap justify-center md:justify-between items-center gap-8 md:gap-12 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg" alt="Sony" class="h-8">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" alt="Microsoft" class="h-8">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/02/Nintendo_Switch_logo.svg" alt="Nintendo" class="h-8">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/Nvidia_logo.svg" alt="Nvidia" class="h-8">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/bb/ASUS_Logo.svg" alt="Asus" class="h-8">
-                </div>
-            </div>
-        </section>
-
-        <!-- Store Section -->
-        <section id="store" class="py-24">
-            <div class="container mx-auto px-4">
-                <header class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 reveal">
-                    <div class="space-y-3">
-                        <h2 class="text-4xl md:text-6xl font-black font-display tracking-tight">O Arsenal <span class="text-gradient">Completo</span></h2>
-                        <p class="text-xl text-muted max-w-lg">Hardware selecionado por quem entende de performance. Garantia Atomic em cada peça.</p>
-                    </div>
-                    <div class="w-full md:w-auto">
-                        <div class="relative group">
-                            <i class="ph-bold ph-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-yellow-500 transition"></i>
-                            <input type="search" id="searchInput" placeholder="O que você está caçando hoje?" class="w-full md:w-96 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl py-5 pl-14 pr-6 outline-none focus:border-yellow-500 transition shadow-sm">
-                        </div>
-                    </div>
-                </header>
-
-                <!-- Categorias Bento Style -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 reveal">
-                    <button class="filter-btn active bg-yellow-500 text-black h-24 rounded-3xl font-black uppercase text-xs flex flex-col items-center justify-center gap-2 shadow-xl shadow-yellow-500/20" data-category="all">
-                        <i class="ph-bold ph-squares-four text-2xl"></i> Tudo
-                    </button>
-                    <button class="filter-btn bg-white dark:bg-slate-800 h-24 rounded-3xl font-black uppercase text-xs text-muted flex flex-col items-center justify-center gap-2 border-2 border-slate-100 dark:border-slate-700 hover:border-yellow-500/50 transition" data-category="console">
-                        <i class="ph-bold ph-game-controller text-2xl"></i> Consoles
-                    </button>
-                    <button class="filter-btn bg-white dark:bg-slate-800 h-24 rounded-3xl font-black uppercase text-xs text-muted flex flex-col items-center justify-center gap-2 border-2 border-slate-100 dark:border-slate-700 hover:border-yellow-500/50 transition" data-category="games">
-                        <i class="ph-bold ph-disc text-2xl"></i> Jogos
-                    </button>
-                    <button class="filter-btn bg-white dark:bg-slate-800 h-24 rounded-3xl font-black uppercase text-xs text-muted flex flex-col items-center justify-center gap-2 border-2 border-slate-100 dark:border-slate-700 hover:border-yellow-500/50 transition" data-category="acessorios">
-                        <i class="ph-bold ph-headset text-2xl"></i> Acessórios
-                    </button>
-                </div>
-
-                <!-- Product Grid -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8" id="productGrid">
-                    <!-- JS Injeta os produtos aqui -->
-                    <div class="col-span-full py-20 text-center text-muted animate-pulse">Carregando o arsenal...</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Services Section -->
-        <section id="services" class="py-24 bg-slate-50 dark:bg-slate-900/50">
-            <div class="container mx-auto px-4 grid lg:grid-cols-2 gap-20 items-center">
-                <div class="space-y-8 reveal">
-                    <h2 class="text-4xl md:text-6xl font-black font-display">A Melhor <span class="text-gradient">Assistência</span> do Rio</h2>
-                    <p class="text-lg text-muted">Não deixe seu console parado. No nosso laboratório de alta precisão, devolvemos a vida ao seu equipamento com peças originais e garantia absoluta.</p>
-                    
-                    <div class="grid sm:grid-cols-2 gap-6">
-                        <div class="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 space-y-3">
-                            <div class="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center"><i class="ph-fill ph-lightning text-2xl"></i></div>
-                            <h3 class="font-bold">Reparo Expresso</h3>
-                            <p class="text-sm text-muted">Orçamentos em até 24h para problemas comuns.</p>
-                        </div>
-                        <div class="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 space-y-3">
-                            <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center"><i class="ph-fill ph-microchip text-2xl"></i></div>
-                            <h3 class="font-bold">Reballing & Solda</h3>
-                            <p class="text-sm text-muted">Maquinário industrial para reparos em placa-mãe.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-800 p-8 md:p-12 rounded-[2.5rem] shadow-2xl border-2 border-yellow-500/20 reveal">
-                    <h3 class="text-2xl font-black mb-8 text-center uppercase tracking-tight">Solicitar Orçamento <span class="text-yellow-500">V.I.P</span></h3>
-                    <form id="serviceForm" class="space-y-4">
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <input type="text" name="name" placeholder="Seu Nome" required class="w-full bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-transparent focus:border-yellow-500 outline-none transition">
-                            <input type="tel" name="phone" placeholder="Seu WhatsApp" required class="w-full bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-transparent focus:border-yellow-500 outline-none transition">
-                        </div>
-                        <select name="device" class="w-full bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-transparent focus:border-yellow-500 outline-none transition">
-                            <option value="ps5">PlayStation 5</option>
-                            <option value="ps4">PlayStation 4</option>
-                            <option value="xbox_series">Xbox Series X|S</option>
-                            <option value="switch">Nintendo Switch</option>
-                            <option value="pc_gamer">PC Gamer / Notebook</option>
-                        </select>
-                        <textarea name="problem" placeholder="Conte o que aconteceu com o paciente..." class="w-full h-32 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-transparent focus:border-yellow-500 outline-none transition resize-none"></textarea>
-                        <button type="submit" class="w-full py-5 bg-black text-white dark:bg-white dark:text-black font-black text-lg rounded-2xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-3">
-                            <i class="ph-bold ph-whatsapp-logo text-2xl"></i> ENVIAR PELO WHATSAPP
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dashboard / Reputação Section -->
-        <section id="dashboard" class="py-24">
-            <div class="container mx-auto px-4">
-                <div class="text-center mb-16 space-y-4 reveal">
-                    <h2 class="text-4xl md:text-6xl font-black font-display">A Voz da <span class="text-gradient">Comunidade</span></h2>
-                    <p class="text-xl text-muted">Não é sobre nós, é sobre a confiança que conquistamos.</p>
-                </div>
-
-                <div class="grid lg:grid-cols-3 gap-8 reveal">
-                    <!-- Google Reviews -->
-                    <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-xl flex flex-col md:flex-row gap-12 items-center">
-                        <div class="text-center md:text-left space-y-4">
-                            <div class="flex justify-center md:justify-start items-center gap-4">
-                                <span class="text-6xl font-black font-display text-gradient">4.9</span>
-                                <div>
-                                    <div class="flex text-yellow-500 text-xl"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
-                                    <p class="text-muted font-bold">+700 Avaliações no Google</p>
-                                </div>
-                            </div>
-                            <p class="text-muted italic leading-relaxed">"O melhor atendimento que já tive em uma assistência. Honestidade e preço justo."</p>
-                            <div class="flex gap-4 pt-4">
-                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">R</div>
-                                <div><p class="font-bold">Ricardo S.</p><p class="text-xs text-muted">Guia Local • 42 comentários</p></div>
-                            </div>
-                        </div>
-                        <div class="w-full md:w-80 h-64">
-                            <canvas id="reputationChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Bento Stat Cards -->
-                    <div class="space-y-8">
-                        <div class="p-8 bg-gradient-to-br from-yellow-400 to-orange-500 text-black rounded-[2rem] shadow-xl space-y-2 transform hover:rotate-2 transition-transform">
-                            <h4 class="font-black text-4xl">5k+</h4>
-                            <p class="font-bold uppercase tracking-widest text-xs opacity-70">Consoles Reparados</p>
-                        </div>
-                        <div class="p-8 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-xl space-y-2">
-                            <h4 class="font-black text-4xl text-gradient">100%</h4>
-                            <p class="font-bold uppercase tracking-widest text-xs text-muted">Satisfação Garantida</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Localização Section -->
-        <section id="location" class="py-24 bg-slate-50 dark:bg-slate-900/50">
-            <div class="container mx-auto px-4">
-                <div class="bg-white dark:bg-slate-800 rounded-[3rem] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-700 flex flex-col md:flex-row reveal">
-                    <div class="md:w-1/2 p-10 md:p-16 space-y-8">
-                        <div class="space-y-4">
-                            <h2 class="text-4xl font-black font-display">Visite o <span class="text-gradient">QG</span></h2>
-                            <p class="text-muted leading-relaxed text-lg">Ambiente 100% climatizado, espaço para teste de equipamentos e o café mais gamer do Rio.</p>
-                        </div>
-                        
-                        <div class="space-y-6">
-                            <div class="flex gap-5">
-                                <div class="w-12 h-12 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center shrink-0"><i class="ph-fill ph-map-pin text-2xl"></i></div>
-                                <div><p class="font-bold">Endereço</p><p class="text-muted">Av. Min. Edgard Romero, 81 - Loja 3<br>Madureira, RJ (Perto do Shopping)</p></div>
-                            </div>
-                            <div class="flex gap-5">
-                                <div class="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center shrink-0"><i class="ph-fill ph-clock text-2xl"></i></div>
-                                <div><p class="font-bold">Horário de Combate</p><p class="text-muted">Seg a Sex: 09:00 - 19:00<br>Sábado: 09:00 - 14:00</p></div>
-                            </div>
-                        </div>
-
-                        <a href="https://maps.app.goo.gl/9FpRW2ztsrE3j9Rz9" target="_blank" class="w-full py-5 bg-black text-white dark:bg-white dark:text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:scale-105 transition-transform">
-                            <i class="ph-bold ph-navigation-arrow"></i> COMO CHEGAR AGORA
-                        </a>
-                    </div>
-                    <div class="md:w-1/2 h-80 md:h-auto border-t md:border-t-0 md:border-l dark:border-slate-700">
-                        <iframe src="https://maps.google.com/maps?q=Atomic%20Games%20Madureira&output=embed" width="100%" height="100%" frameborder="0" style="filter: invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%); border:0;" allowfullscreen="" loading="lazy"></iframe>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="py-24 border-t dark:border-slate-800 text-center space-y-12">
-        <div class="container mx-auto px-4">
-            <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="h-20 w-20 mx-auto mb-8 rounded-full shadow-2xl bg-black ring-4 ring-yellow-500/20">
-            <h3 class="text-3xl font-black font-display mb-4">ATOMIC GAMES BRASIL</h3>
-            <p class="text-muted max-w-lg mx-auto mb-10">O destino final de todo gamer que busca excelência técnica e os melhores equipamentos do mercado.</p>
+            document.getElementById('modalProductImage').src = p.image;
+            document.getElementById('modalProductName').textContent = p.name;
+            document.getElementById('modalProductDescription').textContent = p.desc || 'Este item do arsenal Atomic não possui descrição detalhada no momento, mas garantimos a qualidade máxima.';
+            document.getElementById('modalProductPrice').textContent = Utils.formatPrice(p.price);
+            document.getElementById('modalWhatsappBtn').href = `https://wa.me/${CONFIG.WHATSAPP}?text=Olá! Vi o ${p.name} no site e tenho interesse.`;
             
-            <div class="flex justify-center gap-6 mb-16">
-                <a href="#" class="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center hover:text-gold transition-all"><i class="ph-fill ph-instagram-logo text-2xl"></i></a>
-                <a href="#" class="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center hover:text-gold transition-all"><i class="ph-fill ph-facebook-logo text-2xl"></i></a>
-                <a href="#" class="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center hover:text-gold transition-all"><i class="ph-fill ph-youtube-logo text-2xl"></i></a>
-            </div>
+            document.getElementById('productDetailOverlay').classList.add('open');
+            document.getElementById('productDetailModal').classList.add('open');
+        },
 
-            <p class="text-xs text-muted font-bold tracking-widest uppercase">&copy; 2025 Atomic Games Brasil - Assistência Técnica e Loja de Games</p>
-        </div>
-    </footer>
+        hideDetail: () => {
+            document.getElementById('productDetailOverlay').classList.remove('open');
+            document.getElementById('productDetailModal').classList.remove('open');
+        }
+    };
 
-    <!-- Scripts -->
-    <script src="main.js" defer></script>
-</body>
-</html>
+    return {
+        init: () => {
+            Catalog.fetch();
+            Interface.init();
+            Animation.init();
+            Cart.updateUI();
+            
+            // Limpa Service Workers antigos para evitar problemas de cache agressivo
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+            }
+        },
+        Interface: { showDetail: Interface.showDetail },
+        Cart: { add: Cart.add }
+    };
+})();
+
+document.addEventListener('DOMContentLoaded', AtomicApp.init);
