@@ -541,46 +541,46 @@ function createCheckoutModal() {
         const name = nameInput.value.trim();
         
         if (name) {
-            // Fecha o modal IMEDIATAMENTE antes de processar o pedido
-            // Isso previne que o usuário fique "preso" na tela escura se a nova aba bloquear
+            // 1. GERA O LINK DO WHATSAPP
+            const msg = `Olá! Sou *${name}* e gostaria de fechar o pedido:\n\n` + 
+                        cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + 
+                        `\n\n*Total: ${els.cartTotal.textContent}*`;
+            
+            const waUrl = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
+
+            // 2. AÇÃO SÍNCRONA DE REDIRECIONAMENTO (CRUCIAL PARA EVITAR BLOQUEIO DE POPUP)
+            // Tenta abrir em nova aba. Se falhar (bloqueador), redireciona na mesma aba.
+            const win = window.open(waUrl, '_blank');
+            if (!win || win.closed || typeof win.closed == 'undefined') {
+                window.location.href = waUrl;
+            }
+
+            // 3. ENVIA DADOS PARA O SERVIDOR EM BACKGROUND (NÃO ESPERA RESPOSTA)
+            submitOrderToAPI(name);
+            trackAtomicEvent('whatsapp');
+
+            // 4. FECHA O MODAL
             close();
-            submitOrder(name);
         }
     };
 }
 
-async function submitOrder(customerName) {
+// Função separada apenas para a chamada de API, desacoplada do redirect
+function submitOrderToAPI(customerName) {
     if (!cart.length) return;
 
-    // 1. Prepara dados para o WhatsApp
-    const msg = `Olá! Sou *${customerName}* e gostaria de fechar o pedido:\n\n` + 
-                cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + 
-                `\n\n*Total: ${els.cartTotal.textContent}*`;
-
-    // 2. Prepara dados para o Painel (API)
     const orderData = {
         customer: customerName,
         total: els.cartTotal.textContent,
-        // Formata os itens como string para o painel exibir
         items: "[SITE] " + cart.map(i => `1x ${i.name} (${i.price})`).join(' | ')
     };
 
-    // 3. Envia para o Painel (Fire and Forget)
     fetch(API_ORDER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData),
-        keepalive: true
-    }).catch(e => console.error("Erro ao salvar pedido", e));
-
-    // 4. Tracking
-    trackAtomicEvent('whatsapp');
-
-    // 5. Redireciona
-    // Usa setTimeout para desacoplar da stack de eventos do modal, melhorando compatibilidade com bloqueadores de popup
-    setTimeout(() => {
-        window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`, '_blank');
-    }, 100);
+        keepalive: true // Garante que o request termine mesmo se a página fechar
+    }).catch(e => console.error("Erro ao salvar pedido background", e));
 }
 
 function checkoutWhatsApp() {
