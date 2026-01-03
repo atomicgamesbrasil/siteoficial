@@ -64,6 +64,24 @@ const AtomicApp = (() => {
         }
     };
 
+    // --- ANIMATION MODULE ---
+    // Critical: Reveals content hidden by CSS .reveal class
+    const Animation = {
+        init: () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // Optional: Unobserve after reveal to save resources
+                        // observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+    };
+
     // --- CART MODULE ---
     const Cart = {
         load: () => {
@@ -155,6 +173,7 @@ const AtomicApp = (() => {
 
             // Send Order to Backend
             try {
+                console.log(`🔌 Enviando pedido para: ${CONFIG.SERVER_URL}/api/public/order`);
                 const response = await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -163,10 +182,11 @@ const AtomicApp = (() => {
                 });
                 
                 if (!response.ok) throw new Error('Falha no servidor');
+                console.log("✅ Pedido registrado no painel com sucesso!");
 
             } catch (e) { 
                 console.error("Order sync failed", e);
-                Utils.showToast("Erro de conexão: Pedido não registrado no painel.", "error");
+                Utils.showToast("Aviso: Pedido será finalizado no WhatsApp (Painel Offline)", "info");
                 // Mesmo com erro, liberamos o usuário para ir ao WhatsApp
             }
 
@@ -191,8 +211,12 @@ const AtomicApp = (() => {
     // --- CATALOG MODULE ---
     const Catalog = {
         fetch: async () => {
+            // Safety timeout to prevent infinite spinner
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000));
+            const request = fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
+
             try {
-                const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
+                const res = await Promise.race([request, timeout]);
                 if (res.ok) {
                     const data = await res.json();
                     State.products = data.map(p => ({
@@ -205,9 +229,11 @@ const AtomicApp = (() => {
                     }));
                 }
             } catch (e) {
-                console.warn("Fallback to static catalog");
+                console.warn("Catalog load warning:", e);
+                // Keeps default empty state which renders "No Results"
+            } finally {
+                Catalog.render();
             }
-            Catalog.render();
         },
 
         fetchBanners: async () => {
@@ -344,6 +370,7 @@ const AtomicApp = (() => {
     // --- ANALYTICS ---
     const Analytics = {
         init: () => {
+            console.log("🔌 ATOMIC API:", CONFIG.SERVER_URL);
             // Wake Server
             fetch(`${CONFIG.SERVER_URL}/api/public/wake`).catch(() => {});
             // Track Visit
@@ -480,11 +507,15 @@ const AtomicApp = (() => {
         Interface.init();
         PWA.init();
         Analytics.init();
+        
+        // Reveals Content
+        Animation.init();
 
         // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(console.error);
-        }
+        // DESATIVADO TEMPORARIAMENTE PARA EVITAR ERRO DE CACHE POST
+        // if ('serviceWorker' in navigator) {
+        //    navigator.serviceWorker.register('./sw.js').catch(console.error);
+        // }
     };
 
     // --- PUBLIC API ---
