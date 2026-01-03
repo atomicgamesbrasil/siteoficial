@@ -487,30 +487,35 @@ function createCheckoutModal() {
 
     const overlay = document.createElement('div');
     overlay.id = 'checkoutModal';
-    // CRITICAL: Force high z-index and styles to ensure visibility over cart
-    overlay.style.cssText = "position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); opacity: 0; visibility: hidden; transition: opacity 0.3s;";
+    // CRITICAL: Max integer z-index to ensure it sits on top of everything (cart, chat, navbar)
+    // Using inline styles to guarantee visibility over any class-based styles
+    overlay.style.cssText = "position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: all 0.3s;";
     
     const modal = document.createElement('div');
-    modal.className = 'modal-base w-11/12 max-w-md bg-card border border-base rounded-3xl shadow-2xl p-6 text-center transform scale-95 transition-all duration-300 bg-white dark:bg-slate-900';
+    // Force specific colors (white/dark-slate) to prevent transparency issues
+    modal.className = 'w-[90%] max-w-md bg-white dark:bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6 text-center transform scale-95 transition-all duration-300 relative';
     
     modal.innerHTML = `
+        <button id="closeCheckoutX" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="ph-bold ph-x text-xl"></i></button>
         <div class="mb-6">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
                 <i class="ph-fill ph-whatsapp-logo text-3xl text-green-500"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-2">Quase lá!</h3>
-            <p class="text-muted text-sm">Para finalizar seu pedido no WhatsApp, como podemos te chamar?</p>
+            <h3 class="text-2xl font-bold mb-2 text-gray-800 dark:text-white">Quase lá!</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Identifique-se para finalizarmos o pedido no WhatsApp.</p>
         </div>
         <form id="checkoutForm" class="space-y-4">
-            <div class="relative">
-                <i class="ph-bold ph-user absolute left-4 top-4 text-muted"></i>
-                <input type="text" id="checkoutName" required placeholder="Seu Nome ou Apelido" class="w-full bg-base border-2 border-base rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 transition font-medium" autocomplete="name">
+            <div class="relative text-left">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Seu Nome</label>
+                <div class="relative">
+                    <i class="ph-bold ph-user absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="text" id="checkoutName" required placeholder="Digite seu nome..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition font-medium text-gray-800 dark:text-white" autocomplete="name">
+                </div>
             </div>
-            <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                <span>Finalizar Pedido</span> <i class="ph-bold ph-arrow-right"></i>
+            <button type="submit" class="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                <span>Continuar para WhatsApp</span> <i class="ph-bold ph-arrow-right"></i>
             </button>
         </form>
-        <button id="closeCheckoutBtn" class="mt-4 text-sm text-muted hover:text-red-500 transition">Cancelar</button>
     `;
 
     overlay.appendChild(modal);
@@ -526,14 +531,21 @@ function createCheckoutModal() {
         }, 300);
     };
 
-    document.getElementById('closeCheckoutBtn').onclick = (e) => { e.preventDefault(); close(); };
+    const closeBtn = document.getElementById('closeCheckoutX');
+    if(closeBtn) closeBtn.onclick = (e) => { e.preventDefault(); close(); };
     overlay.onclick = (e) => { if (e.target === overlay) close(); };
 
     document.getElementById('checkoutForm').onsubmit = (e) => {
         e.preventDefault();
-        const name = document.getElementById('checkoutName').value.trim();
-        if (name) submitOrder(name);
-        close();
+        const nameInput = document.getElementById('checkoutName');
+        const name = nameInput.value.trim();
+        
+        if (name) {
+            // Fecha o modal IMEDIATAMENTE antes de processar o pedido
+            // Isso previne que o usuário fique "preso" na tela escura se a nova aba bloquear
+            close();
+            submitOrder(name);
+        }
     };
 }
 
@@ -565,7 +577,10 @@ async function submitOrder(customerName) {
     trackAtomicEvent('whatsapp');
 
     // 5. Redireciona
-    window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`, '_blank');
+    // Usa setTimeout para desacoplar da stack de eventos do modal, melhorando compatibilidade com bloqueadores de popup
+    setTimeout(() => {
+        window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`, '_blank');
+    }, 100);
 }
 
 function checkoutWhatsApp() {
@@ -578,7 +593,7 @@ function checkoutWhatsApp() {
     if (els.cartModal.classList.contains('open')) toggleCart();
     
     const overlay = document.getElementById('checkoutModal');
-    const modal = overlay.querySelector('.modal-base');
+    const modal = overlay.querySelector('div:not(#checkoutModal)'); // Select inner modal div
     const input = document.getElementById('checkoutName');
     
     // Show Modal with animation
@@ -586,8 +601,10 @@ function checkoutWhatsApp() {
     overlay.style.opacity = '1';
     
     requestAnimationFrame(() => {
-        modal.classList.remove('scale-95');
-        modal.classList.add('scale-100');
+        if(modal) {
+            modal.classList.remove('scale-95');
+            modal.classList.add('scale-100');
+        }
         if(input) input.focus();
     });
 }
