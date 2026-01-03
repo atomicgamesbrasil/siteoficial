@@ -9,7 +9,6 @@ const AtomicApp = (() => {
     const CONFIG = {
         GITHUB: { USER: "atomicgamesbrasil", REPO: "siteoficial", BRANCH: "main" },
         // IMPORTANT: Must match the Render URL exactly
-        // O erro 404 estava acontecendo porque o site ao vivo apontava para 'atomic-thiago-backend'
         SERVER_URL: 'https://painel-atomic.onrender.com'
     };
 
@@ -156,7 +155,6 @@ const AtomicApp = (() => {
 
             // Send Order to Backend
             try {
-                console.log(`🔌 Enviando pedido para: ${CONFIG.SERVER_URL}/api/public/order`);
                 const response = await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -165,11 +163,10 @@ const AtomicApp = (() => {
                 });
                 
                 if (!response.ok) throw new Error('Falha no servidor');
-                console.log("✅ Pedido registrado no painel com sucesso!");
 
             } catch (e) { 
                 console.error("Order sync failed", e);
-                Utils.showToast("Aviso: Pedido será finalizado no WhatsApp (Painel Offline)", "info");
+                Utils.showToast("Erro de conexão: Pedido não registrado no painel.", "error");
                 // Mesmo com erro, liberamos o usuário para ir ao WhatsApp
             }
 
@@ -194,12 +191,8 @@ const AtomicApp = (() => {
     // --- CATALOG MODULE ---
     const Catalog = {
         fetch: async () => {
-            // Safety timeout to prevent infinite spinner
-            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 8000));
-            const request = fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
-
             try {
-                const res = await Promise.race([request, timeout]);
+                const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
                 if (res.ok) {
                     const data = await res.json();
                     State.products = data.map(p => ({
@@ -212,11 +205,9 @@ const AtomicApp = (() => {
                     }));
                 }
             } catch (e) {
-                console.warn("Catalog load warning:", e);
-                // Keeps default empty state which renders "No Results"
-            } finally {
-                Catalog.render();
+                console.warn("Fallback to static catalog");
             }
+            Catalog.render();
         },
 
         fetchBanners: async () => {
@@ -353,7 +344,6 @@ const AtomicApp = (() => {
     // --- ANALYTICS ---
     const Analytics = {
         init: () => {
-            console.log("🔌 ATOMIC API:", CONFIG.SERVER_URL);
             // Wake Server
             fetch(`${CONFIG.SERVER_URL}/api/public/wake`).catch(() => {});
             // Track Visit
