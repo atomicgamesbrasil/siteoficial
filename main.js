@@ -487,11 +487,11 @@ function createCheckoutModal() {
 
     const overlay = document.createElement('div');
     overlay.id = 'checkoutModal';
-    overlay.className = 'modal-overlay z-[300]';
-    overlay.setAttribute('aria-hidden', 'true');
+    // CRITICAL: Force high z-index and styles to ensure visibility over cart
+    overlay.style.cssText = "position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); opacity: 0; visibility: hidden; transition: opacity 0.3s;";
     
     const modal = document.createElement('div');
-    modal.className = 'modal-base w-11/12 max-w-md bg-card-solid rounded-3xl shadow-2xl border border-base p-6 text-center transform scale-95 opacity-0 transition-all duration-300';
+    modal.className = 'modal-base w-11/12 max-w-md bg-card border border-base rounded-3xl shadow-2xl p-6 text-center transform scale-95 transition-all duration-300 bg-white dark:bg-slate-900';
     
     modal.innerHTML = `
         <div class="mb-6">
@@ -518,8 +518,12 @@ function createCheckoutModal() {
 
     // Event Listeners
     const close = () => {
-        overlay.classList.remove('open');
-        setTimeout(() => modal.classList.remove('scale-100', 'opacity-100'), 10);
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.visibility = 'hidden';
+            modal.classList.remove('scale-100');
+            modal.classList.add('scale-95');
+        }, 300);
     };
 
     document.getElementById('closeCheckoutBtn').onclick = (e) => { e.preventDefault(); close(); };
@@ -570,15 +574,21 @@ function checkoutWhatsApp() {
     // Injeta o modal se não existir
     if (!document.getElementById('checkoutModal')) createCheckoutModal();
     
+    // CRITICAL FIX: Close cart sidebar to prevent overlay/z-index issues
+    if (els.cartModal.classList.contains('open')) toggleCart();
+    
     const overlay = document.getElementById('checkoutModal');
     const modal = overlay.querySelector('.modal-base');
     const input = document.getElementById('checkoutName');
     
-    overlay.classList.add('open');
-    // Animação de entrada
+    // Show Modal with animation
+    overlay.style.visibility = 'visible';
+    overlay.style.opacity = '1';
+    
     requestAnimationFrame(() => {
-        modal.classList.add('scale-100', 'opacity-100');
-        input.focus();
+        modal.classList.remove('scale-95');
+        modal.classList.add('scale-100');
+        if(input) input.focus();
     });
 }
 
