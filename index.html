@@ -19,11 +19,6 @@
     <!-- CSS Crítico para evitar Flash of Unstyled Content (FOUC) do Skip Link -->
     <style>
         .skip-link { opacity: 0; position: absolute; top: -9999px; left: -9999px; z-index: -1; }
-        /* Fallback para garantir visibilidade caso JS falhe */
-        .reveal { opacity: 0; transition: all 0.8s ease-out; transform: translateY(30px); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-        /* Se o JS estiver desabilitado ou falhar criticamente, mostra o conteúdo */
-        @media (scripting: none) { .reveal { opacity: 1; transform: none; } }
     </style>
 
     <!-- Skip Link for Accessibility -->
@@ -82,29 +77,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     
     <!-- Scripts Externos (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script>
-        // FIX: Garante que o tailwind existe antes de configurar
-        window.addEventListener('DOMContentLoaded', () => {
-            if (typeof tailwind !== 'undefined') {
-                tailwind.config = {
-                    darkMode: 'class',
-                    theme: {
-                        extend: {
-                            colors: {
-                                gold: '#FFD700',
-                                'gold-dark': '#E6C200',
-                                orange: '#FF8C00',
-                            },
-                            fontFamily: {
-                                sans: ['Inter', 'sans-serif'],
-                                display: ['Space Grotesk', 'sans-serif'],
-                            }
-                        }
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#FFD700',
+                        'gold-dark': '#E6C200',
+                        orange: '#FF8C00',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
                     }
                 }
             }
-        });
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -183,23 +173,6 @@
         </div>
     </article>
 
-    <!-- Unified Install Guide Modal (Universal Support) -->
-    <div id="installGuideModal" class="modal-overlay z-[var(--z-modal)]" aria-hidden="true">
-        <div class="modal-base bg-card-solid p-8 rounded-3xl max-w-sm text-center shadow-2xl border border-base">
-            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center" id="guideIconContainer">
-                <i id="guideMainIcon" class="ph-bold ph-download-simple text-3xl text-yellow-500"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2" id="guideTitle">Instalar App</h3>
-            <p class="text-muted text-sm mb-6" id="guideText">Adicione nosso app à sua tela inicial para acesso rápido e offline.</p>
-            
-            <div class="flex justify-center gap-2 mb-6" id="guideSteps">
-                <!-- Steps injected by JS based on OS -->
-            </div>
-            
-            <button id="closeGuideModal" class="btn-secondary w-full py-3 text-sm">Entendi</button>
-        </div>
-    </div>
-
     <!-- Mobile Menu Overlay -->
     <div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true"></div>
     
@@ -215,19 +188,6 @@
             </div>
             
             <div class="flex-grow space-y-2">
-                <!-- INSTALL BUTTON MOBILE MENU (AESTHETIC FIX: GOLD GRADIENT CARD) -->
-                <button id="installAppBtnMobile" class="relative z-20 w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg hover:shadow-orange-500/50 transition-all transform active:scale-95 mb-6 group overflow-hidden">
-                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div class="w-10 h-10 rounded-xl bg-black/10 flex items-center justify-center"><i class="ph-fill ph-download-simple text-2xl"></i></div>
-                        <div class="text-left">
-                            <span class="font-bold text-lg leading-tight block">Instalar App</span>
-                            <span class="text-xs font-medium opacity-80 block">Acesso Offline & Rápido</span>
-                        </div>
-                    </div>
-                    <i class="ph-bold ph-caret-right text-xl relative z-10 opacity-70 group-hover:translate-x-1 transition-transform"></i>
-                </button>
-
                 <a href="#store" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-fill ph-storefront text-2xl text-black"></i></div>
                     <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span><p class="text-xs text-muted">Produtos e ofertas</p></div>
@@ -251,7 +211,7 @@
                 <div class="flex justify-center gap-4 pt-4">
                     <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
                     <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white dark:hover:text-black transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
                 </div>
             </div>
         </div>
@@ -292,17 +252,6 @@
                 <a href="#location" class="nav-link">Localização</a>
             </div>
             <div class="flex items-center gap-3">
-                
-                <!-- NEW: MOBILE HEADER INSTALL BUTTON (STRATEGIC POSITION - ALWAYS VISIBLE) -->
-                <button id="installAppBtnMobileHeader" class="md:hidden relative z-20 p-2 text-yellow-500 hover:bg-yellow-500/10 rounded-xl transition-all" aria-label="Baixar Aplicativo">
-                    <i class="ph-bold ph-download-simple text-2xl animate-pulse"></i>
-                </button>
-
-                <!-- DESKTOP INSTALL BUTTON -->
-                <button id="installAppBtnDesktop" class="hidden md:flex relative z-20 items-center gap-2 px-4 py-2 bg-yellow-400/10 text-yellow-600 dark:text-yellow-400 border border-yellow-400/30 rounded-full font-bold text-xs hover:bg-yellow-400 hover:text-black transition-all shadow-sm">
-                    <i class="ph-bold ph-download-simple text-lg"></i> <span>Baixar App</span>
-                </button>
-
                 <button id="themeToggle" class="p-3 rounded-xl hover:bg-base transition" aria-label="Alternar entre tema claro e escuro">
                     <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
                     <i class="ph ph-moon text-2xl block dark:hidden text-slate-700"></i>
