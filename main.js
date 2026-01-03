@@ -17,6 +17,30 @@ const CONFIG = {
 };
 const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
 
+// --- ANALYTICS CONFIGURATION (INTEGRAÇÃO PAINEL) ---
+const API_ANALYTICS_URL = "https://painel-atomic.onrender.com/api/public/visit";
+
+/**
+ * Envia métricas para o Painel Administrativo
+ * @param {'visit' | 'add_to_cart' | 'whatsapp'} type 
+ */
+const trackAtomicEvent = (type) => {
+    // 1. Controle de Sessão para Visitas (Anti-Flood)
+    if (type === 'visit') {
+        if (sessionStorage.getItem('atomic_visited')) return;
+        sessionStorage.setItem('atomic_visited', 'true');
+    }
+
+    // 2. Envio Assíncrono (Fire and Forget)
+    // keepalive: true garante que o request complete mesmo se a página mudar/fechar
+    fetch(API_ANALYTICS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+        keepalive: true
+    }).catch(err => console.warn('[Atomic Analytics] Error:', err));
+};
+
 // Initial Data
 const initialProducts = [
     { id: "1", name: "PlayStation 5 Slim", category: "console", price: "R$ 3.799,00", image: BASE_IMG_URL + "img%20site/console-ps5.webp", desc: "Digital Edition, 1TB SSD. O console mais rápido da Sony." },
@@ -440,7 +464,9 @@ function addToCart(id) {
         cart.push(p); 
         saveCart(); 
         updateCartUI(); 
-        showToast(`${p.name} adicionado!`); 
+        showToast(`${p.name} adicionado!`);
+        // TRACKING: Add to Cart Event
+        trackAtomicEvent('add_to_cart');
     } 
 }
 
@@ -465,6 +491,10 @@ function toggleMobileMenu() {
 
 function checkoutWhatsApp() {
     if (!cart.length) return showToast('Carrinho vazio!', 'error');
+    
+    // TRACKING: Checkout Intent
+    trackAtomicEvent('whatsapp');
+
     const msg = "Olá! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${els.cartTotal.textContent}*`;
     window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
 }
@@ -486,7 +516,11 @@ window.showProductDetail = function(id) {
     
     newBtn.onclick = () => { addToCart(id); closeProductDetail(); };
     
-    document.getElementById('modalWhatsappBtn').href = `https://wa.me/5521995969378?text=${encodeURIComponent(`Interesse em: ${p.name}`)}`;
+    const waBtn = document.getElementById('modalWhatsappBtn');
+    waBtn.href = `https://wa.me/5521995969378?text=${encodeURIComponent(`Interesse em: ${p.name}`)}`;
+    // TRACKING: Product Specific Lead
+    waBtn.onclick = () => trackAtomicEvent('whatsapp');
+
     els.detailModal.classList.add('open'); 
     els.detailOverlay.classList.add('open'); 
     document.body.style.overflow = 'hidden';
@@ -571,6 +605,9 @@ function initCharts(theme) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    // TRACKING: Visit Event (Anti-flood logic handles duplicate handling)
+    trackAtomicEvent('visit');
+
     // REGISTER SERVICE WORKER FOR PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -712,6 +749,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('serviceForm')?.addEventListener('submit', e => {
         e.preventDefault();
+        
+        // TRACKING: Service Lead (WhatsApp)
+        trackAtomicEvent('whatsapp');
+
         const fd = new FormData(e.target);
         const msg = `*SOLICITAÇÃO DE REPARO*\n\n👤 ${fd.get('clientName')}\n📱 ${fd.get('clientPhone')}\n🎮 ${fd.get('device')}\n⚠️ ${fd.get('issue')}`;
         window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
