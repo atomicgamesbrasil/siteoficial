@@ -13,7 +13,7 @@ const CONFIG = {
     GITHUB_REPO: "siteoficial",
     GITHUB_BRANCH: "main",
     // IMPORTANTE: VERIFIQUE SE ESTE LINK É O DO SEU RENDER
-    SERVER_URL: 'https://atomic-thiago-backend.onrender.com'
+    SERVER_URL: 'https://painel-atomic.onrender.com'
 };
 const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
 
