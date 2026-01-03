@@ -153,16 +153,22 @@ const AtomicApp = (() => {
             const total = UI.cartTotal.textContent;
             const itemsSummary = State.cart.map(i => i.name).join(', ');
 
-            // Send Order to Backend (Beacon / Fetch)
+            // Send Order to Backend
             try {
-                // Using sendBeacon as backup, but trying fetch with keepalive first
-                await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
+                const response = await fetch(`${CONFIG.SERVER_URL}/api/public/order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ customer: "Cliente WhatsApp", items: itemsSummary, total }),
                     keepalive: true
                 });
-            } catch (e) { console.error("Order sync failed", e); }
+                
+                if (!response.ok) throw new Error('Falha no servidor');
+
+            } catch (e) { 
+                console.error("Order sync failed", e);
+                Utils.showToast("Erro de conexão: Pedido não registrado no painel.", "error");
+                // Mesmo com erro, liberamos o usuário para ir ao WhatsApp
+            }
 
             // UX Delay for perception
             await new Promise(r => setTimeout(r, 1500));
