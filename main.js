@@ -487,13 +487,13 @@ function createCheckoutModal() {
 
     const overlay = document.createElement('div');
     overlay.id = 'checkoutModal';
-    // CRITICAL: Max integer z-index to ensure it sits on top of everything (cart, chat, navbar)
-    // Using inline styles to guarantee visibility over any class-based styles
-    overlay.style.cssText = "position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: all 0.3s;";
+    // CRITICAL: Max integer z-index. Display none by default, flex when active.
+    // Removed transitions to prevent "dark screen with no content" bug on some browsers.
+    overlay.style.cssText = "position: fixed; inset: 0; z-index: 2147483647; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);";
     
     const modal = document.createElement('div');
     // Force specific colors (white/dark-slate) to prevent transparency issues
-    modal.className = 'w-[90%] max-w-md bg-white dark:bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6 text-center transform scale-95 transition-all duration-300 relative';
+    modal.className = 'w-[90%] max-w-md bg-white dark:bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6 text-center relative';
     
     modal.innerHTML = `
         <button id="closeCheckoutX" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="ph-bold ph-x text-xl"></i></button>
@@ -523,12 +523,7 @@ function createCheckoutModal() {
 
     // Event Listeners
     const close = () => {
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-            overlay.style.visibility = 'hidden';
-            modal.classList.remove('scale-100');
-            modal.classList.add('scale-95');
-        }, 300);
+        overlay.style.display = 'none';
     };
 
     const closeBtn = document.getElementById('closeCheckoutX');
@@ -548,24 +543,23 @@ function createCheckoutModal() {
             
             const waUrl = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
 
-            // 2. AÇÃO SÍNCRONA DE REDIRECIONAMENTO (CRUCIAL PARA EVITAR BLOQUEIO DE POPUP)
-            // Tenta abrir em nova aba. Se falhar (bloqueador), redireciona na mesma aba.
-            const win = window.open(waUrl, '_blank');
-            if (!win || win.closed || typeof win.closed == 'undefined') {
-                window.location.href = waUrl;
-            }
-
-            // 3. ENVIA DADOS PARA O SERVIDOR EM BACKGROUND (NÃO ESPERA RESPOSTA)
+            // 2. ENVIA DADOS PARA O SERVIDOR EM BACKGROUND
             submitOrderToAPI(name);
             trackAtomicEvent('whatsapp');
 
+            // 3. REDIRECIONAMENTO FORÇADO (SOLUÇÃO NUCLEAR)
+            // Usa window.location.href para navegar na mesma aba. 
+            // Isso evita 100% dos bloqueadores de popup em celulares.
+            // O usuário voltará para o site pelo histórico ou reabrindo o app.
+            window.location.href = waUrl;
+            
             // 4. FECHA O MODAL
             close();
         }
     };
 }
 
-// Função separada apenas para a chamada de API, desacoplada do redirect
+// Função separada apenas para a chamada de API
 function submitOrderToAPI(customerName) {
     if (!cart.length) return;
 
@@ -579,7 +573,7 @@ function submitOrderToAPI(customerName) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData),
-        keepalive: true // Garante que o request termine mesmo se a página fechar
+        keepalive: true
     }).catch(e => console.error("Erro ao salvar pedido background", e));
 }
 
@@ -593,20 +587,12 @@ function checkoutWhatsApp() {
     if (els.cartModal.classList.contains('open')) toggleCart();
     
     const overlay = document.getElementById('checkoutModal');
-    const modal = overlay.querySelector('div:not(#checkoutModal)'); // Select inner modal div
     const input = document.getElementById('checkoutName');
     
-    // Show Modal with animation
-    overlay.style.visibility = 'visible';
-    overlay.style.opacity = '1';
+    // Show Modal (Simple display toggle, no animation to avoid bugs)
+    overlay.style.display = 'flex';
     
-    requestAnimationFrame(() => {
-        if(modal) {
-            modal.classList.remove('scale-95');
-            modal.classList.add('scale-100');
-        }
-        if(input) input.focus();
-    });
+    if(input) input.focus();
 }
 
 // EXPOSTA GLOBALMENTE para o Chatbot
