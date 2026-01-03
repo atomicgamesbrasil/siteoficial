@@ -17,8 +17,10 @@ const CONFIG = {
 };
 const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
 
-// --- ANALYTICS CONFIGURATION (INTEGRAÇÃO PAINEL) ---
-const API_ANALYTICS_URL = "https://painel-atomic.onrender.com/api/public/visit";
+// --- ANALYTICS & ORDERS CONFIGURATION (INTEGRAÇÃO PAINEL) ---
+const API_BASE_URL = "https://painel-atomic.onrender.com/api";
+const API_ANALYTICS_URL = `${API_BASE_URL}/public/visit`;
+const API_ORDER_URL = `${API_BASE_URL}/public/order`;
 
 /**
  * Envia métricas para o Painel Administrativo
@@ -32,7 +34,6 @@ const trackAtomicEvent = (type) => {
     }
 
     // 2. Envio Assíncrono (Fire and Forget)
-    // keepalive: true garante que o request complete mesmo se a página mudar/fechar
     fetch(API_ANALYTICS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,14 +106,9 @@ function updateInstallButtons() {
     const installBtnMobile = document.getElementById('installAppBtnMobile');
 
     if (isInStandaloneMode) {
-        // App IS Installed: FORCE HIDE buttons
-        // Using inline style to override any CSS or Tailwind classes
         if (installBtnDesktop) installBtnDesktop.style.display = 'none';
         if (installBtnMobile) installBtnMobile.style.display = 'none';
     } else {
-        // App NOT Installed: Reset inline styles
-        // Let CSS (Tailwind classes in HTML) control visibility
-        // Mobile btn has 'flex', Desktop btn has 'md:flex' in HTML
         if (installBtnDesktop) installBtnDesktop.style.display = '';
         if (installBtnMobile) installBtnMobile.style.display = '';
     }
@@ -120,7 +116,6 @@ function updateInstallButtons() {
 
 function handleInstallClick() {
     if (deferredPrompt) {
-        // 1. Standard Chrome/Edge/Samsung Method
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
@@ -129,7 +124,6 @@ function handleInstallClick() {
             deferredPrompt = null;
         });
     } else {
-        // 2. Fallback: Show Manual Instructions (Xiaomi/iOS/Desktop Safari)
         showManualGuide();
     }
 }
@@ -145,7 +139,6 @@ function showManualGuide() {
     if(!guideModal || !title) return;
 
     if (platform === 'ios') {
-        // iOS
         title.textContent = "Instalar no iPhone";
         text.innerHTML = "Toque em <strong class='text-blue-500'>Compartilhar</strong> e depois em <strong class='text-base'>Adicionar à Tela de Início</strong>.";
         icon.className = "ph-bold ph-share-network text-3xl text-blue-500";
@@ -160,7 +153,6 @@ function showManualGuide() {
                 <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-plus-square"></i> Tela de Início</div>
             </div>`;
     } else if (platform === 'android') {
-        // Android (Xiaomi/Manual)
         title.textContent = "Instalar App";
         text.innerHTML = "Toque no menu do navegador e selecione <strong class='text-base'>Instalar aplicativo</strong> ou <strong class='text-base'>Adicionar à tela inicial</strong>.";
         icon.className = "ph-bold ph-download-simple text-3xl text-yellow-500";
@@ -175,7 +167,6 @@ function showManualGuide() {
                 <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-download-simple"></i> Instalar</div>
             </div>`;
     } else {
-        // Desktop (Windows/Mac)
         title.textContent = "Instalar no Computador";
         text.innerHTML = "Procure pelo ícone de instalação <i class='ph-bold ph-download-simple'></i> na barra de endereço ou no menu do navegador.";
         icon.className = "ph-bold ph-desktop text-3xl text-purple-500";
@@ -489,14 +480,106 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
+// --- CHECKOUT & ORDERS LOGIC (NOVA IMPLEMENTAÇÃO) ---
+function createCheckoutModal() {
+    // Evita criar múltiplos modais
+    if (document.getElementById('checkoutModal')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'checkoutModal';
+    overlay.className = 'modal-overlay z-[300]';
+    overlay.setAttribute('aria-hidden', 'true');
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-base w-11/12 max-w-md bg-card-solid rounded-3xl shadow-2xl border border-base p-6 text-center transform scale-95 opacity-0 transition-all duration-300';
+    
+    modal.innerHTML = `
+        <div class="mb-6">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <i class="ph-fill ph-whatsapp-logo text-3xl text-green-500"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Quase lá!</h3>
+            <p class="text-muted text-sm">Para finalizar seu pedido no WhatsApp, como podemos te chamar?</p>
+        </div>
+        <form id="checkoutForm" class="space-y-4">
+            <div class="relative">
+                <i class="ph-bold ph-user absolute left-4 top-4 text-muted"></i>
+                <input type="text" id="checkoutName" required placeholder="Seu Nome ou Apelido" class="w-full bg-base border-2 border-base rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 transition font-medium" autocomplete="name">
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                <span>Finalizar Pedido</span> <i class="ph-bold ph-arrow-right"></i>
+            </button>
+        </form>
+        <button id="closeCheckoutBtn" class="mt-4 text-sm text-muted hover:text-red-500 transition">Cancelar</button>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Event Listeners
+    const close = () => {
+        overlay.classList.remove('open');
+        setTimeout(() => modal.classList.remove('scale-100', 'opacity-100'), 10);
+    };
+
+    document.getElementById('closeCheckoutBtn').onclick = (e) => { e.preventDefault(); close(); };
+    overlay.onclick = (e) => { if (e.target === overlay) close(); };
+
+    document.getElementById('checkoutForm').onsubmit = (e) => {
+        e.preventDefault();
+        const name = document.getElementById('checkoutName').value.trim();
+        if (name) submitOrder(name);
+        close();
+    };
+}
+
+async function submitOrder(customerName) {
+    if (!cart.length) return;
+
+    // 1. Prepara dados para o WhatsApp
+    const msg = `Olá! Sou *${customerName}* e gostaria de fechar o pedido:\n\n` + 
+                cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + 
+                `\n\n*Total: ${els.cartTotal.textContent}*`;
+
+    // 2. Prepara dados para o Painel (API)
+    const orderData = {
+        customer: customerName,
+        total: els.cartTotal.textContent,
+        // Formata os itens como string para o painel exibir
+        items: "[SITE] " + cart.map(i => `1x ${i.name} (${i.price})`).join(' | ')
+    };
+
+    // 3. Envia para o Painel (Fire and Forget)
+    fetch(API_ORDER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+        keepalive: true
+    }).catch(e => console.error("Erro ao salvar pedido", e));
+
+    // 4. Tracking
+    trackAtomicEvent('whatsapp');
+
+    // 5. Redireciona
+    window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
 function checkoutWhatsApp() {
     if (!cart.length) return showToast('Carrinho vazio!', 'error');
     
-    // TRACKING: Checkout Intent
-    trackAtomicEvent('whatsapp');
-
-    const msg = "Olá! Gostaria de fechar o pedido:\n\n" + cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + `\n\n*Total: ${els.cartTotal.textContent}*`;
-    window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
+    // Injeta o modal se não existir
+    if (!document.getElementById('checkoutModal')) createCheckoutModal();
+    
+    const overlay = document.getElementById('checkoutModal');
+    const modal = overlay.querySelector('.modal-base');
+    const input = document.getElementById('checkoutName');
+    
+    overlay.classList.add('open');
+    // Animação de entrada
+    requestAnimationFrame(() => {
+        modal.classList.add('scale-100', 'opacity-100');
+        input.focus();
+    });
 }
 
 // EXPOSTA GLOBALMENTE para o Chatbot
@@ -517,9 +600,17 @@ window.showProductDetail = function(id) {
     newBtn.onclick = () => { addToCart(id); closeProductDetail(); };
     
     const waBtn = document.getElementById('modalWhatsappBtn');
-    waBtn.href = `https://wa.me/5521995969378?text=${encodeURIComponent(`Interesse em: ${p.name}`)}`;
-    // TRACKING: Product Specific Lead
-    waBtn.onclick = () => trackAtomicEvent('whatsapp');
+    // Agora o botão "Negociar" do modal também aciona o fluxo de nome
+    waBtn.removeAttribute('href');
+    waBtn.removeAttribute('target');
+    waBtn.style.cursor = 'pointer';
+    waBtn.onclick = (e) => {
+        e.preventDefault();
+        // Adiciona ao carrinho se não estiver
+        if (!cart.some(x => x.id == id)) addToCart(id);
+        closeProductDetail();
+        setTimeout(checkoutWhatsApp, 300); // Pequeno delay para UX
+    };
 
     els.detailModal.classList.add('open'); 
     els.detailOverlay.classList.add('open'); 
