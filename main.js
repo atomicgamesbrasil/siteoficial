@@ -1,4 +1,5 @@
 
+
 // === GLOBAL PWA VARIABLES ===
 let deferredPrompt;
 
@@ -362,7 +363,8 @@ function updateCartUI() {
     let total = 0;
     const frag = document.createDocumentFragment();
     cart.forEach((item, idx) => {
-        total += parseFloat(item.price.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 0;
+        // FIX: Use Global Regex Replace /\./g to handle prices > 1k (e.g. 1.200,00)
+        total += parseFloat(item.price.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
         
         const div = document.createElement('div');
         div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
