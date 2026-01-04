@@ -425,10 +425,27 @@ function toggleMobileMenu() {
 function submitOrderToAPI(customerName) {
     if (!cart.length) return;
 
+    // 1. Agrega itens iguais (Quantidade)
+    const itemsMap = new Map();
+    cart.forEach(item => {
+        if (itemsMap.has(item.id)) {
+            itemsMap.get(item.id).quantity += 1;
+        } else {
+            itemsMap.set(item.id, {
+                id: item.id,
+                name: item.name,
+                image: item.image, // Snapshot da imagem no momento da compra
+                price: item.price,
+                quantity: 1
+            });
+        }
+    });
+    
+    // 2. Cria Payload Rico (Objeto JSON, não String)
     const orderData = {
         customer: customerName,
         total: els.cartTotal.textContent,
-        items: "[SITE] " + cart.map(i => `1x ${i.name} (${i.price})`).join(' | ')
+        items: Array.from(itemsMap.values())
     };
 
     // CRUCIAL: 'keepalive: true' garante que o browser termine essa request
