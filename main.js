@@ -1,608 +1,1000 @@
-<!DOCTYPE html>
-<html lang="pt-BR" class="light">
-<head>
-    <meta charset="UTF-8">
-    <!-- ATUALIZAÇÃO: interactive-widget=resizes-content ajuda o layout a reagir ao teclado virtual -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Atomic Games e Informática - Site Oficial</title>
-    
-    <!-- PWA Manifest & Meta -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#FFD700">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
-    
-    <!-- Canonical Tag (SEO) -->
-    <link rel="canonical" href="https://atomicgames.com.br">
+// === GLOBAL PWA VARIABLES ===
+let deferredPrompt;
 
-    <!-- CSS Crítico para evitar Flash of Unstyled Content (FOUC) do Skip Link -->
-    <style>
-        .skip-link { opacity: 0; position: absolute; top: -9999px; left: -9999px; z-index: -1; }
-    </style>
+// 1. Capture standard event immediately (Prevents race conditions)
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log("PWA install prompt captured");
+});
 
-    <!-- Skip Link for Accessibility -->
-    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
-    
-    <!-- FAVICON -->
-    <link rel="icon" type="image/webp" href="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
-    
-    <!-- SEO & Meta -->
-    <meta name="description" content="Atomic Games - A melhor loja de games e assistência técnica de Madureira, RJ. Consoles, jogos, acessórios e reparos especializados.">
-    <meta property="og:title" content="Atomic Games e Informática - Site Oficial">
-    <meta property="og:description" content="A melhor loja de games e assistência técnica de Madureira, RJ.">
-    <meta property="og:image" content="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="pt_BR">
+const CONFIG = {
+    GITHUB_USER: "atomicgamesbrasil",
+    GITHUB_REPO: "siteoficial",
+    GITHUB_BRANCH: "main",
+    CHAT_API: 'https://atomic-thiago-backend.onrender.com/chat'
+};
+const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
 
-    <!-- Schema.org (JSON-LD) - Local Business -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "ElectronicsStore",
-      "name": "Atomic Games e Informática",
-      "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-      "description": "A melhor loja de games e assistência técnica de Madureira, RJ. Especializada em PlayStation, Xbox, Nintendo e PC Gamer.",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Av. Ministro Edgard Romero, 81, Loja 3",
-        "addressLocality": "Rio de Janeiro",
-        "addressRegion": "RJ",
-        "addressCountry": "BR"
-      },
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "09:00",
-          "closes": "19:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": "Saturday",
-          "opens": "09:00",
-          "closes": "14:00"
-        }
-      ],
-      "priceRange": "$$",
-      "telephone": "+5521995969378",
-      "url": "https://atomicgames.com.br"
+// --- ANALYTICS & ORDERS CONFIGURATION (INTEGRAÇÃO PAINEL) ---
+const API_BASE_URL = "https://painel-atomic.onrender.com/api";
+const API_ANALYTICS_URL = `${API_BASE_URL}/public/visit`;
+const API_ORDER_URL = `${API_BASE_URL}/public/order`;
+
+/**
+ * Envia métricas para o Painel Administrativo
+ * Usa keepalive para garantir envio mesmo se a página fechar
+ */
+const trackAtomicEvent = (type) => {
+    // 1. Controle de Sessão para Visitas (Anti-Flood)
+    if (type === 'visit') {
+        if (sessionStorage.getItem('atomic_visited')) return;
+        sessionStorage.setItem('atomic_visited', 'true');
     }
-    </script>
-    
-    <!-- Preload Critical Resources -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Scripts Externos (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        gold: '#FFD700',
-                        'gold-dark': '#E6C200',
-                        orange: '#FF8C00',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Space Grotesk', 'sans-serif'],
-                    }
+
+    // 2. Envio Assíncrono Robusto
+    fetch(API_ANALYTICS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+        keepalive: true
+    }).catch(err => console.warn('[Atomic Analytics] Error:', err));
+};
+
+// Initial Data
+const initialProducts = [
+    { id: "1", name: "PlayStation 5 Slim", category: "console", price: "R$ 3.799,00", image: BASE_IMG_URL + "img%20site/console-ps5.webp", desc: "Digital Edition, 1TB SSD. O console mais rápido da Sony." },
+    { id: "2", name: "Xbox Series S", category: "console", price: "R$ 2.699,00", image: BASE_IMG_URL + "img%20site/console-xbox-s.webp", desc: "512GB SSD, Compacto e 100% digital." },
+    { id: "6", name: "God of War Ragnarok", category: "games", price: "R$ 299,00", image: BASE_IMG_URL + "img%20site/game-gow.webp", desc: "PS5 Mídia Física. Aventura épica." },
+    { id: "12", name: "Controle DualSense", category: "acessorios", price: "R$ 449,00", image: BASE_IMG_URL + "img%20site/acessorio-dualsense.webp", desc: "Original Sony. Controle sem fio." },
+    { id: "13", name: "Mouse Gamer Red Dragon", category: "acessorios", price: "R$ 149,90", image: "https://placehold.co/400x400/292524/FFD700?text=MOUSE", desc: "Mouse Redragon de alta precisão." }
+];
+
+// Dados Iniciais de Banners
+let promoBanners = [];
+
+const faqs = [
+    { q: "Vocês aceitam consoles usados na troca?", a: "Sim! Avaliamos seu console usado (PS4, Xbox One, Switch) como parte do pagamento." },
+    { q: "Qual o prazo de garantia dos serviços?", a: "Todos os nossos serviços de manutenção possuem 90 dias (3 meses) de garantia legal." },
+    { q: "Vocês montam PC Gamer?", a: "Com certeza! Temos consultoria especializada para montar o PC ideal para seu orçamento." },
+    { q: "Entregam em todo o Rio de Janeiro?", a: "Sim, trabalhamos com entregas expressas. Consulte taxa no WhatsApp." }
+];
+
+// --- CALCULATOR DATA (SOURCE OF TRUTH: MARKET RESEARCH PDF) ---
+// Baseado nas tabelas do relatório 2025-2026
+const CALCULATOR_DATA = {
+    console: {
+        label: "Console de Mesa",
+        models: {
+            ps5: {
+                name: "PlayStation 5",
+                services: {
+                    cleaning: { name: "Limpeza Preventiva (Metal Líquido)", min: 250, max: 450, note: "Risco Operacional Alto" },
+                    hdmi: { name: "Troca de Conector HDMI", min: 250, max: 400, note: "Micro-solda" },
+                    repair_board: { name: "Reparo de Placa (Não liga/Curto)", min: 400, max: 800, note: "Análise Avançada" }
+                }
+            },
+            ps4: {
+                name: "PlayStation 4 (Fat/Slim/Pro)",
+                services: {
+                    cleaning: { name: "Limpeza Completa + Pasta Térmica", min: 100, max: 150, note: "Preço de Combate" },
+                    hdmi: { name: "Troca de Conector HDMI", min: 250, max: 400, note: "Micro-solda" },
+                    repair_board: { name: "Reparo de Placa (Luz Azul)", min: 250, max: 450, note: "Reballing/Componentes" }
+                }
+            },
+            xbox_series: {
+                name: "Xbox Series S/X",
+                services: {
+                    cleaning: { name: "Limpeza Completa Interna", min: 100, max: 150, note: "Preventiva" },
+                    hdmi: { name: "Troca de Conector HDMI", min: 300, max: 450, note: "Alta Complexidade" },
+                    ssd: { name: "Troca de SSD/Erro E100", min: 150, max: 150, note: "+ Valor da Peça" }
                 }
             }
         }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    },
+    handheld: {
+        label: "Portátil",
+        models: {
+            switch: {
+                name: "Nintendo Switch (V1/V2/OLED)",
+                services: {
+                    drift: { name: "Reparo de Drift (Joy-Con)", min: 60, max: 120, note: "Por analógico (Hall Effect opcional)" },
+                    screen: { name: "Troca de Tela", min: 300, max: 600, note: "Alto Risco OLED" },
+                    cleaning: { name: "Limpeza e Troca de Pasta", min: 80, max: 120, note: "Preventiva" }
+                }
+            },
+            switch_lite: {
+                name: "Nintendo Switch Lite",
+                services: {
+                    drift: { name: "Reparo de Drift", min: 90, max: 120, note: "Desmontagem Completa" },
+                    screen: { name: "Troca de Tela LCD", min: 350, max: 500, note: "Mão de obra intensa" }
+                }
+            }
+        }
+    },
+    pc: {
+        label: "Computador / Notebook",
+        models: {
+            desktop: {
+                name: "PC Desktop / Gamer",
+                services: {
+                    format_simple: { name: "Formatação Simples (Drivers)", min: 50, max: 80, note: "Sem Backup" },
+                    format_complete: { name: "Formatação Técnica Completa", min: 100, max: 150, note: "Com Backup e Softwares" },
+                    cleaning: { name: "Limpeza Gamer (Cable Management)", min: 120, max: 180, note: "Complexidade Gabinete" }
+                }
+            },
+            notebook: {
+                name: "Notebook",
+                services: {
+                    format_simple: { name: "Formatação Simples", min: 50, max: 80, note: "Sem Backup" },
+                    cleaning: { name: "Limpeza Interna e Pasta", min: 100, max: 150, note: "Risco de Carcaça" },
+                    screen: { name: "Troca de Tela", min: 80, max: 150, note: "+ Custo da Tela (Variável)" }
+                }
+            }
+        }
+    },
+    accessory: {
+        label: "Acessórios",
+        models: {
+            controller: {
+                name: "Controle (DualSense/Xbox)",
+                services: {
+                    drift: { name: "Reparo de Analógico (Drift)", min: 50, max: 120, note: "Potenciômetro" },
+                    battery: { name: "Troca de Bateria", min: 90, max: 120, note: "Peça Inclusa" }
+                }
+            }
+        }
+    }
+};
+
+const LOGISTICS_COST = {
+    shop: 0,            // Levar na Loja
+    pickup_close: 0,    // < 5km
+    pickup_far: 30      // 5-15km
+};
+
+// State & DOM Elements Cache
+let allProducts = [...initialProducts];
+let cart = [];
+let currentFilter = 'all';
+let debounceTimer;
+let els = {}; // Cached DOM elements
+
+// Utils
+const formatPrice = p => typeof p === 'number' ? p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (String(p).includes('R$') ? p : parseFloat(String(p).replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+
+const showToast = (msg, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const icon = document.createElement('i');
+    icon.className = `ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl`;
+    const text = document.createElement('span');
+    text.textContent = msg;
+    toast.appendChild(icon);
+    toast.appendChild(text);
+    els.toastContainer.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px) scale(0.8)'; setTimeout(() => toast.remove(), 300); }, 3000);
+};
+
+const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
+
+// --- PWA LOGIC (VISIBLE BY DEFAULT STRATEGY) ---
+function detectPlatform() {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+    if (/android/.test(ua)) return 'android';
+    if (/mac os/.test(ua)) return 'mac';
+    if (/windows/.test(ua)) return 'windows';
+    return 'generic';
+}
+
+function updateInstallButtons() {
+    const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) ||
+                               (window.navigator.standalone === true) || 
+                               (document.referrer.includes('android-app://'));
     
-    <!-- Hojas de Estilo Propias -->
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body class="antialiased bg-base text-base transition-colors duration-500" id="top">
+    const installBtnDesktop = document.getElementById('installAppBtnDesktop');
+    const installBtnMobile = document.getElementById('installAppBtnMobile');
+
+    if (isInStandaloneMode) {
+        if (installBtnDesktop) installBtnDesktop.style.display = 'none';
+        if (installBtnMobile) installBtnMobile.style.display = 'none';
+    } else {
+        if (installBtnDesktop) installBtnDesktop.style.display = '';
+        if (installBtnMobile) installBtnMobile.style.display = '';
+    }
+}
+
+function handleInstallClick() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') { console.log('User accepted install'); }
+            deferredPrompt = null;
+        });
+    } else {
+        showManualGuide();
+    }
+}
+
+function showManualGuide() {
+    const guideModal = document.getElementById('installGuideModal');
+    const title = document.getElementById('guideTitle');
+    const text = document.getElementById('guideText');
+    const steps = document.getElementById('guideSteps');
+    const icon = document.getElementById('guideMainIcon');
+    const platform = detectPlatform();
+
+    if(!guideModal || !title) return;
+
+    if (platform === 'ios') {
+        title.textContent = "Instalar no iPhone";
+        text.innerHTML = "Toque em <strong class='text-blue-500'>Compartilhar</strong> e depois em <strong class='text-base'>Adicionar à Tela de Início</strong>.";
+        icon.className = "ph-bold ph-share-network text-3xl text-blue-500";
+        steps.innerHTML = `
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">1. Toque aqui</span>
+                <i class="ph-bold ph-export text-2xl animate-bounce"></i>
+            </div>
+            <div class="w-px h-10 bg-base mx-2"></div>
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">2. Selecione</span>
+                <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-plus-square"></i> Tela de Início</div>
+            </div>`;
+    } else if (platform === 'android') {
+        title.textContent = "Instalar App";
+        text.innerHTML = "Toque no menu do navegador e selecione <strong class='text-base'>Instalar aplicativo</strong> ou <strong class='text-base'>Adicionar à tela inicial</strong>.";
+        icon.className = "ph-bold ph-download-simple text-3xl text-yellow-500";
+        steps.innerHTML = `
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">1. Menu</span>
+                <i class="ph-bold ph-dots-three-vertical text-2xl animate-bounce"></i>
+            </div>
+            <div class="w-px h-10 bg-base mx-2"></div>
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">2. Opção</span>
+                <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold"><i class="ph-bold ph-download-simple"></i> Instalar</div>
+            </div>`;
+    } else {
+        title.textContent = "Instalar no Computador";
+        text.innerHTML = "Procure pelo ícone de instalação <i class='ph-bold ph-download-simple'></i> na barra de endereço ou no menu do navegador.";
+        icon.className = "ph-bold ph-desktop text-3xl text-purple-500";
+        steps.innerHTML = `
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-xs font-bold text-muted">Chrome / Edge</span>
+                <div class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs font-bold">Barra de Endereço</div>
+            </div>`;
+    }
     
-    <!-- Mesh Gradient Background -->
-    <div class="mesh-gradient" aria-hidden="true"></div>
+    guideModal.classList.add('open');
+}
+// --- END PWA LOGIC ---
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
+// Core Functions
+function renderSkeletons() {
+    els.productGrid.innerHTML = '';
+    els.loadMore.classList.add('hidden');
+    els.noResults.classList.add('hidden');
+    
+    const count = window.innerWidth < 768 ? 4 : 8;
+    const frag = document.createDocumentFragment();
 
-    <!-- Back To Top (MOVIDO PARA A ESQUERDA) -->
-    <button id="backToTop" class="fixed bottom-6 left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
-        <i class="ph-bold ph-arrow-up text-xl"></i>
-    </button>
+    for(let i=0; i<count; i++) {
+        const article = document.createElement('article');
+        article.className = 'product-card bg-card border border-base flex flex-col h-full opacity-80';
+        article.innerHTML = `
+            <div class="product-img-box skeleton h-48 w-full opacity-50"></div>
+            <div class="p-4 flex-grow flex flex-col gap-3">
+                <div class="skeleton h-4 w-3/4"></div>
+                <div class="skeleton h-3 w-full"></div>
+                <div class="mt-auto flex justify-between items-end">
+                    <div class="skeleton h-6 w-24"></div>
+                    <div class="skeleton h-10 w-10 rounded-xl"></div>
+                </div>
+            </div>
+        `;
+        frag.appendChild(article);
+    }
+    els.productGrid.appendChild(frag);
+}
 
-    <!-- ============================================
-         ATOMIC CHAT WIDGET 2.0
-         ============================================ -->
-    <div id="atomic-chat-widget">
-        <!-- Floating Bubble -->
-        <div id="chatBubble" class="chat-bubble" role="button" aria-label="Abrir Chat" tabindex="0">
-            <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
-            <div id="chatBadge" class="chat-bubble-badge badge-pulse">1</div>
-        </div>
+async function loadGamesFromGitHub() {
+    renderSkeletons(); 
+    try {
+        const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.length) allProducts = data.map(p => ({
+                id: (p.id || Date.now() + Math.random()).toString(),
+                name: p.name || "Produto",
+                category: p.category ? (p.category.toLowerCase().includes('console') ? 'console' : p.category.toLowerCase().includes('acess') ? 'acessorios' : p.category.toLowerCase().match(/pc|hardware/) ? 'hardware' : 'games') : 'games',
+                price: formatPrice(p.price),
+                image: (p.image || "").replace('/img/', '/img%20site/') || "https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC",
+                desc: p.desc || "Sem descrição."
+            }));
+        }
+    } catch (e) { console.warn("Using fallback catalog"); }
+    renderProducts(currentFilter, els.searchInput.value);
+}
+
+async function loadBannersFromGitHub() {
+    try {
+        const res = await fetch(`${BASE_IMG_URL}banners.json?t=${Date.now()}`);
+        if (res.ok) { promoBanners = await res.json(); } else { promoBanners = []; }
+    } catch (e) { promoBanners = []; }
+    renderPromos();
+}
+
+function renderPromos() {
+    const container = document.getElementById('promoBannersContainer');
+    if(!container) return;
+
+    const validBanners = promoBanners.filter(b => b.image && b.image.trim() !== '');
+    if(!validBanners.length) { container.style.display = 'none'; return; }
+
+    container.innerHTML = '';
+    container.style.display = '';
+
+    const sortedBanners = [
+        validBanners.find(b => b.id === 'banner_1'),
+        validBanners.find(b => b.id === 'banner_2')
+    ].filter(b => b);
+
+    if (sortedBanners.length === 0) return;
+
+    const frag = document.createDocumentFragment();
+    sortedBanners.forEach(banner => {
+        const link = document.createElement('a');
+        link.className = 'promo-banner-link group';
+        link.href = banner.link || '#';
+        if(banner.link && banner.link.startsWith('http')) {
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+        }
         
-        <!-- Main Chat Window -->
-        <div id="chatWindow" class="chat-window">
-            <header class="chat-header">
-                <div class="chat-header-info">
-                    <div class="chat-avatar-small"><img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Thiago"></div>
-                    <div class="chat-status"><h4>Thiago - Atomic</h4><span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online Agora</span></div>
-                </div>
-                <div class="flex gap-2">
-                    <button id="resetChatBtn" class="chat-close-btn text-white/80 hover:text-red-500 hover:bg-white/20" aria-label="Reiniciar Conversa" title="Reiniciar Conversa"><i class="ph-bold ph-trash text-lg"></i></button>
-                    <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
-                </div>
-            </header>
-            
-            <div id="chatMessages" class="chat-messages">
-                <!-- Messages Injected Here -->
-            </div>
-            
-            <footer class="chat-input-area">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
-                <button id="sendBtn" class="chat-send-btn" aria-label="Enviar"><i class="ph-fill ph-paper-plane-right"></i></button>
-            </footer>
-        </div>
-    </div>
+        const imgUrl = `${BASE_IMG_URL}BANNER%20SAZIONAL/${encodeURIComponent(banner.image)}`;
+        const img = document.createElement('img');
+        img.src = imgUrl; img.alt = banner.id; img.className = 'promo-banner-img'; img.loading = 'lazy';
+        
+        const shine = document.createElement('div');
+        shine.className = 'absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none';
+        
+        link.appendChild(img); link.appendChild(shine);
+        frag.appendChild(link);
+    });
+    container.appendChild(frag);
+}
 
-    <!-- Product Detail Modal -->
-    <div id="productDetailOverlay" class="modal-overlay" aria-hidden="true"></div>
-    <article id="productDetailModal" class="modal-base w-11/12 max-w-4xl bg-card-solid rounded-3xl shadow-2xl border border-base overflow-hidden" role="dialog" aria-labelledby="modalProductName" aria-modal="true">
-        <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
-            <span class="text-sm font-bold text-muted uppercase tracking-wider">Detalhes do Produto</span>
-            <button id="closeDetailBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar detalhes do produto"><i class="ph-bold ph-x text-xl"></i></button>
-        </div>
-        <div class="p-6 md:p-8 grid md:grid-cols-2 gap-6 md:gap-8 max-h-[80vh] overflow-y-auto">
-            <figure class="relative bg-base rounded-2xl p-6 flex items-center justify-center min-h-64">
-                <img id="modalProductImage" src="" alt="" class="max-h-80 w-auto object-contain drop-shadow-2xl">
-                <span id="modalProductCategory" class="category-tag absolute top-4 left-4"></span>
-            </figure>
-            <div class="space-y-6">
-                <h2 id="modalProductName" class="text-3xl font-bold text-base">Nome do Produto</h2>
-                <p id="modalProductDescription" class="text-muted text-lg leading-relaxed">Descrição detalhada do produto.</p>
-                <div class="flex items-center justify-between pt-4 border-t border-base">
-                    <span id="modalProductPrice" class="font-bold text-4xl text-gradient">R$ 0,00</span>
-                    <button id="modalAddToCartBtn" class="flex items-center gap-2 btn-primary text-base px-6 py-3"><i class="ph-bold ph-plus text-xl"></i> Adicionar</button>
-                </div>
-                <a id="modalWhatsappBtn" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all hover:-translate-y-1"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp</a>
-            </div>
-        </div>
-    </article>
+function renderProducts(filter, term = "", forceAll = false) {
+    const lowerTerm = term.toLowerCase();
+    const filtered = allProducts.filter(p => 
+        (filter === 'all' || (p.category || 'games').toLowerCase().includes(filter)) &&
+        (!term || p.name.toLowerCase().includes(lowerTerm) || (p.desc && p.desc.toLowerCase().includes(lowerTerm)))
+    );
 
-    <!-- Mobile Menu Overlay -->
-    <div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true"></div>
+    const limit = (window.innerWidth < 768) ? 6 : 10;
+    const toShow = forceAll || term ? filtered : filtered.slice(0, limit);
     
-    <!-- Mobile Menu -->
-    <nav class="mobile-menu bg-card-solid" id="mobileMenu" aria-label="Menu de navegação móvel">
-        <div class="h-full flex flex-col p-6">
-            <div class="flex justify-between items-center mb-8">
-                <div class="flex items-center gap-3">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="" class="h-12 w-12 rounded-full shadow-lg bg-black glow-gold">
-                    <span class="font-bold text-xl brand-font">ATOMIC</span>
-                </div>
-                <button id="closeMobileMenuBtn" class="p-3 rounded-xl bg-base hover:bg-card transition" aria-label="Fechar menu"><i class="ph-bold ph-x text-xl"></i></button>
-            </div>
-            
-            <div class="flex-grow space-y-2">
-                <a href="#store" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-fill ph-storefront text-2xl text-black"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span><p class="text-xs text-muted">Produtos e ofertas</p></div>
-                </a>
-                <a href="#services" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-wrench text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Assistência</span><p class="text-xs text-muted">Reparos especializados</p></div>
-                </a>
-                <a href="#dashboard" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-star text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Depoimentos</span><p class="text-xs text-muted">O que falam da gente</p></div>
-                </a>
-                <a href="#location" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-map-pin text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Localização</span><p class="text-xs text-muted">Visite nosso QG</p></div>
-                </a>
-            </div>
-            
-            <div class="mt-auto space-y-4">
-                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
-                <div class="flex justify-center gap-4 pt-4">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Cart Overlay -->
-    <div class="modal-overlay" id="cartOverlay" aria-hidden="true"></div>
-    <aside class="cart-modal bg-card-solid border-l border-base shadow-2xl" id="cartModal" role="dialog" aria-labelledby="cartTitle" aria-modal="true">
-        <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
-            <h2 id="cartTitle" class="font-bold text-xl flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-shopping-cart text-black"></i></div>
-                Seu Carrinho
-            </h2>
-            <button id="closeCartBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar carrinho"><i class="ph-bold ph-x text-xl"></i></button>
-        </div>
-        <div class="flex-grow overflow-y-auto p-5 space-y-4" id="cartItemsContainer"></div>
-        <div class="p-5 border-t border-base bg-base">
-            <div class="flex justify-between items-center mb-4"><span class="text-muted font-medium">Subtotal</span><span id="cartTotal" class="font-bold text-2xl text-gradient">R$ 0,00</span></div>
-            <button class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" id="checkoutBtn" disabled><i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp</button>
-            <p class="text-center text-xs text-muted mt-3">Pagamento e entrega combinados no chat</p>
-        </div>
-    </aside>
-
-    <!-- Navbar -->
-    <header class="sticky top-0 z-[var(--z-nav)] glass border-b border-base shadow-sm transition-all duration-300" id="navbar">
-        <nav class="container mx-auto px-4 lg:px-8 h-20 flex justify-between items-center" aria-label="Navegação principal">
-            <div class="flex items-center gap-4">
-                <button id="mobileMenuOpenBtn" class="md:hidden p-2 rounded-xl hover:bg-base transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobileMenu"><i class="ph-bold ph-list text-2xl"></i></button>
-                <a href="#top" class="flex items-center gap-3 hover:opacity-90 transition transform hover:scale-105 duration-300" aria-label="Atomic Games - Página inicial">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo Atomic Games" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50 glow-gold">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic Games" class="h-7 w-auto hidden sm:block">
-                </a>
-            </div>
-            <div class="hidden md:flex gap-8 font-semibold text-sm uppercase tracking-wide text-muted">
-                <a href="#store" class="nav-link active">Loja Virtual</a>
-                <a href="#services" class="nav-link">Assistência</a>
-                <a href="#dashboard" class="nav-link">Depoimentos</a>
-                <a href="#location" class="nav-link">Localização</a>
-            </div>
-            <div class="flex items-center gap-3">
-                <button id="themeToggle" class="p-3 rounded-xl hover:bg-base transition" aria-label="Alternar entre tema claro e escuro">
-                    <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
-                    <i class="ph ph-moon text-2xl block dark:hidden text-slate-700"></i>
-                </button>
-                <button id="openCartBtn" class="relative p-3 rounded-xl hover:bg-base transition group" aria-label="Abrir carrinho de compras">
-                    <i class="ph-bold ph-shopping-cart text-2xl group-hover:text-yellow-500 transition"></i>
-                    <span id="cartCount" class="badge hidden" aria-live="polite">0</span>
-                </button>
-                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="hidden lg:flex items-center gap-2 btn-primary text-sm"><i class="ph-bold ph-whatsapp-logo text-lg"></i><span>Fale Conosco</span></a>
-            </div>
-        </nav>
-    </header>
-
-    <main id="main-content">
-        <!-- Hero Section -->
-        <section class="hero-section" aria-labelledby="hero-title">
-            <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-10 md:gap-16">
-                <div class="md:w-1/2 space-y-7 flex flex-col items-center md:items-start text-center md:text-left reveal">
-                    <div class="block md:hidden w-[calc(100%+2rem)] -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-3xl shadow-2xl relative h-48">
-                        <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" alt="Atomic Games Banner" class="w-full h-full object-cover" loading="eager">
-                    </div>
-                    <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full text-xs font-extrabold uppercase tracking-wider shadow-lg transform hover:scale-105 transition cursor-default glow-gold">
-                        <i class="ph-fill ph-map-pin icon-bounce"></i> Madureira - RJ
-                    </div>
-                    <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] text-base">O Quartel General do <span class="text-gradient">Gamer Carioca</span></h1>
-                    <p class="text-lg md:text-xl text-muted font-medium max-w-lg leading-relaxed">Console quebrado? PC lento? Ou procurando aquele upgrade? Somos <strong class="text-base">especialistas em assistência técnica</strong> e a loja mais completa da região.</p>
-                    <div class="flex flex-col sm:flex-row gap-4 pt-2 w-full md:w-auto">
-                        <a href="#store" class="btn-primary pulse-glow flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-shopping-bag text-lg"></i> Ver Produtos</a>
-                        <a href="#services" class="btn-secondary flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-wrench"></i> Assistência Técnica</a>
-                    </div>
-                    <div class="flex flex-wrap justify-center md:justify-start gap-6 pt-4" role="list" aria-label="Diferenciais">
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"><i class="ph-fill ph-shield-check text-green-500 text-lg"></i></div><span>Garantia Real</span></div>
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center"><i class="ph-fill ph-star text-yellow-500 text-lg"></i></div><span>4.9 no Google</span></div>
-                        <div class="flex items-center gap-2 text-sm text-muted" role="listitem"><div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"><i class="ph-fill ph-users text-blue-500 text-lg"></i></div><span>+5000 Clientes</span></div>
-                    </div>
-                </div>
-                <div class="md:w-1/2 w-full flex justify-center reveal" style="transition-delay: 200ms;">
-                    <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
-                        <button class="video-facade" id="videoFacade" data-video-id="YCsT_InlNWw" type="button" aria-label="Reproduzir vídeo">
-                            <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail Vídeo" onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
-                            <div class="play-btn" aria-hidden="true"><i class="ph-fill ph-play text-3xl text-black ml-1"></i></div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-4 left-4 right-4 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-youtube-logo text-black text-xl"></i></div>
-                                <div class="text-white"><p class="font-bold text-sm">Conheça a Atomic</p><p class="text-xs opacity-80">Assista ao vídeo</p></div>
-                            </div>
-                        </button>
-                        <div id="videoContainer" class="w-full h-full hidden"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Store Section -->
-        <section id="store" class="py-24 bg-base scroll-mt-20" aria-labelledby="store-title">
-            <div class="container mx-auto px-4 lg:px-8">
-                <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 reveal">
-                    <div>
-                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-storefront"></i> Nossa Loja</span>
-                        <h2 id="store-title" class="text-4xl md:text-5xl font-black mb-3 text-base">Catálogo <span class="text-gradient">Atomic</span></h2>
-                        <p class="text-muted text-lg max-w-md">Adicione itens ao carrinho e finalize pelo WhatsApp. Preços imbatíveis!</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                        <div class="relative group w-full sm:w-72">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="ph-bold ph-magnifying-glass text-muted group-focus-within:text-yellow-500 transition"></i></div>
-                            <label for="searchInput" class="sr-only">Buscar produto</label>
-                            <input type="search" id="searchInput" placeholder="Buscar produto..." class="w-full bg-card text-base border-2 border-base rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-yellow-500 transition-all duration-300 text-sm font-medium shadow-sm hover:border-yellow-500/50">
-                        </div>
-                    </div>
-                </header>
-
-                <!-- PROMO HIGHLIGHT AREA (Inserção Nova) -->
-                <!-- Container populado via JS para suportar painel administrativo futuramente -->
-                <div id="promoBannersContainer" class="reveal">
-                    <!-- JavaScript will inject banners here -->
-                </div>
-                <!-- FIM PROMO HIGHLIGHT AREA -->
-
-                <div class="flex overflow-x-auto pb-4 md:pb-0 mb-12 gap-3 snap-x hide-scrollbar reveal" id="categoryFilters" role="group" aria-label="Filtros">
-                    <button class="filter-btn active px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 snap-center" data-category="all" aria-pressed="true"><i class="ph-fill ph-lightning mr-2"></i> Destaques</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-blue-400 hover:text-blue-600 transition-all snap-center" data-category="console" aria-pressed="false"><i class="ph-bold ph-game-controller mr-2"></i> Consoles</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-green-400 hover:text-green-600 transition-all snap-center" data-category="games" aria-pressed="false"><i class="ph-bold ph-disc mr-2"></i> Jogos</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-purple-400 hover:text-purple-600 transition-all snap-center" data-category="acessorios" aria-pressed="false"><i class="ph-bold ph-headphones mr-2"></i> Acessórios</button>
-                    <button class="filter-btn px-6 py-3 rounded-2xl text-sm font-bold border-2 border-base bg-card text-muted hover:border-red-400 hover:text-red-600 transition-all snap-center" data-category="hardware" aria-pressed="false"><i class="ph-bold ph-cpu mr-2"></i> Hardware</button>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6 reveal" id="productGrid" role="list" aria-live="polite">
-                    <div class="col-span-full py-16 text-center text-muted">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-card flex items-center justify-center animate-pulse"><i class="ph-duotone ph-spinner text-3xl"></i></div>
-                        <p>Carregando catálogo...</p>
-                    </div>
-                </div>
-                <div id="loadMoreContainer" class="hidden text-center mt-14 reveal">
-                    <button id="btnLoadMore" class="group px-10 py-4 border-2 border-base bg-card text-base rounded-2xl font-bold hover:border-yellow-500 hover:text-yellow-600 transition-all shadow-sm hover:shadow-lg">Ver Todos os Produtos <i class="ph-bold ph-caret-down ml-2 group-hover:translate-y-1 transition-transform inline-block"></i></button>
-                </div>
-                <div id="noResults" class="hidden text-center py-20">
-                    <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-card flex items-center justify-center"><i class="ph-duotone ph-magnifying-glass text-5xl text-muted"></i></div>
-                    <h3 class="text-2xl font-bold mb-2">Nenhum produto encontrado</h3><p class="text-muted">Tente buscar por outro termo</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Services Section (CALCULADORA ATUALIZADA) -->
-        <section id="services" class="py-24 bg-card scroll-mt-20" aria-labelledby="services-title">
-            <div class="container mx-auto px-4 lg:px-8 grid lg:grid-cols-2 gap-16 items-start">
-                <div class="reveal sticky top-28">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-calculator"></i> Calculadora Oficial</span>
-                    <h2 id="services-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-10">Orçamento <span class="text-gradient">Inteligente</span></h2>
-                    <p class="text-muted text-lg mb-8 leading-relaxed">
-                        Nossa nova calculadora utiliza dados de mercado atualizados (2025) para entregar uma estimativa precisa e justa.
-                    </p>
-                    <div class="space-y-4">
-                        <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-chart-line-up"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Precificação Técnica</h3><p class="text-muted text-lg">Baseada na complexidade e risco de cada aparelho.</p></div>
-                        </div>
-                        <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-scooter"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Logística Flexível</h3><p class="text-muted text-lg">Leve na loja ou solicite coleta em domicílio.</p></div>
-                        </div>
-                        <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-shield-check"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Transparência</h3><p class="text-muted text-lg">Sem surpresas. Você sabe o que paga.</p></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bento-card p-6 md:p-8 relative overflow-hidden reveal noise-overlay border-2 border-yellow-500/20">
-                    <div class="absolute top-0 right-0 w-40 h-40 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" aria-hidden="true"></div>
-                    
-                    <div class="flex items-center gap-4 mb-6 relative z-10 border-b border-base pb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-wrench text-2xl text-black"></i></div>
-                        <div><h3 class="text-2xl font-bold">Simular Reparo</h3><p class="text-sm text-muted">Preencha os passos abaixo</p></div>
-                    </div>
-                    
-                    <form id="serviceForm" class="space-y-5 relative z-10">
-                        <!-- Dados do Cliente -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="calc-name" class="block text-sm font-semibold mb-2 text-muted">Seu Nome</label>
-                                <input type="text" id="calc-name" name="clientName" placeholder="Ex: João Silva" required class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
-                            </div>
-                            <div>
-                                <label for="calc-phone" class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label>
-                                <input type="tel" id="calc-phone" name="clientPhone" placeholder="(21) 99999-9999" required class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
-                            </div>
-                        </div>
-
-                        <!-- Passo 1: Categoria -->
-                        <div>
-                            <label for="calc-category" class="block text-sm font-semibold mb-2 text-muted">1. Qual o tipo de aparelho?</label>
-                            <div class="relative">
-                                <i class="ph-bold ph-devices absolute left-4 top-4 text-muted"></i>
-                                <select id="calc-category" name="category" required class="w-full p-3.5 pl-12 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer appearance-none">
-                                    <option value="" disabled selected>Selecione a categoria...</option>
-                                    <option value="console">Console de Mesa (PS5, Xbox, etc)</option>
-                                    <option value="handheld">Portátil (Switch, Lite, etc)</option>
-                                    <option value="pc">Computador / Notebook</option>
-                                    <option value="accessory">Acessórios (Controles)</option>
-                                </select>
-                                <i class="ph-bold ph-caret-down absolute right-4 top-4 text-muted pointer-events-none"></i>
-                            </div>
-                        </div>
-
-                        <!-- Passo 2: Modelo (Dinâmico) -->
-                        <div id="step-model" class="hidden animate-fade-in-down">
-                            <label for="calc-model" class="block text-sm font-semibold mb-2 text-muted">2. Qual o modelo?</label>
-                            <div class="relative">
-                                <i class="ph-bold ph-game-controller absolute left-4 top-4 text-muted"></i>
-                                <select id="calc-model" name="model" required class="w-full p-3.5 pl-12 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer appearance-none">
-                                    <option value="" disabled selected>Aguardando categoria...</option>
-                                </select>
-                                <i class="ph-bold ph-caret-down absolute right-4 top-4 text-muted pointer-events-none"></i>
-                            </div>
-                        </div>
-
-                        <!-- Passo 3: Serviço/Defeito (Dinâmico) -->
-                        <div id="step-service" class="hidden animate-fade-in-down">
-                            <label for="calc-service" class="block text-sm font-semibold mb-2 text-muted">3. Qual o serviço ou defeito?</label>
-                            <div class="relative">
-                                <i class="ph-bold ph-warning-circle absolute left-4 top-4 text-muted"></i>
-                                <select id="calc-service" name="service" required class="w-full p-3.5 pl-12 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer appearance-none">
-                                    <option value="" disabled selected>Aguardando modelo...</option>
-                                </select>
-                                <i class="ph-bold ph-caret-down absolute right-4 top-4 text-muted pointer-events-none"></i>
-                            </div>
-                        </div>
-
-                        <!-- Passo 4: Logística -->
-                        <div id="step-logistics" class="hidden animate-fade-in-down">
-                            <label for="calc-logistics" class="block text-sm font-semibold mb-2 text-muted">4. Como prefere ser atendido?</label>
-                            <div class="grid grid-cols-1 gap-3">
-                                <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-base border-2 border-base cursor-pointer hover:border-yellow-500 transition group">
-                                    <input type="radio" name="logistics" value="shop" checked class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
-                                    <div class="flex-grow">
-                                        <span class="font-bold block text-sm group-hover:text-yellow-500 transition">Levar na Loja (Madureira)</span>
-                                        <span class="text-xs text-muted">Sem custo adicional</span>
-                                    </div>
-                                    <i class="ph-fill ph-storefront text-xl text-muted group-hover:text-yellow-500"></i>
-                                </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-base border-2 border-base cursor-pointer hover:border-blue-500 transition group">
-                                    <input type="radio" name="logistics" value="pickup_close" class="w-5 h-5 text-blue-500 focus:ring-blue-500 bg-card border-gray-300">
-                                    <div class="flex-grow">
-                                        <span class="font-bold block text-sm group-hover:text-blue-500 transition">Coleta Domiciliar (Até 5km)</span>
-                                        <span class="text-xs text-muted">Retirada Gratuita</span>
-                                    </div>
-                                    <i class="ph-fill ph-moped text-xl text-muted group-hover:text-blue-500"></i>
-                                </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-base border-2 border-base cursor-pointer hover:border-green-500 transition group">
-                                    <input type="radio" name="logistics" value="pickup_far" class="w-5 h-5 text-green-500 focus:ring-green-500 bg-card border-gray-300">
-                                    <div class="flex-grow">
-                                        <span class="font-bold block text-sm group-hover:text-green-500 transition">Coleta Domiciliar (5km - 15km)</span>
-                                        <span class="text-xs text-muted">Taxa de R$ 30,00</span>
-                                    </div>
-                                    <i class="ph-fill ph-truck text-xl text-muted group-hover:text-green-500"></i>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Área de Resultado -->
-                        <div id="serviceResult" class="hidden animate-fade-in-up p-5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 rounded-2xl border-2 border-yellow-400/30 dashed-border">
-                            <div class="flex flex-col gap-2 text-center">
-                                <span class="text-xs font-bold uppercase tracking-wider text-muted">Estimativa de Orçamento</span>
-                                <div class="flex items-baseline justify-center gap-2">
-                                    <span id="price-min" class="text-2xl font-black text-gray-800 dark:text-white">R$ 000</span>
-                                    <span class="text-muted text-sm">a</span>
-                                    <span id="price-max" class="text-2xl font-black text-yellow-600 dark:text-yellow-400">R$ 000</span>
-                                </div>
-                                <p id="result-note" class="text-xs text-red-500 font-medium mt-1"></p>
-                                <p class="text-[10px] text-muted mt-2 border-t border-yellow-500/10 pt-2">
-                                    * Valores sujeitos a análise técnica presencial. Taxa de diagnóstico (R$ 50-80) cobrada apenas em caso de recusa do orçamento.
-                                </p>
-                            </div>
-                        </div>
-
-                        <button type="submit" id="btn-submit-calc" class="w-full py-4 btn-primary flex items-center justify-center gap-3 text-lg opacity-50 cursor-not-allowed transition-all" disabled>
-                            <i class="ph-bold ph-whatsapp-logo text-xl"></i> 
-                            <span>Preencha tudo para agendar</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="py-24 bg-base scroll-mt-20" aria-labelledby="dashboard-title">
-            <div class="container mx-auto px-4 lg:px-8">
-                <header class="text-center max-w-3xl mx-auto mb-16 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-chart-line-up"></i> Nossa Reputação</span>
-                    <h2 id="dashboard-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Aprovado pelos <span class="text-gradient">Gamers</span></h2>
-                    <p class="text-muted text-lg">Transparência total: veja nossos números e o que dizem nossos clientes.</p>
-                </header>
-                <div class="grid md:grid-cols-2 gap-8 mb-16 reveal">
-                    <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-star text-black text-xl"></i></div> Pontos Fortes (Média)</h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de radar"><canvas id="reputationChart"></canvas></div>
-                    </div>
-                    <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center"><i class="ph-fill ph-chart-pie-slice text-white text-xl"></i></div> Distribuição de Serviços</h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de pizza"><canvas id="servicesChart"></canvas></div>
-                    </div>
-                </div>
-                <article id="reviews" class="bento-card p-8 md:p-12 relative overflow-hidden reveal noise-overlay" aria-labelledby="reviews-title">
-                    <div class="absolute top-4 right-4 opacity-5" aria-hidden="true"><i class="ph-fill ph-google-logo text-[150px]"></i></div>
-                    <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 relative z-10 gap-6">
-                        <div>
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="flex gap-1" role="img" aria-label="5 estrelas"><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i></div>
-                                <span class="font-black text-3xl">4.9</span><span class="text-muted text-lg">/ 5.0</span>
-                            </div>
-                            <h3 id="reviews-title" class="text-2xl md:text-3xl font-bold">O que falam da Atomic?</h3>
-                        </div>
-                        <a href="https://maps.app.goo.gl/9FpRW2ztsrE3j9Rz9" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-6 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"><i class="ph-fill ph-google-logo"></i> Ver no Google <i class="ph-bold ph-arrow-square-out"></i></a>
-                    </header>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                        <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white flex items-center justify-center font-bold text-lg">R</div><div class="flex-grow"><p class="font-bold">Rafael Costa</p><time class="text-xs text-muted">Há 2 semanas</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
-                            <blockquote class="text-muted leading-relaxed">"Levei meu PS5 que estava desligando sozinho. Fizeram a limpeza e troca da pasta térmica no mesmo dia. Atendimento nota 10!"</blockquote>
-                        </article>
-                        <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-lg">F</div><div class="flex-grow"><p class="font-bold">Felipe Martins</p><time class="text-xs text-muted">Há 1 mês</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
-                            <blockquote class="text-muted leading-relaxed">"Melhor preço do Rio pra comprar console. Comprei meu Xbox Series S lá, lacrado com garantia. Recomendo demais."</blockquote>
-                        </article>
-                        <article class="review-card bg-base p-6 rounded-2xl border border-base">
-                            <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center font-bold text-lg">J</div><div class="flex-grow"><p class="font-bold">Juliana Alves</p><time class="text-xs text-muted">Há 3 dias</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
-                            <blockquote class="text-muted leading-relaxed">"Minha loja de confiança em Madureira. Já arrumei controle de Switch, comprei jogos e sempre fui bem atendida."</blockquote>
-                        </article>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <!-- Location Section -->
-        <section id="location" class="py-24 bg-base scroll-mt-20" aria-labelledby="location-title">
-            <div class="container mx-auto px-4 lg:px-8">
-                <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-map-pin"></i> Visite-nos</span>
-                    <h2 id="location-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Venha Conhecer Nosso <span class="text-gradient">QG</span></h2>
-                    <p class="text-muted text-lg">Fácil acesso no coração de Madureira.</p>
-                </header>
-                <div class="bento-card overflow-hidden shadow-2xl flex flex-col md:flex-row reveal" style="min-height: 480px;">
-                    <div class="md:w-2/5 p-8 md:p-12 flex flex-col justify-center space-y-8 relative z-10">
-                        <address class="not-italic">
-                            <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center flex-shrink-0 glow-gold"><i class="ph-fill ph-map-pin text-xl text-black"></i></div><div><h3 class="font-bold text-xl mb-2">Endereço</h3><p class="text-muted leading-relaxed">Av. Ministro Edgard Romero, 81<br>Loja 3 - Madureira<br>Rio de Janeiro - RJ</p></div></div>
-                        </address>
-                        <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0"><i class="ph-fill ph-clock text-xl text-white"></i></div><div><h3 class="font-bold text-xl mb-2">Horário</h3><p class="text-muted leading-relaxed">Segunda a Sexta: 09h às 19h<br>Sábado: 09h às 14h<br><span class="text-red-500 font-medium">Domingo: Fechado</span></p></div></div>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1"><i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota</a>
-                    </div>
-                    <div class="md:w-3/5 h-64 md:h-auto bg-gray-200 map-container">
-                        <iframe src="https://maps.google.com/maps?q=Atomic%20Games%20Av.%20Ministro%20Edgard%20Romero%2081%20Madureira&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa Localização"></iframe>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FAQ -->
-        <section id="faq" class="py-24 bg-card" aria-labelledby="faq-title">
-            <div class="container mx-auto px-4 lg:px-8 max-w-4xl">
-                <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-question"></i> Dúvidas</span>
-                    <h2 id="faq-title" class="text-3xl md:text-4xl font-black text-base">Perguntas Frequentes</h2>
-                </header>
-                <div class="space-y-4 reveal" id="faqContainer" role="list"></div>
-            </div>
-        </section>
-    </main>
+    els.loadMore.classList.toggle('hidden', forceAll || term || filtered.length <= limit);
+    els.noResults.classList.toggle('hidden', filtered.length > 0);
+    els.productGrid.innerHTML = '';
     
-    <!-- Footer -->
-    <footer class="bg-gradient-to-b from-base to-card border-t border-base py-16">
-        <div class="container mx-auto px-4 lg:px-8">
-            <div class="text-center">
-                <a href="#top" class="inline-block hover:opacity-90 transition transform hover:scale-110 duration-300 mb-6" aria-label="Voltar ao topo">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="h-20 w-20 mx-auto rounded-full shadow-2xl bg-black ring-4 ring-yellow-400/30 glow-gold" alt="Logo Atomic Games" loading="lazy">
-                </a>
-                <p class="font-bold text-2xl mb-2 brand-font">ATOMIC GAMES</p>
-                <p class="text-muted mb-8">Madureira - Rio de Janeiro</p>
-                <nav class="flex justify-center gap-4 mb-8" aria-label="Redes sociais">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-instagram-logo"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-facebook-logo"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:text-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-tiktok-logo"></i></a>
-                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-whatsapp-logo"></i></a>
-                </nav>
-                <div class="border-t border-base pt-8"><p class="text-sm text-muted">&copy; <time datetime="2025">2025</time> Atomic Games. Todos os direitos reservados.</p></div>
-            </div>
-        </div>
-    </footer>
+    if (!filtered.length) return;
 
-    <!-- Scripts Logic Split -->
-    <script src="main.js" defer></script>
-    <script src="chatbot.js" defer></script>
-</body>
-</html>
+    const frag = document.createDocumentFragment();
+    toShow.forEach((p, i) => {
+        const card = document.createElement('article');
+        card.className = 'product-card bg-card border border-base flex flex-col h-full group';
+        card.style.animationDelay = `${i * 50}ms`;
+        
+        const imgBox = document.createElement('div');
+        imgBox.className = 'product-img-box';
+        imgBox.role = 'button';
+        imgBox.tabIndex = 0;
+        imgBox.addEventListener('click', () => showProductDetail(p.id));
+        imgBox.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && showProductDetail(p.id));
+
+        const img = document.createElement('img');
+        img.src = p.image; img.alt = p.name; img.loading = 'lazy'; img.width = 400; img.height = 400;
+        img.onerror = function() { this.src='https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC' };
+
+        const tag = document.createElement('span');
+        tag.className = `category-tag ${getCategoryClass(p.category)} absolute top-3 left-3`;
+        tag.textContent = p.category;
+
+        imgBox.appendChild(img); imgBox.appendChild(tag);
+
+        const contentBox = document.createElement('div');
+        contentBox.className = 'p-4 md:p-5 flex-grow flex flex-col';
+        
+        const title = document.createElement('h3');
+        title.className = 'font-bold text-sm md:text-base mb-1 leading-tight group-hover:text-yellow-500 transition line-clamp-2';
+        title.textContent = p.name;
+
+        const desc = document.createElement('p');
+        desc.className = 'text-xs text-muted mb-4 flex-grow line-clamp-2';
+        desc.textContent = p.desc;
+
+        const footer = document.createElement('div');
+        footer.className = 'mt-auto flex items-center justify-between gap-2';
+        
+        const price = document.createElement('span');
+        price.className = 'font-black text-base md:text-lg text-gradient';
+        price.textContent = p.price;
+
+        const addBtn = document.createElement('button');
+        addBtn.className = 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all shadow-lg hover:scale-105';
+        addBtn.ariaLabel = `Adicionar ${p.name} ao carrinho`;
+        const icon = document.createElement('i'); icon.className = 'ph-bold ph-plus text-lg'; addBtn.appendChild(icon);
+        addBtn.addEventListener('click', (e) => { e.stopPropagation(); addToCart(p.id); });
+
+        footer.appendChild(price); footer.appendChild(addBtn);
+        contentBox.appendChild(title); contentBox.appendChild(desc); contentBox.appendChild(footer);
+        card.appendChild(imgBox); card.appendChild(contentBox);
+        frag.appendChild(card);
+    });
+    els.productGrid.appendChild(frag);
+}
+
+function updateCartUI() {
+    els.cartCount.textContent = cart.length;
+    els.cartCount.classList.toggle('hidden', !cart.length);
+    els.checkoutBtn.disabled = !cart.length;
+    els.cartItems.innerHTML = '';
+    
+    if (!cart.length) {
+        const empty = document.createElement('div');
+        empty.className = 'text-center py-12';
+        empty.innerHTML = '<div class="w-20 h-20 mx-auto mb-4 rounded-full bg-base flex items-center justify-center"><i class="ph-duotone ph-shopping-cart-simple text-4xl text-muted"></i></div><p class="text-muted font-medium">Seu carrinho está vazio</p>';
+        els.cartItems.appendChild(empty);
+        els.cartTotal.textContent = 'R$ 0,00';
+        return;
+    }
+
+    let total = 0;
+    const frag = document.createDocumentFragment();
+    cart.forEach((item, idx) => {
+        // FIX: Use Global Regex Replace /\./g to handle prices > 1k (e.g. 1.200,00)
+        total += parseFloat(item.price.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+        
+        const div = document.createElement('div');
+        div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
+        
+        const img = document.createElement('img');
+        img.src = item.image; img.className = 'w-16 h-16 object-contain bg-white dark:bg-slate-800 rounded-xl shadow';
+        img.onerror = function() { this.src='https://placehold.co/100?text=ATOMIC' };
+
+        const info = document.createElement('div');
+        info.className = 'flex-grow min-w-0';
+        
+        const pName = document.createElement('p'); pName.className = 'font-bold text-sm line-clamp-1'; pName.textContent = item.name;
+        const pDesc = document.createElement('p'); pDesc.className = 'text-xs text-muted line-clamp-1'; pDesc.textContent = item.desc;
+        const pPrice = document.createElement('p'); pPrice.className = 'text-sm font-bold text-gradient mt-1'; pPrice.textContent = item.price;
+        
+        info.appendChild(pName); info.appendChild(pDesc); info.appendChild(pPrice);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'self-center p-2 text-red-500 hover:bg-red-100 rounded-xl transition';
+        const icon = document.createElement('i'); icon.className = 'ph-bold ph-trash text-lg'; delBtn.appendChild(icon);
+        delBtn.ariaLabel = "Remover item";
+        delBtn.addEventListener('click', () => removeFromCart(idx));
+
+        div.appendChild(img); div.appendChild(info); div.appendChild(delBtn);
+        frag.appendChild(div);
+    });
+    
+    els.cartItems.appendChild(frag);
+    els.cartTotal.textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function saveCart() { localStorage.setItem('atomic_cart', JSON.stringify(cart)); }
+
+function addToCart(id) { 
+    const p = allProducts.find(x => x.id == id); 
+    if(p){ 
+        cart.push(p); saveCart(); updateCartUI(); showToast(`${p.name} adicionado!`);
+        trackAtomicEvent('add_to_cart');
+    } 
+}
+
+function removeFromCart(idx) { cart.splice(idx, 1); saveCart(); updateCartUI(); showToast('Produto removido', 'error'); }
+
+function toggleCart() { 
+    const open = els.cartModal.classList.toggle('open'); 
+    els.cartOverlay.classList.toggle('open'); 
+    document.body.style.overflow = open ? 'hidden' : ''; 
+}
+
+function toggleMobileMenu() { 
+    const open = els.mobileMenu.classList.toggle('open'); 
+    els.mobileOverlay.classList.toggle('open'); 
+    document.body.style.overflow = open ? 'hidden' : ''; 
+}
+
+// --- CHECKOUT & ORDERS LOGIC (ENTERPRISE GRADE) ---
+// Função de envio robusta que não bloqueia a UI
+function submitOrderToAPI(customerName) {
+    if (!cart.length) return;
+
+    // 1. Agrega itens iguais (Quantidade)
+    const itemsMap = new Map();
+    cart.forEach(item => {
+        if (itemsMap.has(item.id)) {
+            itemsMap.get(item.id).quantity += 1;
+        } else {
+            itemsMap.set(item.id, {
+                id: item.id,
+                name: item.name,
+                image: item.image, // Snapshot da imagem no momento da compra
+                price: item.price,
+                quantity: 1
+            });
+        }
+    });
+    
+    // 2. Cria Payload Rico (Objeto JSON, não String)
+    const orderData = {
+        customer: customerName,
+        total: els.cartTotal.textContent,
+        items: Array.from(itemsMap.values())
+    };
+
+    // CRUCIAL: 'keepalive: true' garante que o browser termine essa request
+    // mesmo se a página for descarregada pelo window.location.href
+    fetch(API_ORDER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+        keepalive: true 
+    }).catch(e => console.error("Erro ao salvar pedido (keepalive)", e));
+}
+
+// Criação do Modal de Checkout (Identificação)
+function createCheckoutModal() {
+    if (document.getElementById('checkoutModal')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'checkoutModal';
+    // CSS Inline para garantir Z-Index máximo e evitar sobreposição com o carrinho
+    overlay.style.cssText = "position: fixed; inset: 0; z-index: 2147483647; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);";
+    
+    const modal = document.createElement('div');
+    modal.className = 'w-[90%] max-w-md bg-white dark:bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6 text-center relative';
+    
+    modal.innerHTML = `
+        <button id="closeCheckoutX" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"><i class="ph-bold ph-x text-xl"></i></button>
+        <div class="mb-6">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="ph-fill ph-whatsapp-logo text-3xl text-green-500"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-2 text-gray-800 dark:text-white">Identifique-se</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Digite seu nome para iniciarmos o atendimento.</p>
+        </div>
+        <form id="checkoutForm" class="space-y-4">
+            <div class="relative text-left">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Seu Nome</label>
+                <div class="relative">
+                    <i class="ph-bold ph-user absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="text" id="checkoutName" required placeholder="Digite seu nome..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition font-medium text-gray-800 dark:text-white" autocomplete="name">
+                </div>
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                <span>Continuar para WhatsApp</span> <i class="ph-bold ph-arrow-right"></i>
+            </button>
+        </form>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const close = () => { overlay.style.display = 'none'; };
+    document.getElementById('closeCheckoutX').onclick = (e) => { e.preventDefault(); close(); };
+    overlay.onclick = (e) => { if (e.target === overlay) close(); };
+
+    document.getElementById('checkoutForm').onsubmit = (e) => {
+        e.preventDefault();
+        const nameInput = document.getElementById('checkoutName');
+        const name = nameInput.value.trim();
+        
+        if (name) {
+            // 1. Gera Link do WhatsApp
+            const msg = `Olá! Sou *${name}* e gostaria de fechar o pedido:\n\n` + 
+                        cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + 
+                        `\n\n*Total: ${els.cartTotal.textContent}*`;
+            
+            const waUrl = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
+
+            // 2. Registra o Evento e o Pedido (Background)
+            trackAtomicEvent('whatsapp');
+            submitOrderToAPI(name);
+
+            // 3. Redireciona IMEDIATAMENTE (Síncrono)
+            // Usar window.location.href é a forma mais segura para deep links em mobile
+            window.location.href = waUrl;
+            
+            close();
+        }
+    };
+}
+
+function checkoutWhatsApp() {
+    if (!cart.length) return showToast('Carrinho vazio!', 'error');
+    
+    // Injeta o modal na DOM se não existir
+    if (!document.getElementById('checkoutModal')) createCheckoutModal();
+    
+    // CRUCIAL: Fecha o carrinho lateral primeiro para evitar conflitos de Z-Index/Overlay em mobile
+    if (els.cartModal.classList.contains('open')) toggleCart();
+    
+    const overlay = document.getElementById('checkoutModal');
+    const input = document.getElementById('checkoutName');
+    
+    // Exibe o modal
+    overlay.style.display = 'flex';
+    if(input) input.focus();
+}
+
+// Global exposure for Chatbot interactions
+window.showProductDetail = function(id) {
+    const p = allProducts.find(x => x.id == id);
+    if (!p) return;
+    document.getElementById('modalProductImage').src = p.image;
+    document.getElementById('modalProductName').textContent = p.name;
+    document.getElementById('modalProductDescription').textContent = p.desc;
+    document.getElementById('modalProductPrice').textContent = p.price;
+    document.getElementById('modalProductCategory').className = `category-tag absolute top-4 left-4 ${getCategoryClass(p.category)}`;
+    document.getElementById('modalProductCategory').textContent = p.category;
+    
+    const oldBtn = document.getElementById('modalAddToCartBtn');
+    const newBtn = oldBtn.cloneNode(true);
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+    newBtn.onclick = () => { addToCart(id); closeProductDetail(); };
+    
+    const waBtn = document.getElementById('modalWhatsappBtn');
+    
+    // Botão "Negociar" agora segue o fluxo padrão de identificação
+    waBtn.removeAttribute('href');
+    waBtn.removeAttribute('target');
+    waBtn.style.cursor = 'pointer';
+    waBtn.onclick = (e) => {
+        e.preventDefault();
+        // Garante que o item esteja no carrinho antes de ir para o checkout
+        if (!cart.some(x => x.id == id)) addToCart(id);
+        closeProductDetail();
+        // Pequeno delay visual para a transição de modais ser suave
+        setTimeout(checkoutWhatsApp, 150);
+    };
+
+    els.detailModal.classList.add('open'); 
+    els.detailOverlay.classList.add('open'); 
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProductDetail() { 
+    els.detailModal.classList.remove('open'); 
+    els.detailOverlay.classList.remove('open'); 
+    document.body.style.overflow = ''; 
+}
+
+function loadVideo() { 
+    const f = document.getElementById('videoFacade'); 
+    const container = document.getElementById('videoContainer');
+    const iframe = document.createElement('iframe');
+    iframe.className = "w-full h-full";
+    iframe.src = `https://www.youtube.com/embed/${f.dataset.videoId}?autoplay=1&rel=0`;
+    iframe.frameBorder = "0"; iframe.allow = "autoplay; encrypted-media"; iframe.allowFullscreen = true;
+    container.innerHTML = ''; container.appendChild(iframe);
+    f.style.display = 'none'; container.classList.remove('hidden');
+}
+
+// Charts
+function initCharts(theme) {
+    const dark = theme === 'dark';
+    const color = dark ? '#f1f5f9' : '#0f172a';
+    const gridColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+    
+    if (window.repChart) window.repChart.destroy();
+    if (window.servChart) window.servChart.destroy();
+    
+    const c1 = document.getElementById('reputationChart');
+    if (c1) window.repChart = new Chart(c1.getContext('2d'), {
+        type: 'radar',
+        data: { 
+            labels: ['Atendimento', 'Preço', 'Rapidez', 'Variedade', 'Confiança'], 
+            datasets: [{ 
+                label: 'Nota', 
+                data: [4.8, 4.2, 4.6, 4.4, 4.9], 
+                backgroundColor: 'rgba(255, 215, 0, 0.25)', 
+                borderColor: '#FFD700', 
+                borderWidth: 3,
+                pointBackgroundColor: '#FFD700',
+                pointBorderColor: dark ? '#1e293b' : '#fff',
+                pointBorderWidth: 2,
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#FFD700',
+                pointRadius: 4
+            }] 
+        },
+        options: { 
+            responsive: true, maintainAspectRatio: false,
+            scales: { 
+                r: { 
+                    min: 0, max: 5, beginAtZero: true,
+                    grid: { color: gridColor, circular: true }, 
+                    angleLines: { color: gridColor },
+                    pointLabels: { color: color, font: { size: 12, weight: '600', family: 'Inter' } },
+                    ticks: { display: false, backdropColor: 'transparent' } 
+                } 
+            }, 
+            plugins: { legend: { display: false } } 
+        }
+    });
+
+    const c2 = document.getElementById('servicesChart');
+    if (c2) window.servChart = new Chart(c2.getContext('2d'), {
+        type: 'doughnut',
+        data: { labels: ['Manutenção', 'Jogos', 'Consoles', 'Peças'], datasets: [{ data: [40, 20, 25, 15], backgroundColor: ['#FFD700', '#10B981', '#3B82F6', '#8B5CF6'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { color, usePointStyle: true, padding: 15, font: { family: 'Inter', size: 12 } } } } }
+    });
+}
+
+// --- NEW CALCULATOR LOGIC ---
+function initCalculator() {
+    const form = document.getElementById('serviceForm');
+    const catSelect = document.getElementById('calc-category');
+    const modSelect = document.getElementById('calc-model');
+    const servSelect = document.getElementById('calc-service');
+    const radios = document.querySelectorAll('input[name="logistics"]');
+    
+    const stepModel = document.getElementById('step-model');
+    const stepService = document.getElementById('step-service');
+    const stepLogistics = document.getElementById('step-logistics');
+    const resultBox = document.getElementById('serviceResult');
+    const btnSubmit = document.getElementById('btn-submit-calc');
+
+    // Estado da Calculadora
+    let selectedCategory = '';
+    let selectedModel = '';
+    let selectedService = '';
+    let selectedLogistics = 'shop';
+
+    const updateCalc = () => {
+        let min = 0;
+        let max = 0;
+        let note = '';
+
+        if (selectedCategory && selectedModel && selectedService) {
+            const svcData = CALCULATOR_DATA[selectedCategory].models[selectedModel].services[selectedService];
+            min = svcData.min;
+            max = svcData.max;
+            note = svcData.note;
+
+            const logisticCost = LOGISTICS_COST[selectedLogistics] || 0;
+            min += logisticCost;
+            max += logisticCost;
+
+            document.getElementById('price-min').textContent = formatPrice(min);
+            document.getElementById('price-max').textContent = formatPrice(max);
+            document.getElementById('result-note').textContent = note;
+            
+            resultBox.classList.remove('hidden');
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnSubmit.disabled = false;
+        } else {
+            resultBox.classList.add('hidden');
+            btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            btnSubmit.disabled = true;
+        }
+    };
+
+    catSelect.addEventListener('change', (e) => {
+        selectedCategory = e.target.value;
+        selectedModel = '';
+        selectedService = '';
+        
+        // Reset sub-selects
+        modSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
+        servSelect.innerHTML = '<option value="" disabled selected>Aguardando modelo...</option>';
+        stepService.classList.add('hidden');
+        stepLogistics.classList.add('hidden');
+        resultBox.classList.add('hidden');
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+        btnSubmit.disabled = true;
+        
+        // Populate Models
+        const models = CALCULATOR_DATA[selectedCategory].models;
+        for (const [key, val] of Object.entries(models)) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = val.name;
+            modSelect.appendChild(opt);
+        }
+        
+        stepModel.classList.remove('hidden');
+    });
+
+    modSelect.addEventListener('change', (e) => {
+        selectedModel = e.target.value;
+        selectedService = '';
+
+        // Reset service select
+        servSelect.innerHTML = '<option value="" disabled selected>Selecione o problema...</option>';
+        stepLogistics.classList.add('hidden');
+        resultBox.classList.add('hidden');
+        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+        btnSubmit.disabled = true;
+
+        // Populate Services
+        const services = CALCULATOR_DATA[selectedCategory].models[selectedModel].services;
+        for (const [key, val] of Object.entries(services)) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = val.name;
+            servSelect.appendChild(opt);
+        }
+
+        stepService.classList.remove('hidden');
+    });
+
+    servSelect.addEventListener('change', (e) => {
+        selectedService = e.target.value;
+        stepLogistics.classList.remove('hidden');
+        updateCalc();
+    });
+
+    radios.forEach(r => r.addEventListener('change', (e) => {
+        selectedLogistics = e.target.value;
+        updateCalc();
+    }));
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        trackAtomicEvent('whatsapp');
+        
+        const clientName = document.getElementById('calc-name').value;
+        const clientPhone = document.getElementById('calc-phone').value;
+        
+        const modelName = CALCULATOR_DATA[selectedCategory].models[selectedModel].name;
+        const serviceName = CALCULATOR_DATA[selectedCategory].models[selectedModel].services[selectedService].name;
+        const priceStr = `${document.getElementById('price-min').textContent} a ${document.getElementById('price-max').textContent}`;
+        const logisticTxt = selectedLogistics === 'shop' ? 'Levar na Loja' : (selectedLogistics === 'pickup_close' ? 'Coleta (Grátis)' : 'Coleta (R$ 30,00)');
+
+        const msg = `*SOLICITAÇÃO DE ORÇAMENTO (WEB)*\n\n` +
+                    `👤 *Cliente:* ${clientName}\n` +
+                    `📱 *Contato:* ${clientPhone}\n` +
+                    `--------------------------------\n` +
+                    `🎮 *Aparelho:* ${modelName}\n` +
+                    `🛠️ *Serviço:* ${serviceName}\n` +
+                    `📍 *Logística:* ${logisticTxt}\n` +
+                    `💰 *Estimativa:* ${priceStr}\n` +
+                    `--------------------------------\n` +
+                    `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;
+
+        window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
+    });
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    trackAtomicEvent('visit');
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(r => console.log('SW registered'))
+                .catch(e => console.log('SW failed', e));
+        });
+    }
+
+    updateInstallButtons();
+    window.addEventListener('resize', updateInstallButtons);
+
+    const installBtnDesktop = document.getElementById('installAppBtnDesktop');
+    const installBtnMobile = document.getElementById('installAppBtnMobile');
+    const guideModal = document.getElementById('installGuideModal');
+
+    if(installBtnDesktop) installBtnDesktop.addEventListener('click', handleInstallClick);
+    if(installBtnMobile) installBtnMobile.addEventListener('click', handleInstallClick);
+    document.getElementById('closeGuideModal')?.addEventListener('click', () => guideModal.classList.remove('open'));
+    guideModal?.addEventListener('click', (e) => { if(e.target === guideModal) guideModal.classList.remove('open'); });
+    window.addEventListener('appinstalled', () => { updateInstallButtons(); deferredPrompt = null; });
+
+    els = {
+        toastContainer: document.getElementById('toastContainer'),
+        cartCount: document.getElementById('cartCount'),
+        cartItems: document.getElementById('cartItemsContainer'),
+        cartTotal: document.getElementById('cartTotal'),
+        checkoutBtn: document.getElementById('checkoutBtn'),
+        cartModal: document.getElementById('cartModal'),
+        cartOverlay: document.getElementById('cartOverlay'),
+        mobileMenu: document.getElementById('mobileMenu'),
+        mobileOverlay: document.getElementById('mobileMenuOverlay'),
+        productGrid: document.getElementById('productGrid'),
+        noResults: document.getElementById('noResults'),
+        loadMore: document.getElementById('loadMoreContainer'),
+        searchInput: document.getElementById('searchInput'),
+        detailModal: document.getElementById('productDetailModal'),
+        detailOverlay: document.getElementById('productDetailOverlay')
+    };
+
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.className = theme;
+
+    const savedCart = localStorage.getItem('atomic_cart');
+    if (savedCart) { try { cart = JSON.parse(savedCart); updateCartUI(); } catch(e) {} }
+    
+    const faqContainer = document.getElementById('faqContainer');
+    if(faqContainer) {
+        faqContainer.innerHTML = '';
+        faqs.forEach((f, i) => {
+            const details = document.createElement('details');
+            details.className = 'group bento-card overflow-hidden';
+            if(i === 0) details.open = true;
+            const summary = document.createElement('summary');
+            summary.className = 'flex justify-between items-center font-medium cursor-pointer list-none p-5 md:p-6 bg-card transition-colors';
+            const qSpan = document.createElement('span'); qSpan.className = 'text-base font-bold pr-4'; qSpan.textContent = f.q;
+            const iconDiv = document.createElement('div'); iconDiv.className = 'w-10 h-10 rounded-xl bg-base flex items-center justify-center transition-all flex-shrink-0';
+            const icon = document.createElement('i'); icon.className = 'ph-bold ph-caret-down text-lg transition-transform group-open:rotate-180'; iconDiv.appendChild(icon);
+            summary.appendChild(qSpan); summary.appendChild(iconDiv);
+            const ansDiv = document.createElement('div'); ansDiv.className = 'text-muted p-5 md:p-6 pt-0 leading-relaxed bg-base'; ansDiv.textContent = f.a;
+            details.appendChild(summary); details.appendChild(ansDiv);
+            faqContainer.appendChild(details);
+        });
+    }
+    
+    initCharts(theme);
+    loadGamesFromGitHub();
+    loadBannersFromGitHub();
+    initCalculator(); // Start new calculator logic
+
+    const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    document.getElementById('backToTop')?.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+    document.getElementById('videoFacade')?.addEventListener('click', loadVideo);
+    document.getElementById('productDetailOverlay')?.addEventListener('click', closeProductDetail);
+    document.getElementById('closeDetailBtn')?.addEventListener('click', closeProductDetail);
+    
+    document.getElementById('mobileMenuOverlay')?.addEventListener('click', toggleMobileMenu);
+    document.getElementById('mobileMenuOpenBtn')?.addEventListener('click', toggleMobileMenu);
+    document.getElementById('closeMobileMenuBtn')?.addEventListener('click', toggleMobileMenu);
+    document.querySelectorAll('.mobile-menu a').forEach(link => link.addEventListener('click', toggleMobileMenu));
+
+    document.getElementById('cartOverlay')?.addEventListener('click', toggleCart);
+    document.getElementById('openCartBtn')?.addEventListener('click', toggleCart);
+    document.getElementById('closeCartBtn')?.addEventListener('click', toggleCart);
+    document.getElementById('checkoutBtn')?.addEventListener('click', checkoutWhatsApp);
+
+    document.getElementById('btnLoadMore')?.addEventListener('click', () => renderProducts(currentFilter, els.searchInput.value, true));
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', e => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active');
+        currentFilter = e.currentTarget.dataset.category; renderProducts(currentFilter, els.searchInput.value);
+    }));
+    els.searchInput?.addEventListener('input', e => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => renderProducts(currentFilter, e.target.value), 300); });
+    
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+        const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+        document.documentElement.className = newTheme; localStorage.setItem('theme', newTheme); initCharts(newTheme);
+    });
+
+    let lastY = 0, ticking = false;
+    window.addEventListener('scroll', () => {
+        if(!ticking) {
+            window.requestAnimationFrame(() => {
+                const y = window.scrollY;
+                document.getElementById('backToTop').classList.toggle('show', y > 400);
+                document.getElementById('navbar').classList.toggle('nav-hidden', y > lastY && y > 80);
+                lastY = y; ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if (els.cartModal.classList.contains('open')) toggleCart();
+            if (els.mobileMenu.classList.contains('open')) toggleMobileMenu();
+            if (els.detailModal.classList.contains('open')) closeProductDetail();
+        }
+    });
+});
