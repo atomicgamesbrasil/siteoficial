@@ -61,7 +61,6 @@ const faqs = [
 ];
 
 // --- CALCULATOR DATA (SOURCE OF TRUTH: MARKET RESEARCH PDF) ---
-// Baseado nas tabelas do relatório 2025-2026
 const CALCULATOR_DATA = {
     console: {
         label: "Console de Mesa",
@@ -148,9 +147,9 @@ const CALCULATOR_DATA = {
 };
 
 const LOGISTICS_COST = {
-    shop: 0,            // Levar na Loja
-    pickup_close: 0,    // < 5km
-    pickup_far: 30      // 5-15km
+    shop: 0,
+    pickup_close: 0,
+    pickup_far: 30
 };
 
 // State & DOM Elements Cache
@@ -738,16 +737,17 @@ function initCharts(theme) {
     });
 }
 
-// --- NEW CALCULATOR LOGIC ---
+// --- NEW PROGRESSIVE CALCULATOR LOGIC ---
 function initCalculator() {
     const form = document.getElementById('serviceForm');
-    const catSelect = document.getElementById('calc-category');
+    const catRadios = document.querySelectorAll('input[name="category"]');
     const modSelect = document.getElementById('calc-model');
     const servSelect = document.getElementById('calc-service');
-    const radios = document.querySelectorAll('input[name="logistics"]');
+    const logRadios = document.querySelectorAll('input[name="logistics"]');
     
-    const stepModel = document.getElementById('step-model');
-    const stepService = document.getElementById('step-service');
+    // Containers dos passos
+    const stepDetails = document.getElementById('step-details');
+    const servContainer = document.getElementById('service-container');
     const stepLogistics = document.getElementById('step-logistics');
     const resultBox = document.getElementById('serviceResult');
     const btnSubmit = document.getElementById('btn-submit-calc');
@@ -778,51 +778,47 @@ function initCalculator() {
             document.getElementById('result-note').textContent = note;
             
             resultBox.classList.remove('hidden');
-            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
-            btnSubmit.disabled = false;
         } else {
             resultBox.classList.add('hidden');
-            btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
-            btnSubmit.disabled = true;
         }
     };
 
-    catSelect.addEventListener('change', (e) => {
-        selectedCategory = e.target.value;
-        selectedModel = '';
-        selectedService = '';
-        
-        // Reset sub-selects
-        modSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
-        servSelect.innerHTML = '<option value="" disabled selected>Aguardando modelo...</option>';
-        stepService.classList.add('hidden');
-        stepLogistics.classList.add('hidden');
-        resultBox.classList.add('hidden');
-        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
-        btnSubmit.disabled = true;
-        
-        // Populate Models
-        const models = CALCULATOR_DATA[selectedCategory].models;
-        for (const [key, val] of Object.entries(models)) {
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.textContent = val.name;
-            modSelect.appendChild(opt);
-        }
-        
-        stepModel.classList.remove('hidden');
+    // Passo 1: Seleção de Categoria
+    catRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            selectedCategory = e.target.value;
+            selectedModel = '';
+            selectedService = '';
+            
+            // Reset UI
+            modSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+            servSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+            servContainer.classList.add('hidden');
+            stepLogistics.classList.add('hidden');
+            resultBox.classList.add('hidden');
+            
+            // Populate Models
+            const models = CALCULATOR_DATA[selectedCategory].models;
+            for (const [key, val] of Object.entries(models)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = val.name;
+                modSelect.appendChild(opt);
+            }
+            
+            stepDetails.classList.remove('hidden');
+        });
     });
 
+    // Passo 2: Seleção de Modelo
     modSelect.addEventListener('change', (e) => {
         selectedModel = e.target.value;
         selectedService = '';
 
-        // Reset service select
-        servSelect.innerHTML = '<option value="" disabled selected>Selecione o problema...</option>';
+        // Reset Service
+        servSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
         stepLogistics.classList.add('hidden');
         resultBox.classList.add('hidden');
-        btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
-        btnSubmit.disabled = true;
 
         // Populate Services
         const services = CALCULATOR_DATA[selectedCategory].models[selectedModel].services;
@@ -833,42 +829,47 @@ function initCalculator() {
             servSelect.appendChild(opt);
         }
 
-        stepService.classList.remove('hidden');
+        servContainer.classList.remove('hidden');
     });
 
+    // Passo 3: Seleção de Serviço
     servSelect.addEventListener('change', (e) => {
         selectedService = e.target.value;
         stepLogistics.classList.remove('hidden');
         updateCalc();
     });
 
-    radios.forEach(r => r.addEventListener('change', (e) => {
+    // Passo 4: Logística
+    logRadios.forEach(r => r.addEventListener('change', (e) => {
         selectedLogistics = e.target.value;
         updateCalc();
     }));
 
+    // Envio
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         trackAtomicEvent('whatsapp');
         
-        const clientName = document.getElementById('calc-name').value;
-        const clientPhone = document.getElementById('calc-phone').value;
+        const clientName = document.getElementById('calc-name').value || 'Cliente';
+        const clientPhone = document.getElementById('calc-phone').value || 'Não informado';
         
+        if (!selectedCategory || !selectedModel || !selectedService) return;
+
         const modelName = CALCULATOR_DATA[selectedCategory].models[selectedModel].name;
         const serviceName = CALCULATOR_DATA[selectedCategory].models[selectedModel].services[selectedService].name;
         const priceStr = `${document.getElementById('price-min').textContent} a ${document.getElementById('price-max').textContent}`;
         const logisticTxt = selectedLogistics === 'shop' ? 'Levar na Loja' : (selectedLogistics === 'pickup_close' ? 'Coleta (Grátis)' : 'Coleta (R$ 30,00)');
 
-        const msg = `*SOLICITAÇÃO DE ORÇAMENTO (WEB)*\n\n` +
-                    `👤 *Cliente:* ${clientName}\n` +
-                    `📱 *Contato:* ${clientPhone}\n` +
+        const msg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
+                    `👤 *${clientName}*\n` +
+                    `📱 ${clientPhone}\n` +
                     `--------------------------------\n` +
                     `🎮 *Aparelho:* ${modelName}\n` +
                     `🛠️ *Serviço:* ${serviceName}\n` +
                     `📍 *Logística:* ${logisticTxt}\n` +
                     `💰 *Estimativa:* ${priceStr}\n` +
                     `--------------------------------\n` +
-                    `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;
+                    `*Obs:* Aceito a taxa de diagnóstico.`;
 
         window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
     });
