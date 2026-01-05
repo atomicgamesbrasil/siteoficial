@@ -704,6 +704,7 @@ function initCalculator() {
         let max = 0;
         let note = '';
 
+        // Só exibe resultado se tiver todos os dados
         if (state.category && state.model && state.service) {
             const svcData = CALCULATOR_DATA[state.category].models[state.model].services[state.service];
             min = svcData.min;
@@ -718,9 +719,10 @@ function initCalculator() {
             document.getElementById('price-max').textContent = formatPrice(max);
             document.getElementById('result-note').textContent = note;
             
-            resultArea.classList.remove('hidden'); // Exibe a área de resultado
+            // CRUCIAL FIX: Use active class to show result, consistent with CSS
+            resultArea.classList.add('active');
         } else {
-            resultArea.classList.add('hidden');
+            resultArea.classList.remove('active');
         }
     };
 
@@ -734,7 +736,7 @@ function initCalculator() {
             // Reset UI
             step2.classList.remove('active');
             step3.classList.remove('active');
-            resultArea.classList.add('hidden');
+            resultArea.classList.remove('active');
             serviceWrapper.classList.add('hidden');
             
             // Populate Models
@@ -748,9 +750,7 @@ function initCalculator() {
             }
             
             // Show Step 2
-            step2.style.display = 'block';
-            // Small delay to allow display block to render before adding active class for animation
-            setTimeout(() => step2.classList.add('active'), 10);
+            step2.classList.add('active');
         });
     });
 
@@ -761,7 +761,7 @@ function initCalculator() {
         
         // Reset Service
         serviceSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
-        resultArea.classList.add('hidden');
+        resultArea.classList.remove('active');
         step3.classList.remove('active');
         
         // Populate Services
@@ -781,8 +781,7 @@ function initCalculator() {
         state.service = e.target.value;
         
         // Show Step 4 (Logistics)
-        step3.style.display = 'block';
-        setTimeout(() => step3.classList.add('active'), 10);
+        step3.classList.add('active');
         
         updateCalc();
     });
