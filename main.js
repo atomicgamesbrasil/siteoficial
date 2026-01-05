@@ -1,4 +1,3 @@
-
 // === GLOBAL PWA VARIABLES ===
 let deferredPrompt;
 
