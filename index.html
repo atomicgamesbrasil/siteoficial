@@ -33,6 +33,26 @@
             --color-muted: #94a3b8;     /* Slate-400 */
             --color-text: #f8fafc;      /* Slate-50 */
         }
+        
+        /* Animações suaves para a calculadora */
+        .step-container {
+            transition: all 0.3s ease-in-out;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Seleção visual */
+        .radio-card:checked + div {
+            border-color: #FFD700;
+            background-color: rgba(255, 215, 0, 0.05);
+        }
+        .radio-card:checked + div .radio-icon {
+            color: #FFD700;
+        }
     </style>
 
     <!-- Skip Link for Accessibility -->
@@ -91,7 +111,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     
     <!-- Scripts Externos (CDN) -->
-    <!-- CORREÇÃO: Uso do Tailwind v3 para garantir compatibilidade com a configuração inline -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -116,7 +135,7 @@
                 }
             }
         }
-    </script>
+    script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
@@ -374,143 +393,140 @@
             </div>
         </section>
 
-        <!-- Services Section (CALCULADORA ATUALIZADA) -->
+        <!-- Services Section (CALCULADORA RENOVADA) -->
         <section id="services" class="py-24 bg-card scroll-mt-20" aria-labelledby="services-title">
             <div class="container mx-auto px-4 lg:px-8 grid lg:grid-cols-2 gap-16 items-start">
                 <div class="reveal sticky top-28">
                     <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-calculator"></i> Calculadora Oficial</span>
                     <h2 id="services-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-10">Orçamento <span class="text-gradient">Inteligente</span></h2>
                     <p class="text-muted text-lg mb-8 leading-relaxed">
-                        Nossa nova calculadora utiliza dados de mercado atualizados (2025) para entregar uma estimativa precisa e justa.
+                        Selecione seu aparelho e o serviço desejado para obter uma estimativa de preço imediata baseada em nossa tabela técnica 2025.
                     </p>
                     <div class="space-y-4">
                         <div class="service-feature flex gap-5">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-chart-line-up"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Precificação Técnica</h3><p class="text-muted text-lg">Baseada na complexidade e risco de cada aparelho.</p></div>
+                            <div><h3 class="font-bold text-xl mb-1">Precificação Técnica</h3><p class="text-muted text-lg">Baseada na complexidade e risco.</p></div>
                         </div>
                         <div class="service-feature flex gap-5">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-scooter"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Logística Flexível</h3><p class="text-muted text-lg">Leve na loja ou solicite coleta em domicílio.</p></div>
-                        </div>
-                        <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-shield-check"></i></div>
-                            <div><h3 class="font-bold text-xl mb-1">Transparência</h3><p class="text-muted text-lg">Sem surpresas. Você sabe o que paga.</p></div>
+                            <div><h3 class="font-bold text-xl mb-1">Logística Flexível</h3><p class="text-muted text-lg">Leve na loja ou solicite coleta.</p></div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="bento-card p-6 md:p-8 relative overflow-hidden reveal noise-overlay border-2 border-yellow-500/20">
-                    <div class="absolute top-0 right-0 w-40 h-40 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" aria-hidden="true"></div>
-                    
-                    <div class="flex items-center gap-4 mb-6 relative z-10 border-b border-base pb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-wrench text-2xl text-black"></i></div>
-                        <div><h3 class="text-2xl font-bold">Simular Reparo</h3><p class="text-sm text-muted">Preencha os passos abaixo</p></div>
-                    </div>
-                    
-                    <form id="serviceForm" class="space-y-5 relative z-10">
-                        <!-- Dados do Cliente -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-base border border-base rounded-3xl p-6 md:p-8 shadow-xl reveal">
+                    <form id="serviceForm" class="flex flex-col gap-6">
+                        <!-- Header do Form -->
+                        <div class="border-b border-base pb-6 mb-2">
+                            <h3 class="text-2xl font-bold mb-2">Simular Reparo</h3>
+                            <div class="flex gap-4">
+                                <div class="flex-1">
+                                    <label for="calc-name" class="text-xs font-bold text-muted uppercase mb-1 block">Nome</label>
+                                    <input type="text" id="calc-name" required placeholder="Seu nome" class="w-full bg-card border border-base rounded-lg p-3 text-sm focus:border-yellow-500 outline-none transition">
+                                </div>
+                                <div class="flex-1">
+                                    <label for="calc-phone" class="text-xs font-bold text-muted uppercase mb-1 block">WhatsApp</label>
+                                    <input type="tel" id="calc-phone" required placeholder="(21) 99999-9999" class="w-full bg-card border border-base rounded-lg p-3 text-sm focus:border-yellow-500 outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passo 1: Categoria (Cards Visuais) -->
+                        <div id="step-1" class="step-container">
+                            <label class="block text-sm font-bold mb-3 text-muted">1. Qual o tipo de aparelho?</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="cursor-pointer group">
+                                    <input type="radio" name="category" value="console" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border border-base bg-card hover:border-yellow-500 peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/10 transition flex flex-col items-center gap-2">
+                                        <i class="ph-duotone ph-game-controller text-3xl text-muted group-hover:text-yellow-500 peer-checked:text-yellow-600"></i>
+                                        <span class="text-sm font-bold">Console</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer group">
+                                    <input type="radio" name="category" value="handheld" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border border-base bg-card hover:border-yellow-500 peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/10 transition flex flex-col items-center gap-2">
+                                        <i class="ph-duotone ph-device-mobile-camera text-3xl text-muted group-hover:text-yellow-500 peer-checked:text-yellow-600"></i>
+                                        <span class="text-sm font-bold">Portátil</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer group">
+                                    <input type="radio" name="category" value="pc" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border border-base bg-card hover:border-yellow-500 peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/10 transition flex flex-col items-center gap-2">
+                                        <i class="ph-duotone ph-desktop-tower text-3xl text-muted group-hover:text-yellow-500 peer-checked:text-yellow-600"></i>
+                                        <span class="text-sm font-bold">PC/Note</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer group">
+                                    <input type="radio" name="category" value="accessory" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border border-base bg-card hover:border-yellow-500 peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/10 transition flex flex-col items-center gap-2">
+                                        <i class="ph-duotone ph-headphones text-3xl text-muted group-hover:text-yellow-500 peer-checked:text-yellow-600"></i>
+                                        <span class="text-sm font-bold">Acessório</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Passo 2 & 3: Modelo e Serviço -->
+                        <div id="step-details" class="hidden fade-in space-y-4">
                             <div>
-                                <label for="calc-name" class="block text-sm font-semibold mb-2 text-muted">Seu Nome</label>
-                                <input type="text" id="calc-name" name="clientName" placeholder="Ex: João Silva" required class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
-                            </div>
-                            <div>
-                                <label for="calc-phone" class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label>
-                                <input type="tel" id="calc-phone" name="clientPhone" placeholder="(21) 99999-9999" required class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition">
-                            </div>
-                        </div>
-
-                        <!-- Passo 1: Categoria -->
-                        <div>
-                            <label for="calc-category" class="block text-sm font-semibold mb-2 text-muted">1. Qual o tipo de aparelho?</label>
-                            <div class="relative">
-                                <i class="ph-bold ph-devices absolute left-4 top-4 text-muted"></i>
-                                <select id="calc-category" name="category" required class="w-full p-3.5 pl-12 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer appearance-none">
-                                    <option value="" disabled selected>Selecione a categoria...</option>
-                                    <option value="console">Console de Mesa (PS5, Xbox, etc)</option>
-                                    <option value="handheld">Portátil (Switch, Lite, etc)</option>
-                                    <option value="pc">Computador / Notebook</option>
-                                    <option value="accessory">Acessórios (Controles)</option>
+                                <label class="block text-sm font-bold mb-2 text-muted">2. Modelo do Aparelho</label>
+                                <select id="calc-model" class="w-full bg-card border border-base rounded-xl p-3 outline-none focus:border-yellow-500 transition">
+                                    <option value="" disabled selected>Selecione...</option>
                                 </select>
-                                <i class="ph-bold ph-caret-down absolute right-4 top-4 text-muted pointer-events-none"></i>
                             </div>
-                        </div>
-
-                        <!-- Passo 2: Modelo (Dinâmico) -->
-                        <div id="step-model" class="hidden animate-fade-in-down">
-                            <label for="calc-model" class="block text-sm font-semibold mb-2 text-muted">2. Qual o modelo?</label>
-                            <div class="relative">
-                                <i class="ph-bold ph-game-controller absolute left-4 top-4 text-muted"></i>
-                                <select id="calc-model" name="model" required class="w-full p-3.5 pl-12 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer appearance-none">
-                                    <option value="" disabled selected>Aguardando categoria...</option>
+                            <div id="service-container" class="hidden">
+                                <label class="block text-sm font-bold mb-2 text-muted">3. Serviço ou Defeito</label>
+                                <select id="calc-service" class="w-full bg-card border border-base rounded-xl p-3 outline-none focus:border-yellow-500 transition">
+                                    <option value="" disabled selected>Selecione...</option>
                                 </select>
-                                <i class="ph-bold ph-caret-down absolute right-4 top-4 text-muted pointer-events-none"></i>
-                            </div>
-                        </div>
-
-                        <!-- Passo 3: Serviço/Defeito (Dinâmico) -->
-                        <div id="step-service" class="hidden animate-fade-in-down">
-                            <label for="calc-service" class="block text-sm font-semibold mb-2 text-muted">3. Qual o serviço ou defeito?</label>
-                            <div class="relative">
-                                <i class="ph-bold ph-warning-circle absolute left-4 top-4 text-muted"></i>
-                                <select id="calc-service" name="service" required class="w-full p-3.5 pl-12 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer appearance-none">
-                                    <option value="" disabled selected>Aguardando modelo...</option>
-                                </select>
-                                <i class="ph-bold ph-caret-down absolute right-4 top-4 text-muted pointer-events-none"></i>
                             </div>
                         </div>
 
                         <!-- Passo 4: Logística -->
-                        <div id="step-logistics" class="hidden animate-fade-in-down">
-                            <label for="calc-logistics" class="block text-sm font-semibold mb-2 text-muted">4. Como prefere ser atendido?</label>
-                            <div class="grid grid-cols-1 gap-3">
-                                <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-base border-2 border-base cursor-pointer hover:border-yellow-500 transition group">
-                                    <input type="radio" name="logistics" value="shop" checked class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
+                        <div id="step-logistics" class="hidden fade-in">
+                            <label class="block text-sm font-bold mb-3 text-muted">4. Logística</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-base bg-card cursor-pointer hover:border-yellow-500 transition">
+                                    <input type="radio" name="logistics" value="shop" checked class="radio-card w-4 h-4 text-yellow-500 focus:ring-yellow-500">
                                     <div class="flex-grow">
-                                        <span class="font-bold block text-sm group-hover:text-yellow-500 transition">Levar na Loja (Madureira)</span>
-                                        <span class="text-xs text-muted">Sem custo adicional</span>
+                                        <span class="block font-bold text-sm">Levar na Loja</span>
+                                        <span class="text-xs text-muted">Madureira (Sem custo)</span>
                                     </div>
-                                    <i class="ph-fill ph-storefront text-xl text-muted group-hover:text-yellow-500"></i>
+                                    <i class="ph-bold ph-storefront text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-base border-2 border-base cursor-pointer hover:border-blue-500 transition group">
-                                    <input type="radio" name="logistics" value="pickup_close" class="w-5 h-5 text-blue-500 focus:ring-blue-500 bg-card border-gray-300">
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-base bg-card cursor-pointer hover:border-yellow-500 transition">
+                                    <input type="radio" name="logistics" value="pickup_close" class="radio-card w-4 h-4 text-yellow-500 focus:ring-yellow-500">
                                     <div class="flex-grow">
-                                        <span class="font-bold block text-sm group-hover:text-blue-500 transition">Coleta Domiciliar (Até 5km)</span>
+                                        <span class="block font-bold text-sm">Coleta (Até 5km)</span>
                                         <span class="text-xs text-muted">Retirada Gratuita</span>
                                     </div>
-                                    <i class="ph-fill ph-moped text-xl text-muted group-hover:text-blue-500"></i>
+                                    <i class="ph-bold ph-moped text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-2xl bg-base border-2 border-base cursor-pointer hover:border-green-500 transition group">
-                                    <input type="radio" name="logistics" value="pickup_far" class="w-5 h-5 text-green-500 focus:ring-green-500 bg-card border-gray-300">
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-base bg-card cursor-pointer hover:border-yellow-500 transition">
+                                    <input type="radio" name="logistics" value="pickup_far" class="radio-card w-4 h-4 text-yellow-500 focus:ring-yellow-500">
                                     <div class="flex-grow">
-                                        <span class="font-bold block text-sm group-hover:text-green-500 transition">Coleta Domiciliar (5km - 15km)</span>
-                                        <span class="text-xs text-muted">Taxa de R$ 30,00</span>
+                                        <span class="block font-bold text-sm">Coleta (5km - 15km)</span>
+                                        <span class="text-xs text-muted">Taxa R$ 30,00</span>
                                     </div>
-                                    <i class="ph-fill ph-truck text-xl text-muted group-hover:text-green-500"></i>
+                                    <i class="ph-bold ph-truck text-xl text-muted"></i>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- Área de Resultado -->
-                        <div id="serviceResult" class="hidden animate-fade-in-up p-5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 rounded-2xl border-2 border-yellow-400/30 dashed-border">
-                            <div class="flex flex-col gap-2 text-center">
-                                <span class="text-xs font-bold uppercase tracking-wider text-muted">Estimativa de Orçamento</span>
-                                <div class="flex items-baseline justify-center gap-2">
-                                    <span id="price-min" class="text-2xl font-black text-gray-800 dark:text-white">R$ 000</span>
-                                    <span class="text-muted text-sm">a</span>
-                                    <span id="price-max" class="text-2xl font-black text-yellow-600 dark:text-yellow-400">R$ 000</span>
-                                </div>
-                                <p id="result-note" class="text-xs text-red-500 font-medium mt-1"></p>
-                                <p class="text-[10px] text-muted mt-2 border-t border-yellow-500/10 pt-2">
-                                    * Valores sujeitos a análise técnica presencial. Taxa de diagnóstico (R$ 50-80) cobrada apenas em caso de recusa do orçamento.
-                                </p>
+                        <!-- Resultado -->
+                        <div id="serviceResult" class="hidden fade-in bg-base rounded-xl p-5 border border-yellow-500/20 text-center">
+                            <span class="text-xs font-bold uppercase text-muted tracking-widest">Estimativa Total</span>
+                            <div class="flex justify-center items-baseline gap-2 mt-1 mb-2">
+                                <span id="price-min" class="text-2xl font-black text-text">R$ 000</span>
+                                <span class="text-sm text-muted">a</span>
+                                <span id="price-max" class="text-2xl font-black text-yellow-600 dark:text-yellow-400">R$ 000</span>
                             </div>
+                            <p id="result-note" class="text-xs font-medium text-red-500 mb-3"></p>
+                            <button type="submit" id="btn-submit-calc" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/30 transition flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-whatsapp-logo text-lg"></i> Agendar Agora
+                            </button>
+                            <p class="text-[10px] text-muted mt-3">*Valores sujeitos a análise presencial.</p>
                         </div>
-
-                        <button type="submit" id="btn-submit-calc" class="w-full py-4 btn-primary flex items-center justify-center gap-3 text-lg opacity-50 cursor-not-allowed transition-all" disabled>
-                            <i class="ph-bold ph-whatsapp-logo text-xl"></i> 
-                            <span>Preencha tudo para agendar</span>
-                        </button>
                     </form>
                 </div>
             </div>
