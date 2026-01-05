@@ -60,39 +60,116 @@ const faqs = [
     { q: "Entregam em todo o Rio de Janeiro?", a: "Sim, trabalhamos com entregas expressas. Consulte taxa no WhatsApp." }
 ];
 
-// --- CALCULATOR DATA ---
+// --- CALCULATOR DATA (BASEADA NO RELATÓRIO TÉCNICO 2025/2026) ---
 const CALCULATOR_DATA = {
     console: {
         label: "Console de Mesa",
         models: {
-            ps5: { name: "PlayStation 5", services: { cleaning: { name: "Limpeza (Metal Líquido)", min: 250, max: 450, note: "Risco Operacional Alto" }, hdmi: { name: "Troca HDMI", min: 250, max: 400, note: "Micro-solda" }, repair_board: { name: "Reparo Placa", min: 400, max: 800, note: "Análise Avançada" } } },
-            ps4: { name: "PlayStation 4", services: { cleaning: { name: "Limpeza Completa", min: 100, max: 150, note: "Preventiva" }, hdmi: { name: "Troca HDMI", min: 250, max: 400, note: "Micro-solda" }, repair_board: { name: "Reparo Placa", min: 250, max: 450, note: "Reballing" } } },
-            xbox_series: { name: "Xbox Series S/X", services: { cleaning: { name: "Limpeza Interna", min: 100, max: 150, note: "Preventiva" }, hdmi: { name: "Troca HDMI", min: 300, max: 450, note: "Complexo" }, ssd: { name: "Erro E100/SSD", min: 150, max: 150, note: "+ Peça" } } }
+            ps5_series: { 
+                name: "PlayStation 5 / Series X", 
+                services: { 
+                    cleaning: { name: "Limpeza Preventiva (Metal Líquido)", min: 250, max: 400, note: "Risco Alto (Curto-circuito)" }, 
+                    hdmi: { name: "Troca de HDMI", min: 350, max: 500, note: "Microsolda Avançada" } 
+                } 
+            },
+            ps4_xboxone: { 
+                name: "PS4 / Xbox One", 
+                services: { 
+                    cleaning: { name: "Limpeza + Pasta Térmica Prata", min: 150, max: 250, note: "Manutenção Preventiva" }, 
+                    hdmi: { name: "Troca de HDMI", min: 200, max: 350, note: "Microsolda" },
+                    drive: { name: "Reparo Leitor de Disco", min: 180, max: 300, note: "+ Peça se necessário" }
+                } 
+            },
+            xbox_360: { 
+                name: "Xbox 360", 
+                services: { 
+                    rgh: { name: "Desbloqueio RGH 3.0", min: 150, max: 250, note: "Serviço Legado" },
+                    cleaning: { name: "Limpeza Geral", min: 100, max: 150, note: "Troca de pasta térmica" }
+                } 
+            }
         }
     },
     handheld: {
         label: "Portátil",
         models: {
-            switch: { name: "Nintendo Switch", services: { drift: { name: "Drift Joy-Con", min: 60, max: 120, note: "Por analógico" }, screen: { name: "Troca Tela", min: 300, max: 600, note: "Risco OLED" }, cleaning: { name: "Limpeza", min: 80, max: 120, note: "Preventiva" } } },
-            switch_lite: { name: "Switch Lite", services: { drift: { name: "Drift Analógico", min: 90, max: 120, note: "Desmontagem Total" }, screen: { name: "Troca Tela", min: 350, max: 500, note: "Complexo" } } }
+            switch_v1: { 
+                name: "Nintendo Switch V1", 
+                services: { 
+                    unlock_sw: { name: "Desbloqueio (Software)", min: 100, max: 180, note: "Inclui Configuração SD" },
+                    cleaning: { name: "Limpeza Interna", min: 100, max: 150, note: "Preventiva" }
+                } 
+            },
+            switch_v2_lite: { 
+                name: "Switch V2 / Lite", 
+                services: { 
+                    unlock_chip: { name: "Desbloqueio (ModChip)", min: 350, max: 550, note: "Microsolda (Alta)" },
+                    screen_lite: { name: "Troca de Tela (Lite)", min: 350, max: 500, note: "Desmontagem Completa" },
+                    drift_stick: { name: "Troca de Analógico (Joy-Con)", min: 60, max: 90, note: "Por lado" }
+                } 
+            },
+            switch_oled: { 
+                name: "Switch OLED", 
+                services: { 
+                    unlock_chip: { name: "Desbloqueio (ModChip)", min: 500, max: 800, note: "Extrema Complexidade (Dat0)" },
+                    cleaning: { name: "Limpeza Interna", min: 150, max: 250, note: "Preventiva" }
+                } 
+            },
+            steam_deck: {
+                name: "Steam Deck",
+                services: {
+                    ssd_upgrade: { name: "Troca de SSD (Upgrade)", min: 150, max: 250, note: "Não inclui valor do SSD" },
+                    stick_replace: { name: "Troca de Stick (Hall Effect)", min: 200, max: 350, note: "+ Peças (Gulik)" }
+                }
+            }
         }
     },
     pc: {
-        label: "Computador",
+        label: "Computador / Notebook",
         models: {
-            desktop: { name: "PC Gamer", services: { format_simple: { name: "Formatação", min: 50, max: 80, note: "Sem Backup" }, cleaning: { name: "Limpeza Gamer", min: 120, max: 180, note: "Cable Management" } } },
-            notebook: { name: "Notebook", services: { format_simple: { name: "Formatação", min: 50, max: 80, note: "Sem Backup" }, cleaning: { name: "Limpeza Interna", min: 100, max: 150, note: "Preventiva" }, screen: { name: "Troca Tela", min: 80, max: 150, note: "+ Peça" } } }
+            generic: { 
+                name: "Desktop / Notebook", 
+                services: { 
+                    format_basic: { name: "Formatação Simples (Piso)", min: 50, max: 80, note: "Sem Backup / Commodity" }, 
+                    format_pro: { name: "Formatação Profissional", min: 120, max: 180, note: "C/ Backup + Drivers" },
+                    cleaning_basic: { name: "Limpeza Interna", min: 80, max: 150, note: "Ar comprimido + Pasta" }
+                } 
+            },
+            laptop_screen: {
+                name: "Notebook (Tela)",
+                services: {
+                    screen_replace: { name: "Troca de Tela", min: 100, max: 200, note: "+ Valor da Tela (Consultar)" }
+                }
+            }
         }
     },
     accessory: {
-        label: "Acessórios",
+        label: "Periféricos",
         models: {
-            controller: { name: "Controle", services: { drift: { name: "Troca Analógico", min: 50, max: 120, note: "Potenciômetro" }, battery: { name: "Bateria", min: 90, max: 120, note: "Peça Inclusa" } } }
+            controllers: { 
+                name: "Controle (DualSense / Xbox)", 
+                services: { 
+                    drift_simple: { name: "Reparo Drift (Simples)", min: 80, max: 120, note: "Potenciômetro" }, 
+                    hall_effect: { name: "Upgrade Hall Effect", min: 160, max: 250, note: "Solução Definitiva" } 
+                } 
+            },
+            ds4: { 
+                name: "DualShock 4", 
+                services: { 
+                    battery: { name: "Troca de Bateria", min: 80, max: 100, note: "2000mAh (Inclusa)" },
+                    drift_simple: { name: "Reparo Analógico", min: 60, max: 90, note: "Por unidade" }
+                } 
+            }
         }
     }
 };
 
-const LOGISTICS_COST = { shop: 0, pickup_close: 0, pickup_far: 30 };
+// Custos Logísticos baseados na Tabela 2.4 e 7.2 (Geografia Econômica)
+const LOGISTICS_COST = { 
+    shop: 0, // Levar na Loja
+    local: 15, // Bairro vizinho
+    interzonal: 35, // Média entre 30 e 40 (Zona Norte <-> Centro)
+    remote: 50 // Niterói / Baixada (Piso inicial)
+};
 
 // State & DOM Elements Cache
 let allProducts = [...initialProducts];
@@ -809,9 +886,10 @@ function initCalculator() {
         const priceStr = `${document.getElementById('price-min').textContent} a ${document.getElementById('price-max').textContent}`;
         
         const logisticTexts = {
-            'shop': 'Levar na Loja',
-            'pickup_close': 'Coleta (Grátis)',
-            'pickup_far': 'Coleta (Taxa)'
+            'shop': 'Levar na Loja (Madureira)',
+            'local': 'Coleta Local (Bairro Vizinho)',
+            'interzonal': 'Coleta Interzonal (Zona Norte/Centro)',
+            'remote': 'Baixada / Niterói'
         };
         const logisticTxt = logisticTexts[state.logistics];
 
