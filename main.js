@@ -1,5 +1,3 @@
-
-
 // === GLOBAL PWA VARIABLES ===
 let deferredPrompt;
 
@@ -61,6 +59,99 @@ const faqs = [
     { q: "Vocês montam PC Gamer?", a: "Com certeza! Temos consultoria especializada para montar o PC ideal para seu orçamento." },
     { q: "Entregam em todo o Rio de Janeiro?", a: "Sim, trabalhamos com entregas expressas. Consulte taxa no WhatsApp." }
 ];
+
+// --- CALCULATOR DATA (SOURCE OF TRUTH: MARKET RESEARCH PDF) ---
+// Baseado nas tabelas do relatório 2025-2026
+const CALCULATOR_DATA = {
+    console: {
+        label: "Console de Mesa",
+        models: {
+            ps5: {
+                name: "PlayStation 5",
+                services: {
+                    cleaning: { name: "Limpeza Preventiva (Metal Líquido)", min: 250, max: 450, note: "Risco Operacional Alto" },
+                    hdmi: { name: "Troca de Conector HDMI", min: 250, max: 400, note: "Micro-solda" },
+                    repair_board: { name: "Reparo de Placa (Não liga/Curto)", min: 400, max: 800, note: "Análise Avançada" }
+                }
+            },
+            ps4: {
+                name: "PlayStation 4 (Fat/Slim/Pro)",
+                services: {
+                    cleaning: { name: "Limpeza Completa + Pasta Térmica", min: 100, max: 150, note: "Preço de Combate" },
+                    hdmi: { name: "Troca de Conector HDMI", min: 250, max: 400, note: "Micro-solda" },
+                    repair_board: { name: "Reparo de Placa (Luz Azul)", min: 250, max: 450, note: "Reballing/Componentes" }
+                }
+            },
+            xbox_series: {
+                name: "Xbox Series S/X",
+                services: {
+                    cleaning: { name: "Limpeza Completa Interna", min: 100, max: 150, note: "Preventiva" },
+                    hdmi: { name: "Troca de Conector HDMI", min: 300, max: 450, note: "Alta Complexidade" },
+                    ssd: { name: "Troca de SSD/Erro E100", min: 150, max: 150, note: "+ Valor da Peça" }
+                }
+            }
+        }
+    },
+    handheld: {
+        label: "Portátil",
+        models: {
+            switch: {
+                name: "Nintendo Switch (V1/V2/OLED)",
+                services: {
+                    drift: { name: "Reparo de Drift (Joy-Con)", min: 60, max: 120, note: "Por analógico (Hall Effect opcional)" },
+                    screen: { name: "Troca de Tela", min: 300, max: 600, note: "Alto Risco OLED" },
+                    cleaning: { name: "Limpeza e Troca de Pasta", min: 80, max: 120, note: "Preventiva" }
+                }
+            },
+            switch_lite: {
+                name: "Nintendo Switch Lite",
+                services: {
+                    drift: { name: "Reparo de Drift", min: 90, max: 120, note: "Desmontagem Completa" },
+                    screen: { name: "Troca de Tela LCD", min: 350, max: 500, note: "Mão de obra intensa" }
+                }
+            }
+        }
+    },
+    pc: {
+        label: "Computador / Notebook",
+        models: {
+            desktop: {
+                name: "PC Desktop / Gamer",
+                services: {
+                    format_simple: { name: "Formatação Simples (Drivers)", min: 50, max: 80, note: "Sem Backup" },
+                    format_complete: { name: "Formatação Técnica Completa", min: 100, max: 150, note: "Com Backup e Softwares" },
+                    cleaning: { name: "Limpeza Gamer (Cable Management)", min: 120, max: 180, note: "Complexidade Gabinete" }
+                }
+            },
+            notebook: {
+                name: "Notebook",
+                services: {
+                    format_simple: { name: "Formatação Simples", min: 50, max: 80, note: "Sem Backup" },
+                    cleaning: { name: "Limpeza Interna e Pasta", min: 100, max: 150, note: "Risco de Carcaça" },
+                    screen: { name: "Troca de Tela", min: 80, max: 150, note: "+ Custo da Tela (Variável)" }
+                }
+            }
+        }
+    },
+    accessory: {
+        label: "Acessórios",
+        models: {
+            controller: {
+                name: "Controle (DualSense/Xbox)",
+                services: {
+                    drift: { name: "Reparo de Analógico (Drift)", min: 50, max: 120, note: "Potenciômetro" },
+                    battery: { name: "Troca de Bateria", min: 90, max: 120, note: "Peça Inclusa" }
+                }
+            }
+        }
+    }
+};
+
+const LOGISTICS_COST = {
+    shop: 0,            // Levar na Loja
+    pickup_close: 0,    // < 5km
+    pickup_far: 30      // 5-15km
+};
 
 // State & DOM Elements Cache
 let allProducts = [...initialProducts];
@@ -647,6 +738,131 @@ function initCharts(theme) {
     });
 }
 
+// --- NEW CALCULATOR LOGIC ---
+function initCalculator() {
+    const form = document.getElementById('serviceForm');
+    const catSelect = document.getElementById('calc-category');
+    const modSelect = document.getElementById('calc-model');
+    const servSelect = document.getElementById('calc-service');
+    const radios = document.querySelectorAll('input[name="logistics"]');
+    
+    const stepModel = document.getElementById('step-model');
+    const stepService = document.getElementById('step-service');
+    const stepLogistics = document.getElementById('step-logistics');
+    const resultBox = document.getElementById('serviceResult');
+    const btnSubmit = document.getElementById('btn-submit-calc');
+
+    // Estado da Calculadora
+    let selectedCategory = '';
+    let selectedModel = '';
+    let selectedService = '';
+    let selectedLogistics = 'shop';
+
+    const updateCalc = () => {
+        let min = 0;
+        let max = 0;
+        let note = '';
+
+        if (selectedCategory && selectedModel && selectedService) {
+            const svcData = CALCULATOR_DATA[selectedCategory].models[selectedModel].services[selectedService];
+            min = svcData.min;
+            max = svcData.max;
+            note = svcData.note;
+
+            const logisticCost = LOGISTICS_COST[selectedLogistics] || 0;
+            min += logisticCost;
+            max += logisticCost;
+
+            document.getElementById('price-min').textContent = formatPrice(min);
+            document.getElementById('price-max').textContent = formatPrice(max);
+            document.getElementById('result-note').textContent = note;
+            
+            resultBox.classList.remove('hidden');
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnSubmit.disabled = false;
+        } else {
+            resultBox.classList.add('hidden');
+            btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+            btnSubmit.disabled = true;
+        }
+    };
+
+    catSelect.addEventListener('change', (e) => {
+        selectedCategory = e.target.value;
+        // Reset sub-selects
+        modSelect.innerHTML = '<option value="" disabled selected>Selecione o modelo...</option>';
+        servSelect.innerHTML = '<option value="" disabled selected>Aguardando modelo...</option>';
+        stepService.classList.add('hidden');
+        resultBox.classList.add('hidden');
+        
+        // Populate Models
+        const models = CALCULATOR_DATA[selectedCategory].models;
+        for (const [key, val] of Object.entries(models)) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = val.name;
+            modSelect.appendChild(opt);
+        }
+        
+        stepModel.classList.remove('hidden');
+    });
+
+    modSelect.addEventListener('change', (e) => {
+        selectedModel = e.target.value;
+        // Reset service select
+        servSelect.innerHTML = '<option value="" disabled selected>Selecione o problema...</option>';
+        resultBox.classList.add('hidden');
+
+        // Populate Services
+        const services = CALCULATOR_DATA[selectedCategory].models[selectedModel].services;
+        for (const [key, val] of Object.entries(services)) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = val.name;
+            servSelect.appendChild(opt);
+        }
+
+        stepService.classList.remove('hidden');
+    });
+
+    servSelect.addEventListener('change', (e) => {
+        selectedService = e.target.value;
+        stepLogistics.classList.remove('hidden');
+        updateCalc();
+    });
+
+    radios.forEach(r => r.addEventListener('change', (e) => {
+        selectedLogistics = e.target.value;
+        updateCalc();
+    }));
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        trackAtomicEvent('whatsapp');
+        
+        const clientName = document.getElementById('calc-name').value;
+        const clientPhone = document.getElementById('calc-phone').value;
+        
+        const modelName = CALCULATOR_DATA[selectedCategory].models[selectedModel].name;
+        const serviceName = CALCULATOR_DATA[selectedCategory].models[selectedModel].services[selectedService].name;
+        const priceStr = `${document.getElementById('price-min').textContent} a ${document.getElementById('price-max').textContent}`;
+        const logisticTxt = selectedLogistics === 'shop' ? 'Levar na Loja' : (selectedLogistics === 'pickup_close' ? 'Coleta (Grátis)' : 'Coleta (R$ 30,00)');
+
+        const msg = `*SOLICITAÇÃO DE ORÇAMENTO (WEB)*\n\n` +
+                    `👤 *Cliente:* ${clientName}\n` +
+                    `📱 *Contato:* ${clientPhone}\n` +
+                    `--------------------------------\n` +
+                    `🎮 *Aparelho:* ${modelName}\n` +
+                    `🛠️ *Serviço:* ${serviceName}\n` +
+                    `📍 *Logística:* ${logisticTxt}\n` +
+                    `💰 *Estimativa:* ${priceStr}\n` +
+                    `--------------------------------\n` +
+                    `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;
+
+        window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
+    });
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     trackAtomicEvent('visit');
@@ -718,6 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCharts(theme);
     loadGamesFromGitHub();
     loadBannersFromGitHub();
+    initCalculator(); // Start new calculator logic
 
     const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
@@ -747,21 +964,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('themeToggle')?.addEventListener('click', () => {
         const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
         document.documentElement.className = newTheme; localStorage.setItem('theme', newTheme); initCharts(newTheme);
-    });
-
-    document.getElementById('serviceForm')?.addEventListener('submit', e => {
-        e.preventDefault();
-        trackAtomicEvent('whatsapp');
-        const fd = new FormData(e.target);
-        const msg = `*SOLICITAÇÃO DE REPARO*\n\n👤 ${fd.get('clientName')}\n📱 ${fd.get('clientPhone')}\n🎮 ${fd.get('device')}\n⚠️ ${fd.get('issue')}`;
-        window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
-    });
-    
-    document.getElementById('serviceForm')?.addEventListener('change', () => {
-        if(document.getElementById('deviceSelect').value && document.getElementById('issueSelect').value) {
-            document.getElementById('serviceResult').classList.remove('hidden');
-            document.getElementById('timeEstimate').textContent = document.getElementById('issueSelect').value === 'Limpeza' ? '24 Horas' : '3 a 5 dias úteis';
-        }
     });
 
     let lastY = 0, ticking = false;
