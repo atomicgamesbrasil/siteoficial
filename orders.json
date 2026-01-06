@@ -1,21 +1,5 @@
 [
   {
-    "id": "996742",
-    "customer": "addele [83981181907]",
-    "items": [
-      {
-        "id": "1767668994066",
-        "name": "PS4 / Xbox One - Reparo Leitor de Disco",
-        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-        "price": "R$ 195,00 a R$ 315,00",
-        "quantity": 1
-      }
-    ],
-    "total": "R$ 195,00 a R$ 315,00",
-    "status": "pending",
-    "date": "06/01/2026, 03:09:56"
-  },
-  {
     "id": "070588",
     "customer": "thb1",
     "items": [
