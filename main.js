@@ -632,32 +632,43 @@ function toggleMobileMenu() {
 }
 
 // --- CHECKOUT & ORDERS LOGIC (ENTERPRISE GRADE) ---
-// Função de envio robusta que não bloqueia a UI
-function submitOrderToAPI(customerName) {
-    if (!cart.length) return;
+// Função de envio robusta e reutilizável que não bloqueia a UI
+function submitOrderToAPI(customerName, customItems = null, customTotal = null) {
+    let finalItems = [];
+    let finalTotal = "";
 
-    // 1. Agrega itens iguais (Quantidade)
-    const itemsMap = new Map();
-    cart.forEach(item => {
-        if (itemsMap.has(item.id)) {
-            itemsMap.get(item.id).quantity += 1;
-        } else {
-            itemsMap.set(item.id, {
-                id: item.id,
-                name: item.name,
-                image: item.image, // Snapshot da imagem no momento da compra
-                price: item.price,
-                quantity: 1
-            });
-        }
-    });
+    // Lógica para decidir se é Carrinho ou Item Avulso (Calculadora)
+    if (customItems && customTotal) {
+        finalItems = customItems;
+        finalTotal = customTotal;
+    } else {
+        if (!cart.length) return;
+        
+        // Agrega itens iguais do carrinho (Quantidade)
+        const itemsMap = new Map();
+        cart.forEach(item => {
+            if (itemsMap.has(item.id)) {
+                itemsMap.get(item.id).quantity += 1;
+            } else {
+                itemsMap.set(item.id, {
+                    id: item.id,
+                    name: item.name,
+                    image: item.image, // Snapshot da imagem no momento da compra
+                    price: item.price,
+                    quantity: 1
+                });
+            }
+        });
+        finalItems = Array.from(itemsMap.values());
+        finalTotal = els.cartTotal.textContent;
+    }
     
-    // 2. Cria Payload Rico e Compatível com 'orders.json' do Repositório
+    // Cria Payload Rico e Compatível com 'orders.json' do Repositório
     const orderData = {
         id: Math.floor(Math.random() * 900000 + 100000).toString(), // Simulação de ID 6 dígitos
         customer: customerName,
-        items: Array.from(itemsMap.values()),
-        total: els.cartTotal.textContent,
+        items: finalItems,
+        total: finalTotal,
         status: 'pending',
         date: new Date().toLocaleString('pt-BR') // Formato local compatível com origem
     };
@@ -1074,6 +1085,24 @@ function initCalculator() {
         prepareBudgetForPanel(finalPayload);
         // -----------------------------------------------------------
 
+        // Geração do Link WhatsApp (Fallback caso Chatbot não exista)
+        const priceStr = `${formatPrice(budgetContext.financial.totalMin)} a ${formatPrice(budgetContext.financial.totalMax)}`;
+        
+        // --- GRAVAÇÃO DE PEDIDO (ORDERS.JSON) ---
+        // Aqui reutilizamos EXATAMENTE a mesma função da compra direta.
+        // Criamos um item virtual representando o serviço.
+        const orderItem = {
+            id: budgetContext.event_id || Date.now().toString(),
+            name: `${budgetContext.device.modelLabel} - ${budgetContext.service.name}`,
+            image: "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
+            price: priceStr,
+            quantity: 1
+        };
+
+        // Chama a função de criação de pedido antes do redirect
+        submitOrderToAPI(clientName, [orderItem], priceStr);
+        // ----------------------------------------
+
         // --- HOOKS PARA INTEGRAÇÃO FUTURA (ATIVADO NA FASE 5) ---
         // 1. CHATBOT: O Chatbot assume o atendimento usando o contexto gerado
         if (window.AtomicChat && window.AtomicChat.processBudget) { 
@@ -1081,9 +1110,6 @@ function initCalculator() {
             return; // Interrompe o fluxo antigo de abrir janela imediatamente
         }
 
-        // Geração do Link WhatsApp (Fallback caso Chatbot não exista)
-        const priceStr = `${formatPrice(budgetContext.financial.totalMin)} a ${formatPrice(budgetContext.financial.totalMax)}`;
-        
         const msg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
                     `👤 *${budgetContext.customer.name}*\n` +
                     `📱 ${budgetContext.customer.phone}\n` +
