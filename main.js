@@ -633,7 +633,7 @@ function toggleMobileMenu() {
 
 // --- CHECKOUT & ORDERS LOGIC (ENTERPRISE GRADE) ---
 // Função de envio robusta e reutilizável que não bloqueia a UI
-function submitOrderToAPI(customerName, customItems = null, customTotal = null) {
+function submitOrderToAPI(customerName, customItems = null, customTotal = null, contactInfo = null) {
     let finalItems = [];
     let finalTotal = "";
 
@@ -642,7 +642,7 @@ function submitOrderToAPI(customerName, customItems = null, customTotal = null) 
         finalItems = customItems;
         finalTotal = customTotal;
     } else {
-        if (!cart.length) return;
+        if (!cart.length) return Promise.resolve(); // Return empty promise if no cart
         
         // Agrega itens iguais do carrinho (Quantidade)
         const itemsMap = new Map();
@@ -662,11 +662,27 @@ function submitOrderToAPI(customerName, customItems = null, customTotal = null) 
         finalItems = Array.from(itemsMap.values());
         finalTotal = els.cartTotal.textContent;
     }
+
+    // Processamento de Metadados (Telefone e Origem)
+    let finalCustomerName = customerName;
+    let phone = "";
+    let source = "Site Order";
+
+    if (contactInfo) {
+        if (contactInfo.phone && contactInfo.phone !== "Não informado") {
+            phone = contactInfo.phone;
+            // Hack para exibir telefone no painel atual sem alterar o código do painel
+            finalCustomerName = `${customerName} [${phone}]`; 
+        }
+        if (contactInfo.source) source = contactInfo.source;
+    }
     
     // Cria Payload Rico e Compatível com 'orders.json' do Repositório
     const orderData = {
         id: Math.floor(Math.random() * 900000 + 100000).toString(), // Simulação de ID 6 dígitos
-        customer: customerName,
+        customer: finalCustomerName,
+        phone: phone, // Campo explícito para JSON
+        source: source, // Campo explícito para rastreio
         items: finalItems,
         total: finalTotal,
         status: 'pending',
@@ -674,8 +690,8 @@ function submitOrderToAPI(customerName, customItems = null, customTotal = null) 
     };
 
     // CRUCIAL: 'keepalive: true' garante que o browser termine essa request
-    // mesmo se a página for descarregada pelo window.location.href
-    fetch(API_ORDER_URL, {
+    // Retornamos a Promise para permitir que quem chamou espere (await) se necessário
+    return fetch(API_ORDER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData),
@@ -740,7 +756,8 @@ function createCheckoutModal() {
 
             // 2. Registra o Evento e o Pedido (Background)
             trackAtomicEvent('whatsapp');
-            submitOrderToAPI(name);
+            // Mantém compatibilidade com chamada simples (sem telefone no carrinho por enquanto)
+            submitOrderToAPI(name, null, null, { source: 'Carrinho de Compras' });
 
             // 3. Redireciona IMEDIATAMENTE (Síncrono)
             // Usar window.location.href é a forma mais segura para deep links em mobile
@@ -1025,8 +1042,8 @@ function initCalculator() {
         });
     });
 
-    // Form Submit
-    form.addEventListener('submit', (e) => {
+    // Form Submit (AGORA ASYNC PARA GARANTIR GRAVAÇÃO ANTES DO REDIRECT)
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         trackAtomicEvent('whatsapp');
         
@@ -1100,7 +1117,11 @@ function initCalculator() {
         };
 
         // Chama a função de criação de pedido antes do redirect
-        submitOrderToAPI(clientName, [orderItem], priceStr);
+        // Agora passando o telefone e origem explicitamente
+        await submitOrderToAPI(clientName, [orderItem], priceStr, { 
+            phone: clientPhone,
+            source: 'Calculadora de Orçamento' 
+        });
         // ----------------------------------------
 
         // --- HOOKS PARA INTEGRAÇÃO FUTURA (ATIVADO NA FASE 5) ---
@@ -1121,7 +1142,8 @@ function initCalculator() {
                     `--------------------------------\n` +
                     `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;
 
-        window.open(`https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`);
+        // Redirect Síncrono via Location (Mais seguro para deep links em mobile e evita popup blockers pós-await)
+        window.location.href = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
     });
 }
 
