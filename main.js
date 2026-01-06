@@ -925,16 +925,19 @@ function initCalculator() {
 
         if (!state.category || !state.model || !state.service) return;
 
-        // --- HOOKS PARA INTEGRAÇÃO FUTURA ---
-        // 1. CHATBOT: Quando ativado, o bot poderá ler 'budgetContext' aqui e assumir a conversa
-        // if (window.AtomicChat && window.AtomicChat.isActive) { window.AtomicChat.processBudget(budgetContext); return; }
+        // --- HOOKS PARA INTEGRAÇÃO FUTURA (ATIVADO NA FASE 5) ---
+        // 1. CHATBOT: O Chatbot assume o atendimento usando o contexto gerado
+        if (window.AtomicChat && window.AtomicChat.processBudget) { 
+            window.AtomicChat.processBudget(budgetContext); 
+            return; // Interrompe o fluxo antigo de abrir janela imediatamente
+        }
 
         // 2. PAINEL: Serialização para envio ao backend (CRM/Leads)
         // const payload = JSON.stringify(budgetContext);
         // console.log("Ready for Panel:", payload);
         // ------------------------------------
 
-        // Geração do Link WhatsApp (Usando dados do Contexto para garantir integridade)
+        // Geração do Link WhatsApp (Fallback caso Chatbot não exista)
         const priceStr = `${formatPrice(budgetContext.financial.totalMin)} a ${formatPrice(budgetContext.financial.totalMax)}`;
         
         const msg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
