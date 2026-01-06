@@ -756,7 +756,7 @@ function initCharts(theme) {
     });
 }
 
-// --- NEW PROGRESSIVE CALCULATOR LOGIC ---
+// --- NEW PROGRESSIVE CALCULATOR LOGIC (PREP PARA PAINEL/CHATBOT) ---
 function initCalculator() {
     const form = document.getElementById('serviceForm');
     if(!form) return;
@@ -773,7 +773,21 @@ function initCalculator() {
     const serviceWrapper = document.getElementById('service-wrapper');
     const logInputs = document.querySelectorAll('input[name="logistics"]');
 
-    // State
+    // --- CONTEXTO UNIFICADO (Contrato Oficial para Integrações Futuras) ---
+    // Este objeto não é usado para renderizar a UI (ainda), mas corre em paralelo
+    // para garantir que tenhamos um estado limpo para exportação.
+    const budgetContext = {
+        status: 'draft',
+        timestamp: null,
+        customer: { name: '', phone: '' },
+        device: { category: '', model: '', modelLabel: '' },
+        service: { id: '', name: '', priceMin: 0, priceMax: 0, note: '' },
+        logistics: { type: 'shop', label: '', cost: 0 },
+        financial: { totalMin: 0, totalMax: 0 },
+        meta: { source: 'web_calculator', userAgent: navigator.userAgent }
+    };
+
+    // State Local (UI Control)
     let state = { category: null, model: null, service: null, logistics: 'shop' };
 
     const updateCalc = () => {
@@ -783,7 +797,9 @@ function initCalculator() {
 
         // Só exibe resultado se tiver todos os dados
         if (state.category && state.model && state.service) {
-            const svcData = CALCULATOR_DATA[state.category].models[state.model].services[state.service];
+            const modelData = CALCULATOR_DATA[state.category].models[state.model];
+            const svcData = modelData.services[state.service];
+            
             min = svcData.min;
             max = svcData.max;
             note = svcData.note;
@@ -792,11 +808,36 @@ function initCalculator() {
             min += logisticCost;
             max += logisticCost;
 
+            // --- ATUALIZAÇÃO DO CONTEXTO DE INTEGRAÇÃO ---
+            budgetContext.device.category = state.category;
+            budgetContext.device.model = state.model;
+            budgetContext.device.modelLabel = modelData.name;
+            
+            budgetContext.service.id = state.service;
+            budgetContext.service.name = svcData.name;
+            budgetContext.service.priceMin = svcData.min;
+            budgetContext.service.priceMax = svcData.max;
+            budgetContext.service.note = note;
+
+            const logisticTexts = {
+                'shop': 'Levar na Loja (Madureira)',
+                'local': 'Coleta Local (Bairro Vizinho)',
+                'interzonal': 'Coleta Interzonal (Zona Norte/Centro)',
+                'remote': 'Baixada / Niterói'
+            };
+
+            budgetContext.logistics.type = state.logistics;
+            budgetContext.logistics.label = logisticTexts[state.logistics];
+            budgetContext.logistics.cost = logisticCost;
+
+            budgetContext.financial.totalMin = min;
+            budgetContext.financial.totalMax = max;
+            // ----------------------------------------------
+
             document.getElementById('price-min').textContent = formatPrice(min);
             document.getElementById('price-max').textContent = formatPrice(max);
             document.getElementById('result-note').textContent = note;
             
-            // CRUCIAL FIX: Use active class to show result, consistent with CSS
             resultArea.classList.add('active');
         } else {
             resultArea.classList.remove('active');
@@ -856,10 +897,7 @@ function initCalculator() {
     // Step 3: Service Change
     serviceSelect.addEventListener('change', (e) => {
         state.service = e.target.value;
-        
-        // Show Step 4 (Logistics)
         step3.classList.add('active');
-        
         updateCalc();
     });
 
@@ -879,27 +917,33 @@ function initCalculator() {
         const clientName = document.getElementById('calc-name').value || 'Cliente';
         const clientPhone = document.getElementById('calc-phone').value || 'Não informado';
         
+        // Finalize Context for Export
+        budgetContext.status = 'completed';
+        budgetContext.timestamp = new Date().toISOString();
+        budgetContext.customer.name = clientName;
+        budgetContext.customer.phone = clientPhone;
+
         if (!state.category || !state.model || !state.service) return;
 
-        const modelName = CALCULATOR_DATA[state.category].models[state.model].name;
-        const serviceName = CALCULATOR_DATA[state.category].models[state.model].services[state.service].name;
-        const priceStr = `${document.getElementById('price-min').textContent} a ${document.getElementById('price-max').textContent}`;
-        
-        const logisticTexts = {
-            'shop': 'Levar na Loja (Madureira)',
-            'local': 'Coleta Local (Bairro Vizinho)',
-            'interzonal': 'Coleta Interzonal (Zona Norte/Centro)',
-            'remote': 'Baixada / Niterói'
-        };
-        const logisticTxt = logisticTexts[state.logistics];
+        // --- HOOKS PARA INTEGRAÇÃO FUTURA ---
+        // 1. CHATBOT: Quando ativado, o bot poderá ler 'budgetContext' aqui e assumir a conversa
+        // if (window.AtomicChat && window.AtomicChat.isActive) { window.AtomicChat.processBudget(budgetContext); return; }
 
+        // 2. PAINEL: Serialização para envio ao backend (CRM/Leads)
+        // const payload = JSON.stringify(budgetContext);
+        // console.log("Ready for Panel:", payload);
+        // ------------------------------------
+
+        // Geração do Link WhatsApp (Usando dados do Contexto para garantir integridade)
+        const priceStr = `${formatPrice(budgetContext.financial.totalMin)} a ${formatPrice(budgetContext.financial.totalMax)}`;
+        
         const msg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
-                    `👤 *${clientName}*\n` +
-                    `📱 ${clientPhone}\n` +
+                    `👤 *${budgetContext.customer.name}*\n` +
+                    `📱 ${budgetContext.customer.phone}\n` +
                     `--------------------------------\n` +
-                    `🎮 *Aparelho:* ${modelName}\n` +
-                    `🛠️ *Serviço:* ${serviceName}\n` +
-                    `📍 *Logística:* ${logisticTxt}\n` +
+                    `🎮 *Aparelho:* ${budgetContext.device.modelLabel}\n` +
+                    `🛠️ *Serviço:* ${budgetContext.service.name}\n` +
+                    `📍 *Logística:* ${budgetContext.logistics.label}\n` +
                     `💰 *Estimativa:* ${priceStr}\n` +
                     `--------------------------------\n` +
                     `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;
