@@ -41,6 +41,90 @@ const trackAtomicEvent = (type) => {
     }).catch(err => console.warn('[Atomic Analytics] Error:', err));
 };
 
+// ============================================================================
+// DATA LAYER: PREPARAÇÃO E ENVIO DE ORÇAMENTO (Fase 6)
+// ============================================================================
+
+/**
+ * CONTRATO DE DADOS (SCHEMA DEFINITION v1.0.0)
+ * Estrutura hierárquica do objeto de pedido para o Painel/GitHub.
+ * 
+ * @typedef {Object} AtomicOrderPayload
+ * @property {string} schema_version - Versão do contrato de dados (Ex: "1.0.0").
+ * @property {string} event_id - UUID v4 único para rastreio do evento.
+ * @property {string} timestamp - ISO 8601 da criação do orçamento.
+ * @property {string} source - Origem do dado (Ex: "web_calculator").
+ * @property {string} environment - Ambiente de execução ("production" | "dev").
+ * @property {Object} data - O núcleo do orçamento.
+ * @property {Object} data.customer - Dados do Cliente.
+ * @property {string} data.customer.name - Nome digitado (Input).
+ * @property {string} data.customer.phone - Telefone digitado (Input).
+ * @property {Object} data.device - Aparelho selecionado.
+ * @property {string} data.device.category_id - ID técnico da categoria (Ex: "console").
+ * @property {string} data.device.model_id - ID técnico do modelo (Ex: "ps5").
+ * @property {string} data.device.model_label - Nome amigável do modelo (Lookup).
+ * @property {Object} data.service - Serviço escolhido.
+ * @property {string} data.service.service_id - ID técnico do serviço (Ex: "cleaning").
+ * @property {string} data.service.name - Nome amigável do serviço (Lookup).
+ * @property {Object} data.financial - Valores calculados.
+ * @property {string} data.financial.currency - Moeda ("BRL").
+ * @property {number} data.financial.min_value - Valor mínimo calculado (Number).
+ * @property {number} data.financial.max_value - Valor máximo calculado (Number).
+ * @property {Object} data.logistics - Logística.
+ * @property {string} data.logistics.method_id - ID do método (Ex: "shop").
+ * @property {string} data.logistics.method_label - Nome amigável.
+ * @property {number} data.logistics.cost - Custo adicional (Number).
+ * @property {Object} data.meta - Metadados técnicos.
+ * @property {string} data.meta.user_agent - User Agent do navegador.
+ * @property {number} data.meta.screen_width - Largura da tela (Contexto Mobile/Desk).
+ */
+
+/**
+ * DATA LAYER: Função de Preparação e Serialização
+ * Prepara o payload final, valida versão e simula o envio para o endpoint.
+ * 
+ * @param {AtomicOrderPayload} payload - O objeto final estruturado.
+ */
+function prepareBudgetForPanel(payload) {
+    // 1. Endpoint Target (Mockado para ativação futura)
+    const ENDPOINT = `${API_BASE_URL}/public/budget`;
+    
+    // 2. Validação Básica de Integridade
+    if (!payload.schema_version || !payload.data) {
+        console.error("[Atomic Data Layer] Invalid Payload Schema");
+        return;
+    }
+
+    // 3. Serialização (Simulação de Rede)
+    const serializedData = JSON.stringify(payload);
+    
+    // 4. Log de Auditoria (Data Layer Output)
+    console.groupCollapsed(`🚀 [Atomic Data Layer] Event: ${payload.event_id}`);
+    console.log("Time:", payload.timestamp);
+    console.log("Schema:", payload.schema_version);
+    console.log("Customer:", payload.data.customer.name);
+    console.log("Value:", `${payload.data.financial.min_value} - ${payload.data.financial.max_value}`);
+    console.log("Full Payload:", payload);
+    console.groupEnd();
+    
+    // 5. Envio (COMENTADO - Ativar quando backend estiver ouvindo)
+    /*
+    fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Atomic-Schema': payload.schema_version 
+        },
+        body: serializedData,
+        keepalive: true
+    }).catch(err => console.error("[Atomic Data Layer] Sync Failed", err));
+    */
+}
+
+// ============================================================================
+// END DATA LAYER
+// ============================================================================
+
 // Initial Data
 const initialProducts = [
     { id: "1", name: "PlayStation 5 Slim", category: "console", price: "R$ 3.799,00", image: BASE_IMG_URL + "img%20site/console-ps5.webp", desc: "Digital Edition, 1TB SSD. O console mais rápido da Sony." },
@@ -343,6 +427,24 @@ async function loadBannersFromGitHub() {
     renderPromos();
 }
 
+// NEW: Data Layer Stats Sync
+async function loadStatsFromGitHub() {
+    try {
+        const res = await fetch(`${BASE_IMG_URL}stats.json?t=${Date.now()}`);
+        if (res.ok) {
+            const stats = await res.json();
+            // Data Layer Sync Log (Validação da Fonte Oficial)
+            console.groupCollapsed("[Atomic Data Layer] Stats Synced");
+            console.log("Source:", "stats.json (GitHub Repo)");
+            console.log("Visits:", stats.total_visits);
+            console.log("Carts:", stats.total_carts);
+            console.log("WhatsApp:", stats.total_whatsapp);
+            console.log("Last Updated:", stats.last_updated);
+            console.groupEnd();
+        }
+    } catch (e) { console.warn("Stats sync failed"); }
+}
+
 function renderPromos() {
     const container = document.getElementById('promoBannersContainer');
     if(!container) return;
@@ -550,11 +652,14 @@ function submitOrderToAPI(customerName) {
         }
     });
     
-    // 2. Cria Payload Rico (Objeto JSON, não String)
+    // 2. Cria Payload Rico e Compatível com 'orders.json' do Repositório
     const orderData = {
+        id: Math.floor(Math.random() * 900000 + 100000).toString(), // Simulação de ID 6 dígitos
         customer: customerName,
+        items: Array.from(itemsMap.values()),
         total: els.cartTotal.textContent,
-        items: Array.from(itemsMap.values())
+        status: 'pending',
+        date: new Date().toLocaleString('pt-BR') // Formato local compatível com origem
     };
 
     // CRUCIAL: 'keepalive: true' garante que o browser termine essa request
@@ -924,6 +1029,50 @@ function initCalculator() {
         budgetContext.customer.phone = clientPhone;
 
         if (!state.category || !state.model || !state.service) return;
+        
+        // --- DATA LAYER: CONSTRUÇÃO DO PAYLOAD (CONTRATO v1.0.0) ---
+        // Cria o envelope padrão para envio seguro ao backend
+        /** @type {AtomicOrderPayload} */
+        const finalPayload = {
+            schema_version: "1.0.0", // Contrato fixo
+            event_id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(), // ID Único do Evento
+            timestamp: new Date().toISOString(), // Hora exata (UTC)
+            source: "web_calculator", // Origem do Lead
+            environment: "production", // Flag de ambiente
+            data: {
+                customer: {
+                    name: String(budgetContext.customer.name).trim(),
+                    phone: String(budgetContext.customer.phone).trim()
+                },
+                device: {
+                    category_id: String(budgetContext.device.category),
+                    model_id: String(budgetContext.device.model),
+                    model_label: String(budgetContext.device.modelLabel)
+                },
+                service: {
+                    service_id: String(budgetContext.service.id),
+                    name: String(budgetContext.service.name)
+                },
+                financial: {
+                    currency: "BRL",
+                    min_value: Number(budgetContext.financial.totalMin),
+                    max_value: Number(budgetContext.financial.totalMax)
+                },
+                logistics: {
+                    method_id: String(budgetContext.logistics.type),
+                    method_label: String(budgetContext.logistics.label),
+                    cost: Number(budgetContext.logistics.cost)
+                },
+                meta: {
+                    user_agent: navigator.userAgent,
+                    screen_width: window.innerWidth
+                }
+            }
+        };
+        
+        // Dispara preparação de envio (Fire & Forget)
+        prepareBudgetForPanel(finalPayload);
+        // -----------------------------------------------------------
 
         // --- HOOKS PARA INTEGRAÇÃO FUTURA (ATIVADO NA FASE 5) ---
         // 1. CHATBOT: O Chatbot assume o atendimento usando o contexto gerado
@@ -931,11 +1080,6 @@ function initCalculator() {
             window.AtomicChat.processBudget(budgetContext); 
             return; // Interrompe o fluxo antigo de abrir janela imediatamente
         }
-
-        // 2. PAINEL: Serialização para envio ao backend (CRM/Leads)
-        // const payload = JSON.stringify(budgetContext);
-        // console.log("Ready for Panel:", payload);
-        // ------------------------------------
 
         // Geração do Link WhatsApp (Fallback caso Chatbot não exista)
         const priceStr = `${formatPrice(budgetContext.financial.totalMin)} a ${formatPrice(budgetContext.financial.totalMax)}`;
@@ -1026,6 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCharts(theme);
     loadGamesFromGitHub();
     loadBannersFromGitHub();
+    loadStatsFromGitHub(); // NOVA CHAMADA DE SINCRONIZAÇÃO DE ESTATÍSTICAS
     initCalculator(); // INICIALIZA A NOVA CALCULADORA
 
     const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
