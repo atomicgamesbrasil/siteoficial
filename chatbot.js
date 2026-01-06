@@ -1,4 +1,3 @@
-
 // === CHATBOT 2.1 (FLUID, MAGNETIC & SITE-AWARE) ===
 (function() {
     const els = { 
@@ -200,6 +199,8 @@
                 const actBtn = document.createElement('button');
                 actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
                 actBtn.innerHTML = `<span>${act.label}</span> <i class="ph-bold ${act.icon}"></i>`;
+                
+                // Suporte a URL direta ou Target ID
                 actBtn.onclick = () => {
                     if (act.targetId) {
                         const target = document.getElementById(act.targetId);
@@ -320,5 +321,52 @@
         const baseUrl = api.replace('/chat', ''); 
         fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
     }, 1500);
+
+    // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO FASE 5) ===
+    window.AtomicChat = {
+        /**
+         * Recebe o Objeto de Contexto Único da Calculadora e inicia o atendimento.
+         * @param {Object} context - Objeto budgetContext gerado no main.js
+         */
+        processBudget: function(context) {
+            if (!context || context.status !== 'completed') return;
+
+            // 1. Abre o Chat
+            if (!state.isOpen) openChat();
+
+            // 2. Formata Valores (Helper simples)
+            const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            // 3. Constrói a Mensagem Contextual
+            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
+                        `Recebi sua estimativa para o **${context.device.modelLabel}**.\n\n` +
+                        `🔧 Serviço: ${context.service.name}\n` +
+                        `💰 Estimativa: **${fmt(context.financial.totalMin)}** a **${fmt(context.financial.totalMax)}**\n` +
+                        `📍 Logística: ${context.logistics.label}\n\n` +
+                        `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
+
+            // 4. Gera Link do WhatsApp (Baseado no Contexto)
+            const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
+                          `👤 *${context.customer.name}*\n` +
+                          `📱 ${context.customer.phone}\n` +
+                          `--------------------------------\n` +
+                          `🎮 *Aparelho:* ${context.device.modelLabel}\n` +
+                          `🛠️ *Serviço:* ${context.service.name}\n` +
+                          `📍 *Logística:* ${context.logistics.label}\n` +
+                          `💰 *Estimativa:* ${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}\n` +
+                          `--------------------------------\n` +
+                          `*Obs:* Vim pelo Chat do Site.`;
+            
+            const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
+
+            // 5. Injeta a Mensagem no Chat com Ação
+            // Pequeno delay para parecer natural após o clique no botão calcular
+            setTimeout(() => {
+                addMsg('bot', msg, [], null, [
+                    { label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }
+                ], true);
+            }, 500);
+        }
+    };
 
 })();
