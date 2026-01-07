@@ -337,11 +337,22 @@
             // 2. Formata Valores (Helper simples)
             const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             
+            // --- TRATAMENTO DE ORÇAMENTO PERSONALIZADO (OUTRO DEFEITO) ---
+            let finalServiceName = context.service.name;
+            let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
+
+            // Se tiver descrição personalizada, concatena e muda preço para Sob Análise
+            if (context.service.customDescription) {
+                finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
+                finalPriceStr = "Sob Análise Técnica";
+            }
+            // -------------------------------------------------------------
+
             // 3. Constrói a Mensagem Contextual
             const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
                         `Recebi sua estimativa para o **${context.device.modelLabel}**.\n\n` +
-                        `🔧 Serviço: ${context.service.name}\n` +
-                        `💰 Estimativa: **${fmt(context.financial.totalMin)}** a **${fmt(context.financial.totalMax)}**\n` +
+                        `🔧 Serviço: ${finalServiceName}\n` +
+                        `💰 Estimativa: **${finalPriceStr}**\n` +
                         `📍 Logística: ${context.logistics.label}\n\n` +
                         `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
 
@@ -351,9 +362,9 @@
                           `📱 ${context.customer.phone}\n` +
                           `--------------------------------\n` +
                           `🎮 *Aparelho:* ${context.device.modelLabel}\n` +
-                          `🛠️ *Serviço:* ${context.service.name}\n` +
+                          `🛠️ *Serviço:* ${finalServiceName}\n` +
                           `📍 *Logística:* ${context.logistics.label}\n` +
-                          `💰 *Estimativa:* ${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}\n` +
+                          `💰 *Estimativa:* ${finalPriceStr}\n` +
                           `--------------------------------\n` +
                           `*Obs:* Vim pelo Chat do Site.`;
             
