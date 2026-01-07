@@ -1,21 +1,5 @@
 [
   {
-    "id": "325257",
-    "customer": "thiago [83981181907]",
-    "items": [
-      {
-        "id": "1767803321371",
-        "name": "Nintendo Wii / Wii U - Outro Defeito / Diagnóstico: \"trava tudo tela barulho de tilt \"",
-        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-        "price": "Sob Análise Técnica",
-        "quantity": 1
-      }
-    ],
-    "total": "Sob Análise Técnica",
-    "status": "pending",
-    "date": "07/01/2026, 16:28:45"
-  },
-  {
     "id": "515199",
     "customer": "thiago [83981181907]",
     "items": [
