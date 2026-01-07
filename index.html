@@ -413,34 +413,41 @@
 
                         <!-- Passo 1: Categoria (Cards) -->
                         <div id="step-1" class="calc-step active">
-                            <label class="block text-sm font-semibold mb-3 text-muted">1. Qual o aparelho?</label>
+                            <label class="block text-sm font-semibold mb-3 text-muted">1. Qual o tipo de aparelho?</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <label class="cursor-pointer group">
-                                    <input type="radio" name="category" value="console" class="sr-only">
+                                    <input type="radio" name="category" value="console_modern" class="sr-only">
                                     <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
                                         <i class="ph-duotone ph-game-controller text-3xl text-muted group-hover:text-yellow-500 transition"></i>
-                                        <span class="text-sm font-bold">Console</span>
+                                        <span class="text-xs font-bold uppercase tracking-wide">Consoles Atuais</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer group">
+                                    <input type="radio" name="category" value="console_retro" class="sr-only">
+                                    <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-cassette-tape text-3xl text-muted group-hover:text-yellow-500 transition"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wide">Consoles Retrô</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="handheld" class="sr-only">
                                     <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
                                         <i class="ph-duotone ph-device-mobile-camera text-3xl text-muted group-hover:text-yellow-500 transition"></i>
-                                        <span class="text-sm font-bold">Portátil</span>
+                                        <span class="text-xs font-bold uppercase tracking-wide">Portáteis</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
-                                    <input type="radio" name="category" value="pc" class="sr-only">
+                                    <input type="radio" name="category" value="pc_notebook" class="sr-only">
                                     <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
                                         <i class="ph-duotone ph-desktop-tower text-3xl text-muted group-hover:text-yellow-500 transition"></i>
-                                        <span class="text-sm font-bold">PC / Note</span>
+                                        <span class="text-xs font-bold uppercase tracking-wide">PC / Notebook</span>
                                     </div>
                                 </label>
-                                <label class="cursor-pointer group">
+                                <label class="cursor-pointer group col-span-2">
                                     <input type="radio" name="category" value="accessory" class="sr-only">
                                     <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
                                         <i class="ph-duotone ph-headphones text-3xl text-muted group-hover:text-yellow-500 transition"></i>
-                                        <span class="text-sm font-bold">Periféricos</span>
+                                        <span class="text-xs font-bold uppercase tracking-wide">Acessórios / Controles</span>
                                     </div>
                                 </label>
                             </div>
@@ -460,6 +467,11 @@
                                     <select id="calc-service" class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
                                         <option value="" disabled selected>Selecione...</option>
                                     </select>
+                                </div>
+                                <!-- CUSTOM ISSUE INPUT (Hidden by default) -->
+                                <div id="custom-issue-wrapper" class="hidden">
+                                    <label class="block text-sm font-semibold mb-2 text-yellow-500">Descreva o Problema:</label>
+                                    <textarea id="calc-issue" rows="3" class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-sm transition" placeholder="Ex: Console não liga, luz vermelha, caiu no chão..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -508,7 +520,7 @@
                             <span class="text-xs font-bold uppercase text-muted tracking-widest">Estimativa</span>
                             <div class="flex justify-center items-baseline gap-2 mt-1 mb-2">
                                 <span id="price-min" class="text-2xl font-black text-text">R$ 000</span>
-                                <span class="text-sm text-muted">a</span>
+                                <span id="price-separator" class="text-sm text-muted">a</span>
                                 <span id="price-max" class="text-2xl font-black text-yellow-600 dark:text-yellow-400">R$ 000</span>
                             </div>
                             <p id="result-note" class="text-xs font-medium text-red-500 mb-4"></p>
