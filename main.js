@@ -47,7 +47,43 @@ const trackAtomicEvent = (type) => {
 
 /**
  * CONTRATO DE DADOS (SCHEMA DEFINITION v1.0.0)
- * ... (Mantido da versão anterior)
+ * Estrutura hierárquica do objeto de pedido para o Painel/GitHub.
+ * 
+ * @typedef {Object} AtomicOrderPayload
+ * @property {string} schema_version - Versão do contrato de dados (Ex: "1.0.0").
+ * @property {string} event_id - UUID v4 único para rastreio do evento.
+ * @property {string} timestamp - ISO 8601 da criação do orçamento.
+ * @property {string} source - Origem do dado (Ex: "web_calculator").
+ * @property {string} environment - Ambiente de execução ("production" | "dev").
+ * @property {Object} data - O núcleo do orçamento.
+ * @property {Object} data.customer - Dados do Cliente.
+ * @property {string} data.customer.name - Nome digitado (Input).
+ * @property {string} data.customer.phone - Telefone digitado (Input).
+ * @property {Object} data.device - Aparelho selecionado.
+ * @property {string} data.device.category_id - ID técnico da categoria (Ex: "console").
+ * @property {string} data.device.model_id - ID técnico do modelo (Ex: "ps5").
+ * @property {string} data.device.model_label - Nome amigável do modelo (Lookup).
+ * @property {Object} data.service - Serviço escolhido.
+ * @property {string} data.service.service_id - ID técnico do serviço (Ex: "cleaning").
+ * @property {string} data.service.name - Nome amigável do serviço (Lookup).
+ * @property {Object} data.financial - Valores calculados.
+ * @property {string} data.financial.currency - Moeda ("BRL").
+ * @property {number} data.financial.min_value - Valor mínimo calculado (Number).
+ * @property {number} data.financial.max_value - Valor máximo calculado (Number).
+ * @property {Object} data.logistics - Logística.
+ * @property {string} data.logistics.method_id - ID do método (Ex: "shop").
+ * @property {string} data.logistics.method_label - Nome amigável.
+ * @property {number} data.logistics.cost - Custo adicional (Number).
+ * @property {Object} data.meta - Metadados técnicos.
+ * @property {string} data.meta.user_agent - User Agent do navegador.
+ * @property {number} data.meta.screen_width - Largura da tela (Contexto Mobile/Desk).
+ */
+
+/**
+ * DATA LAYER: Função de Preparação e Serialização
+ * Prepara o payload final, valida versão e simula o envio para o endpoint.
+ * 
+ * @param {AtomicOrderPayload} payload - O objeto final estruturado.
  */
 function prepareBudgetForPanel(payload) {
     // 1. Endpoint Target (Mockado para ativação futura)
@@ -62,10 +98,27 @@ function prepareBudgetForPanel(payload) {
     // 3. Serialização (Simulação de Rede)
     const serializedData = JSON.stringify(payload);
     
-    // 4. Log de Auditoria
+    // 4. Log de Auditoria (Data Layer Output)
     console.groupCollapsed(`🚀 [Atomic Data Layer] Event: ${payload.event_id}`);
+    console.log("Time:", payload.timestamp);
+    console.log("Schema:", payload.schema_version);
+    console.log("Customer:", payload.data.customer.name);
+    console.log("Value:", `${payload.data.financial.min_value} - ${payload.data.financial.max_value}`);
     console.log("Full Payload:", payload);
     console.groupEnd();
+    
+    // 5. Envio (COMENTADO - Ativar quando backend estiver ouvindo)
+    /*
+    fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Atomic-Schema': payload.schema_version 
+        },
+        body: serializedData,
+        keepalive: true
+    }).catch(err => console.error("[Atomic Data Layer] Sync Failed", err));
+    */
 }
 
 // ============================================================================
@@ -1140,6 +1193,14 @@ function initCalculator() {
         const clientName = document.getElementById('calc-name').value || 'Cliente';
         const clientPhone = document.getElementById('calc-phone').value || 'Não informado';
         
+        // --- HARDENING: PHONE VALIDATION ---
+        // Basic Regex for Brazilian phone formats: (XX) 9XXXX-XXXX or (XX) XXXX-XXXX
+        const phoneRegex = /^(\(?\d{2}\)?\s?)?(9\d{4}[-\s]?\d{4}|\d{4}[-\s]?\d{4})$/;
+        if (clientPhone !== 'Não informado' && clientPhone !== '' && !phoneRegex.test(clientPhone.replace(/\D/g, ''))) {
+             alert('Por favor, insira um telefone válido com DDD (apenas números ou formato padrão).');
+             return;
+        }
+
         // Finalize Context for Export
         budgetContext.status = 'completed';
         budgetContext.timestamp = new Date().toISOString();

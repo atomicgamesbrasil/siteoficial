@@ -150,18 +150,31 @@
         
         if(content) bubble.appendChild(parseText(content));
         
-        // --- PRODUTOS (VITRINE NO CHAT) ---
+        // --- PRODUTOS (VITRINE NO CHAT) - HARDENED ---
         if(prods?.length) {
             const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
                 const card = document.createElement('div'); card.className = 'chat-product-card';
-                card.innerHTML = `<img src="${p.image||'https://placehold.co/100'}" loading="lazy">
-                                  <div class="chat-product-title">${p.name||p.nome}</div>
-                                  <div class="chat-product-price">${p.price||p.preco}</div>`;
                 
+                // Create Image
+                const img = document.createElement('img');
+                img.src = p.image || 'https://placehold.co/100';
+                img.loading = 'lazy';
+                
+                // Create Title
+                const title = document.createElement('div');
+                title.className = 'chat-product-title';
+                title.textContent = p.name || p.nome;
+                
+                // Create Price
+                const price = document.createElement('div');
+                price.className = 'chat-product-price';
+                price.textContent = p.price || p.preco;
+                
+                // Create Button
                 const btn = document.createElement('button'); 
-                btn.className='chat-add-btn'; 
-                btn.innerText='VER DETALHES';
+                btn.className = 'chat-add-btn'; 
+                btn.textContent = 'VER DETALHES';
                 
                 // CORREÇÃO CRÍTICA DE UX MOBILE
                 btn.onclick = (e) => {
@@ -179,7 +192,11 @@
                     }
                 };
                 
-                card.appendChild(btn); scroll.appendChild(card);
+                card.appendChild(img);
+                card.appendChild(title);
+                card.appendChild(price);
+                card.appendChild(btn);
+                scroll.appendChild(card);
             });
             bubble.appendChild(scroll);
         }
@@ -188,7 +205,7 @@
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
            btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
-           btn.innerText = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
+           btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
         }
 
         // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
@@ -198,7 +215,14 @@
             actions.forEach(act => {
                 const actBtn = document.createElement('button');
                 actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
-                actBtn.innerHTML = `<span>${act.label}</span> <i class="ph-bold ${act.icon}"></i>`;
+                
+                const span = document.createElement('span');
+                span.textContent = act.label;
+                const icon = document.createElement('i');
+                icon.className = `ph-bold ${act.icon}`;
+                
+                actBtn.appendChild(span);
+                actBtn.appendChild(icon);
                 
                 // Suporte a URL direta ou Target ID
                 actBtn.onclick = () => {

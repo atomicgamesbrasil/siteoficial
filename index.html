@@ -2,6 +2,9 @@
 <html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
+    <!-- Security: Relaxed CSP to fix Icon/Font loading issues (Squares) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https:;">
+    
     <!-- ATUALIZAÇÃO: interactive-widget=resizes-content ajuda o layout a reagir ao teclado virtual -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Atomic Games e Informática - Site Oficial</title>
@@ -11,6 +14,7 @@
     <meta name="theme-color" content="#FFD700">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Atomic Games">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp">
     
     <!-- Canonical Tag (SEO) -->
@@ -116,8 +120,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Hojas de Estilo Propias -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- Hojas de Estilo Propias (Cache Busted) -->
+    <link rel="stylesheet" href="styles.css?v=2025.02.02">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
+  }
+}
+</script>
 </head>
 <body class="antialiased bg-base text-base transition-colors duration-500" id="top">
     
@@ -224,6 +239,11 @@
             </div>
             
             <div class="mt-auto space-y-4">
+                <!-- PWA Install Button Mobile -->
+                <button id="installAppBtnMobile" class="flex items-center justify-center gap-3 w-full py-4 border-2 border-base bg-base text-base rounded-xl font-bold shadow-sm hover:border-yellow-500 hover:text-yellow-600 dark:hover:text-yellow-400 transition" style="display: none;">
+                    <i class="ph-bold ph-download-simple text-2xl"></i> Instalar Aplicativo
+                </button>
+
                 <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
                 <div class="flex justify-center gap-4 pt-4">
                     <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
@@ -233,6 +253,21 @@
             </div>
         </div>
     </nav>
+
+    <!-- Install Guide Modal -->
+    <div id="installGuideModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-base w-11/12 max-w-sm bg-card-solid rounded-3xl shadow-2xl border border-base p-6 text-center relative">
+            <button id="closeGuideModal" class="absolute top-4 right-4 p-2 hover:bg-base rounded-full transition"><i class="ph-bold ph-x text-xl"></i></button>
+            <div class="mb-4 flex justify-center">
+                <div class="w-16 h-16 rounded-full bg-base flex items-center justify-center">
+                    <i id="guideMainIcon" class=""></i>
+                </div>
+            </div>
+            <h3 id="guideTitle" class="text-xl font-bold mb-2"></h3>
+            <p id="guideText" class="text-muted text-sm mb-6 leading-relaxed"></p>
+            <div id="guideSteps" class="flex justify-center items-center gap-4 bg-base p-4 rounded-xl border border-base"></div>
+        </div>
+    </div>
 
     <!-- Cart Overlay -->
     <div class="modal-overlay" id="cartOverlay" aria-hidden="true"></div>
@@ -269,6 +304,12 @@
                 <a href="#location" class="nav-link">Localização</a>
             </div>
             <div class="flex items-center gap-3">
+                <!-- PWA Install Button Desktop -->
+                <button id="installAppBtnDesktop" class="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-yellow-500/30 text-yellow-600 dark:text-yellow-400 font-bold text-xs hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition" style="display: none;">
+                    <i class="ph-bold ph-download-simple text-lg"></i>
+                    <span>Baixar App</span>
+                </button>
+
                 <button id="themeToggle" class="p-3 rounded-xl hover:bg-base transition" aria-label="Alternar entre tema claro e escuro">
                     <i class="ph ph-sun text-2xl hidden dark:block text-yellow-400"></i>
                     <i class="ph ph-moon text-2xl block dark:hidden text-slate-700"></i>
