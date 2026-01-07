@@ -46,21 +46,5 @@
     "total": "R$ 515,00 a R$ 815,00",
     "status": "pending",
     "date": "06/01/2026, 21:21:04"
-  },
-  {
-    "id": "806621",
-    "customer": "Emilia [839811818907]",
-    "items": [
-      {
-        "id": "1767670804804",
-        "name": "Desktop / Notebook - Formatação Simples (Piso)",
-        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-        "price": "R$ 100,00 a R$ 130,00",
-        "quantity": 1
-      }
-    ],
-    "total": "R$ 100,00 a R$ 130,00",
-    "status": "pending",
-    "date": "06/01/2026, 03:40:06"
   }
 ]
