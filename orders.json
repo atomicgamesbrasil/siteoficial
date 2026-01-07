@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "047133",
+    "customer": "Cliente",
+    "items": [
+      {
+        "id": "1767809042688",
+        "name": "PlayStation 2 (Fat / Slim) - Instalação OPL (Jogos USB)",
+        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
+        "price": "R$ 80,00 a R$ 120,00",
+        "quantity": 1
+      }
+    ],
+    "total": "R$ 80,00 a R$ 120,00",
+    "status": "pending",
+    "date": "07/01/2026, 18:04:07"
+  }
+]
