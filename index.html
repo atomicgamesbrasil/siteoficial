@@ -2,10 +2,10 @@
 <html lang="pt-BR" class="light">
 <head>
     <meta charset="UTF-8">
-    <!-- Security: Relaxed CSP to fix Icon/Font loading issues (Squares) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https:;">
+    <!-- Security: Adjusted CSP to ensure PWA and Scripts load correctly -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https:; worker-src 'self' blob:;">
     
-    <!-- ATUALIZAÇÃO: interactive-widget=resizes-content ajuda o layout a reagir ao teclado virtual -->
+    <!-- Viewport otimizado para Apps -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Atomic Games e Informática - Site Oficial</title>
     
@@ -20,7 +20,7 @@
     <!-- Canonical Tag (SEO) -->
     <link rel="canonical" href="https://atomicgames.com.br">
 
-    <!-- CSS Crítico para evitar Flash of Unstyled Content (FOUC) do Skip Link -->
+    <!-- CSS Crítico -->
     <style>
         .skip-link { opacity: 0; position: absolute; top: -9999px; left: -9999px; z-index: -1; }
         
@@ -56,7 +56,7 @@
     <meta property="og:type" content="website">
     <meta property="og:locale" content="pt_BR">
 
-    <!-- Schema.org (JSON-LD) - Local Business -->
+    <!-- Schema.org (JSON-LD) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -71,21 +71,6 @@
         "addressRegion": "RJ",
         "addressCountry": "BR"
       },
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "09:00",
-          "closes": "19:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": "Saturday",
-          "opens": "09:00",
-          "closes": "14:00"
-        }
-      ],
-      "priceRange": "$$",
       "telephone": "+5521995969378",
       "url": "https://atomicgames.com.br"
     }
@@ -120,16 +105,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Hojas de Estilo Propias (Cache Busted) -->
-    <link rel="stylesheet" href="styles.css?v=2025.02.02">
+    <!-- Styles with Cache Busting v2 -->
+    <link rel="stylesheet" href="styles.css?v=2025.02.02-fix2">
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "recharts": "https://esm.sh/recharts@^3.6.0"
+    "react": "https://esm.sh/react@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
   }
 }
 </script>
@@ -142,22 +127,17 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
 
-    <!-- Back To Top (MOVIDO PARA A ESQUERDA) -->
+    <!-- Back To Top -->
     <button id="backToTop" class="fixed bottom-6 left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
         <i class="ph-bold ph-arrow-up text-xl"></i>
     </button>
 
-    <!-- ============================================
-         ATOMIC CHAT WIDGET 2.0
-         ============================================ -->
+    <!-- Chat Widget -->
     <div id="atomic-chat-widget">
-        <!-- Floating Bubble -->
         <div id="chatBubble" class="chat-bubble" role="button" aria-label="Abrir Chat" tabindex="0">
             <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
             <div id="chatBadge" class="chat-bubble-badge badge-pulse">1</div>
         </div>
-        
-        <!-- Main Chat Window -->
         <div id="chatWindow" class="chat-window">
             <header class="chat-header">
                 <div class="chat-header-info">
@@ -169,11 +149,7 @@
                     <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
                 </div>
             </header>
-            
-            <div id="chatMessages" class="chat-messages">
-                <!-- Messages Injected Here -->
-            </div>
-            
+            <div id="chatMessages" class="chat-messages"></div>
             <footer class="chat-input-area">
                 <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
                 <button id="sendBtn" class="chat-send-btn" aria-label="Enviar"><i class="ph-fill ph-paper-plane-right"></i></button>
@@ -239,7 +215,7 @@
             </div>
             
             <div class="mt-auto space-y-4">
-                <!-- PWA Install Button Mobile -->
+                <!-- PWA Install Button Mobile (Shown by JS) -->
                 <button id="installAppBtnMobile" class="flex items-center justify-center gap-3 w-full py-4 border-2 border-base bg-base text-base rounded-xl font-bold shadow-sm hover:border-yellow-500 hover:text-yellow-600 dark:hover:text-yellow-400 transition" style="display: none;">
                     <i class="ph-bold ph-download-simple text-2xl"></i> Instalar Aplicativo
                 </button>
@@ -304,7 +280,7 @@
                 <a href="#location" class="nav-link">Localização</a>
             </div>
             <div class="flex items-center gap-3">
-                <!-- PWA Install Button Desktop -->
+                <!-- PWA Install Button Desktop (Shown by JS) -->
                 <button id="installAppBtnDesktop" class="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-yellow-500/30 text-yellow-600 dark:text-yellow-400 font-bold text-xs hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition" style="display: none;">
                     <i class="ph-bold ph-download-simple text-lg"></i>
                     <span>Baixar App</span>
@@ -681,8 +657,8 @@
         </div>
     </footer>
 
-    <!-- Scripts Logic Split -->
-    <script src="main.js" defer></script>
-    <script src="chatbot.js" defer></script>
+    <!-- Scripts Logic Split with new cache busters -->
+    <script src="main.js?v=2025.02.02-fix2" defer></script>
+    <script src="chatbot.js?v=2025.02.02-fix2" defer></script>
 </body>
 </html>
