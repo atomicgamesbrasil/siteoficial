@@ -35,7 +35,7 @@
         /* Estilo para Radio Cards Selecionados */
         input[type="radio"]:checked + div {
             border-color: #FFD700;
-            background-color: rgba(255, 215, 0, 0.1);
+            background-color: rgba(255, 215, 0, 0.05);
         }
         input[type="radio"]:checked + div i {
             color: #FFD700;
@@ -102,11 +102,11 @@
             }
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js removido para otimização -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Styles with Cache Busting v2 -->
-    <link rel="stylesheet" href="styles.css?v=2025.02.02-fix2">
+    <!-- Styles with Cache Busting v4 (FIXED) -->
+    <link rel="stylesheet" href="styles.css?v=2025.02.04-fix">
 <script type="importmap">
 {
   "imports": {
@@ -128,8 +128,8 @@
     <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
 
     <!-- Back To Top -->
-    <button id="backToTop" class="fixed bottom-6 left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform glow-gold z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
-        <i class="ph-bold ph-arrow-up text-xl"></i>
+    <button id="backToTop" class="fixed bottom-6 left-6 w-12 h-12 rounded-full bg-yellow-400 text-black flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[var(--z-toast)]" aria-label="Voltar ao topo da página">
+        <i class="ph-bold ph-arrow-up text-lg"></i>
     </button>
 
     <!-- Chat Widget -->
@@ -159,24 +159,24 @@
 
     <!-- Product Detail Modal -->
     <div id="productDetailOverlay" class="modal-overlay" aria-hidden="true"></div>
-    <article id="productDetailModal" class="modal-base w-11/12 max-w-4xl bg-card-solid rounded-3xl shadow-2xl border border-base overflow-hidden" role="dialog" aria-labelledby="modalProductName" aria-modal="true">
-        <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
+    <article id="productDetailModal" class="modal-base w-11/12 max-w-4xl bg-card-solid rounded-2xl shadow-2xl border border-base overflow-hidden" role="dialog" aria-labelledby="modalProductName" aria-modal="true">
+        <div class="p-5 border-b border-base flex justify-between items-center">
             <span class="text-sm font-bold text-muted uppercase tracking-wider">Detalhes do Produto</span>
-            <button id="closeDetailBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar detalhes do produto"><i class="ph-bold ph-x text-xl"></i></button>
+            <button id="closeDetailBtn" class="p-2 hover:bg-base rounded-full transition" aria-label="Fechar detalhes do produto"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="p-6 md:p-8 grid md:grid-cols-2 gap-6 md:gap-8 max-h-[80vh] overflow-y-auto">
             <figure class="relative bg-base rounded-2xl p-6 flex items-center justify-center min-h-64">
-                <img id="modalProductImage" src="" alt="" class="max-h-80 w-auto object-contain drop-shadow-2xl">
+                <img id="modalProductImage" src="" alt="" class="max-h-80 w-auto object-contain drop-shadow-lg">
                 <span id="modalProductCategory" class="category-tag absolute top-4 left-4"></span>
             </figure>
             <div class="space-y-6">
                 <h2 id="modalProductName" class="text-3xl font-bold text-base">Nome do Produto</h2>
                 <p id="modalProductDescription" class="text-muted text-lg leading-relaxed">Descrição detalhada do produto.</p>
                 <div class="flex items-center justify-between pt-4 border-t border-base">
-                    <span id="modalProductPrice" class="font-bold text-4xl text-gradient">R$ 0,00</span>
+                    <span id="modalProductPrice" class="font-bold text-3xl text-base">R$ 0,00</span>
                     <button id="modalAddToCartBtn" class="flex items-center gap-2 btn-primary text-base px-6 py-3"><i class="ph-bold ph-plus text-xl"></i> Adicionar</button>
                 </div>
-                <a id="modalWhatsappBtn" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all hover:-translate-y-1"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp</a>
+                <a id="modalWhatsappBtn" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-sm transition-all hover:-translate-y-1"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Negociar no WhatsApp</a>
             </div>
         </div>
     </article>
@@ -189,38 +189,38 @@
         <div class="h-full flex flex-col p-6">
             <div class="flex justify-between items-center mb-8">
                 <div class="flex items-center gap-3">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="" class="h-12 w-12 rounded-full shadow-lg bg-black glow-gold">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="" class="h-10 w-10 rounded-full shadow-md bg-black">
                     <span class="font-bold text-xl brand-font">ATOMIC</span>
                 </div>
                 <button id="closeMobileMenuBtn" class="p-3 rounded-xl bg-base hover:bg-card transition" aria-label="Fechar menu"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             
             <div class="flex-grow space-y-2">
-                <a href="#store" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg"><i class="ph-fill ph-storefront text-2xl text-black"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Loja Virtual</span><p class="text-xs text-muted">Produtos e ofertas</p></div>
+                <a href="#store" class="flex items-center gap-4 p-4 rounded-xl hover:bg-base transition group">
+                    <div class="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center shadow-sm"><i class="ph-fill ph-storefront text-xl text-black"></i></div>
+                    <div><span class="font-bold text-base group-hover:text-yellow-600 transition">Loja Virtual</span></div>
                 </a>
-                <a href="#services" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-wrench text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Assistência</span><p class="text-xs text-muted">Reparos especializados</p></div>
+                <a href="#services" class="flex items-center gap-4 p-4 rounded-xl hover:bg-base transition group">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center shadow-sm"><i class="ph-fill ph-wrench text-xl text-white"></i></div>
+                    <div><span class="font-bold text-base group-hover:text-yellow-600 transition">Assistência</span></div>
                 </a>
-                <a href="#dashboard" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-star text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Depoimentos</span><p class="text-xs text-muted">O que falam da gente</p></div>
+                <a href="#dashboard" class="flex items-center gap-4 p-4 rounded-xl hover:bg-base transition group">
+                    <div class="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center shadow-sm"><i class="ph-fill ph-star text-xl text-white"></i></div>
+                    <div><span class="font-bold text-base group-hover:text-yellow-600 transition">Depoimentos</span></div>
                 </a>
-                <a href="#location" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-base transition group">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg"><i class="ph-fill ph-map-pin text-2xl text-white"></i></div>
-                    <div><span class="font-bold text-lg group-hover:text-yellow-500 transition">Localização</span><p class="text-xs text-muted">Visite nosso QG</p></div>
+                <a href="#location" class="flex items-center gap-4 p-4 rounded-xl hover:bg-base transition group">
+                    <div class="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center shadow-sm"><i class="ph-fill ph-map-pin text-xl text-white"></i></div>
+                    <div><span class="font-bold text-base group-hover:text-yellow-600 transition">Localização</span></div>
                 </a>
             </div>
             
             <div class="mt-auto space-y-4">
                 <!-- PWA Install Button Mobile (Shown by JS) -->
-                <button id="installAppBtnMobile" class="flex items-center justify-center gap-3 w-full py-4 border-2 border-base bg-base text-base rounded-xl font-bold shadow-sm hover:border-yellow-500 hover:text-yellow-600 dark:hover:text-yellow-400 transition" style="display: none;">
+                <button id="installAppBtnMobile" class="flex items-center justify-center gap-3 w-full py-4 border border-base bg-base text-base rounded-xl font-bold shadow-sm hover:border-yellow-500 hover:text-yellow-600 dark:hover:text-yellow-400 transition" style="display: none;">
                     <i class="ph-bold ph-download-simple text-2xl"></i> Instalar Aplicativo
                 </button>
 
-                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold shadow-lg hover:shadow-green-500/30 transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
+                <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold shadow-md transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
                 <div class="flex justify-center gap-4 pt-4">
                     <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
                     <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
@@ -248,17 +248,17 @@
     <!-- Cart Overlay -->
     <div class="modal-overlay" id="cartOverlay" aria-hidden="true"></div>
     <aside class="cart-modal bg-card-solid border-l border-base shadow-2xl" id="cartModal" role="dialog" aria-labelledby="cartTitle" aria-modal="true">
-        <div class="p-5 border-b border-base flex justify-between items-center bg-gradient-to-r from-yellow-400/10 to-orange-400/10">
+        <div class="p-5 border-b border-base flex justify-between items-center">
             <h2 id="cartTitle" class="font-bold text-xl flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-shopping-cart text-black"></i></div>
+                <div class="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center"><i class="ph-fill ph-shopping-cart text-black text-sm"></i></div>
                 Seu Carrinho
             </h2>
-            <button id="closeCartBtn" class="p-3 hover:bg-base rounded-xl transition" aria-label="Fechar carrinho"><i class="ph-bold ph-x text-xl"></i></button>
+            <button id="closeCartBtn" class="p-2 hover:bg-base rounded-lg transition" aria-label="Fechar carrinho"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <div class="flex-grow overflow-y-auto p-5 space-y-4" id="cartItemsContainer"></div>
         <div class="p-5 border-t border-base bg-base">
-            <div class="flex justify-between items-center mb-4"><span class="text-muted font-medium">Subtotal</span><span id="cartTotal" class="font-bold text-2xl text-gradient">R$ 0,00</span></div>
-            <button class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" id="checkoutBtn" disabled><i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp</button>
+            <div class="flex justify-between items-center mb-4"><span class="text-muted font-medium">Subtotal</span><span id="cartTotal" class="font-bold text-2xl">R$ 0,00</span></div>
+            <button class="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg transition-all transform active:scale-98 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed" id="checkoutBtn" disabled><i class="ph-bold ph-whatsapp-logo text-xl"></i> Finalizar no WhatsApp</button>
             <p class="text-center text-xs text-muted mt-3">Pagamento e entrega combinados no chat</p>
         </div>
     </aside>
@@ -269,8 +269,8 @@
             <div class="flex items-center gap-4">
                 <button id="mobileMenuOpenBtn" class="md:hidden p-2 rounded-xl hover:bg-base transition" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="mobileMenu"><i class="ph-bold ph-list text-2xl"></i></button>
                 <a href="#top" class="flex items-center gap-3 hover:opacity-90 transition transform hover:scale-105 duration-300" aria-label="Atomic Games - Página inicial">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo Atomic Games" class="h-11 w-11 rounded-full shadow-lg bg-black ring-2 ring-yellow-400/50 glow-gold">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic Games" class="h-7 w-auto hidden sm:block">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" alt="Logo Atomic Games" class="h-10 w-10 rounded-full shadow-sm bg-black ring-1 ring-white/10">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/Atomic%20frase.webp" alt="Atomic Games" class="h-6 w-auto hidden sm:block">
                 </a>
             </div>
             <div class="hidden md:flex gap-8 font-semibold text-sm uppercase tracking-wide text-muted">
@@ -281,7 +281,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <!-- PWA Install Button Desktop (Shown by JS) -->
-                <button id="installAppBtnDesktop" class="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-yellow-500/30 text-yellow-600 dark:text-yellow-400 font-bold text-xs hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition" style="display: none;">
+                <button id="installAppBtnDesktop" class="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-yellow-500/30 text-yellow-600 dark:text-yellow-400 font-bold text-xs hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition" style="display: none;">
                     <i class="ph-bold ph-download-simple text-lg"></i>
                     <span>Baixar App</span>
                 </button>
@@ -302,18 +302,18 @@
     <main id="main-content">
         <!-- Hero Section -->
         <section class="hero-section" aria-labelledby="hero-title">
-            <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-10 md:gap-16">
+            <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-8 md:gap-12">
                 <div class="md:w-1/2 space-y-7 flex flex-col items-center md:items-start text-center md:text-left reveal">
-                    <div class="block md:hidden w-[calc(100%+2rem)] -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-3xl shadow-2xl relative h-48">
+                    <div class="block md:hidden w-[calc(100%+2rem)] -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-3xl shadow-xl relative h-48">
                         <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/painelv6.webp" alt="Atomic Games Banner" class="w-full h-full object-cover" loading="eager">
                     </div>
-                    <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full text-xs font-extrabold uppercase tracking-wider shadow-lg transform hover:scale-105 transition cursor-default glow-gold">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-black rounded-full text-xs font-bold uppercase tracking-wider shadow-md transform hover:scale-105 transition cursor-default">
                         <i class="ph-fill ph-map-pin icon-bounce"></i> Madureira - RJ
                     </div>
-                    <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] text-base">O Quartel General do <span class="text-gradient">Gamer Carioca</span></h1>
+                    <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] text-base">O <span class="text-gradient">QG</span> do Gamer Carioca</h1>
                     <p class="text-lg md:text-xl text-muted font-medium max-w-lg leading-relaxed">Console quebrado? PC lento? Ou procurando aquele upgrade? Somos <strong class="text-base">especialistas em assistência técnica</strong> e a loja mais completa da região.</p>
                     <div class="flex flex-col sm:flex-row gap-4 pt-2 w-full md:w-auto">
-                        <a href="#store" class="btn-primary pulse-glow flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-shopping-bag text-lg"></i> Ver Produtos</a>
+                        <a href="#store" class="btn-primary flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-shopping-bag text-lg"></i> Ver Produtos</a>
                         <a href="#services" class="btn-secondary flex items-center justify-center gap-3 w-full sm:w-auto"><i class="ph-bold ph-wrench"></i> Assistência Técnica</a>
                     </div>
                     <div class="flex flex-wrap justify-center md:justify-start gap-6 pt-4" role="list" aria-label="Diferenciais">
@@ -323,13 +323,13 @@
                     </div>
                 </div>
                 <div class="md:w-1/2 w-full flex justify-center reveal" style="transition-delay: 200ms;">
-                    <div class="relative w-full max-w-lg aspect-video bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 hidden md:block group float glow-gold-intense">
+                    <div class="relative w-full max-w-lg aspect-video bg-black rounded-2xl shadow-2xl overflow-hidden border border-white/10 hidden md:block group float">
                         <button class="video-facade" id="videoFacade" data-video-id="YCsT_InlNWw" type="button" aria-label="Reproduzir vídeo">
                             <img src="https://img.youtube.com/vi/YCsT_InlNWw/hqdefault.jpg" alt="Thumbnail Vídeo" onerror="this.src='https://placehold.co/800x450/000/FFD700?text=ATOMIC+GAMES'" loading="lazy">
                             <div class="play-btn" aria-hidden="true"><i class="ph-fill ph-play text-3xl text-black ml-1"></i></div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                             <div class="absolute bottom-4 left-4 right-4 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-youtube-logo text-black text-xl"></i></div>
+                                <div class="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center"><i class="ph-fill ph-youtube-logo text-black text-xl"></i></div>
                                 <div class="text-white"><p class="font-bold text-sm">Conheça a Atomic</p><p class="text-xs opacity-80">Assista ao vídeo</p></div>
                             </div>
                         </button>
@@ -340,11 +340,11 @@
         </section>
 
         <!-- Store Section -->
-        <section id="store" class="py-24 bg-base scroll-mt-20" aria-labelledby="store-title">
+        <section id="store" class="py-16 bg-base scroll-mt-20" aria-labelledby="store-title">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6 reveal">
                     <div>
-                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-storefront"></i> Nossa Loja</span>
+                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-black text-yellow-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4 border-none"><i class="ph-fill ph-storefront"></i> Nossa Loja</span>
                         <h2 id="store-title" class="text-4xl md:text-5xl font-black mb-3 text-base">Catálogo <span class="text-gradient">Atomic</span></h2>
                         <p class="text-muted text-lg max-w-md">Adicione itens ao carrinho e finalize pelo WhatsApp. Preços imbatíveis!</p>
                     </div>
@@ -409,61 +409,73 @@
                 </div>
                 
                 <div class="bento-card p-8 md:p-10 relative overflow-hidden reveal noise-overlay">
-                    <div class="absolute top-0 right-0 w-40 h-40 bg-yellow-500/20 rounded-full blur-3xl animate-pulse" aria-hidden="true"></div>
-                    <div class="flex items-center gap-4 mb-8 relative z-10">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center glow-gold"><i class="ph-fill ph-wrench text-2xl text-black"></i></div>
-                        <div><h3 class="text-2xl font-bold">Simular Reparo</h3><p class="text-sm text-muted">Passo a passo</p></div>
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-yellow-500/10 rounded-full blur-3xl" aria-hidden="true"></div>
+                    
+                    <!-- NEW PROGRESS BAR AREA -->
+                    <div class="calc-progress-container relative z-10">
+                        <div class="calc-progress-header">
+                            <span>Progresso</span>
+                            <span id="calc-progress-text">5%</span>
+                        </div>
+                        <div class="calc-progress-track">
+                            <div id="calc-progress-fill" class="calc-progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 mb-6 relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-yellow-400 flex items-center justify-center shadow-sm"><i class="ph-fill ph-wrench text-xl text-black"></i></div>
+                        <div><h3 class="text-2xl font-bold">Simular Reparo</h3></div>
                     </div>
                     
                     <form id="serviceForm" class="space-y-6 relative z-10">
                         <!-- Dados do Cliente -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-semibold mb-2 text-muted">Nome</label>
-                                <input type="text" id="calc-name" class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition" placeholder="Seu Nome">
+                                <label class="block text-xs font-bold uppercase text-muted mb-2">Nome</label>
+                                <input type="text" id="calc-name" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="Seu Nome">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold mb-2 text-muted">WhatsApp</label>
-                                <input type="tel" id="calc-phone" class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition" placeholder="(21) 99999-9999">
+                                <label class="block text-xs font-bold uppercase text-muted mb-2">WhatsApp</label>
+                                <input type="tel" id="calc-phone" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="(21) 99999-9999">
                             </div>
                         </div>
 
                         <!-- Passo 1: Categoria (Cards) -->
                         <div id="step-1" class="calc-step active">
-                            <label class="block text-sm font-semibold mb-3 text-muted">1. Qual o tipo de aparelho?</label>
+                            <label class="block text-sm font-bold mb-3 text-base">1. Qual o tipo de aparelho?</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="console_modern" class="sr-only">
-                                    <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-game-controller text-3xl text-muted group-hover:text-yellow-500 transition"></i>
+                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-game-controller text-3xl text-muted group-hover:text-yellow-600 transition"></i>
                                         <span class="text-xs font-bold uppercase tracking-wide">Consoles Atuais</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="console_retro" class="sr-only">
-                                    <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-cassette-tape text-3xl text-muted group-hover:text-yellow-500 transition"></i>
+                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-cassette-tape text-3xl text-muted group-hover:text-yellow-600 transition"></i>
                                         <span class="text-xs font-bold uppercase tracking-wide">Consoles Retrô</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="handheld" class="sr-only">
-                                    <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-device-mobile-camera text-3xl text-muted group-hover:text-yellow-500 transition"></i>
+                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-device-mobile-camera text-3xl text-muted group-hover:text-yellow-600 transition"></i>
                                         <span class="text-xs font-bold uppercase tracking-wide">Portáteis</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="pc_notebook" class="sr-only">
-                                    <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-desktop-tower text-3xl text-muted group-hover:text-yellow-500 transition"></i>
+                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-desktop-tower text-3xl text-muted group-hover:text-yellow-600 transition"></i>
                                         <span class="text-xs font-bold uppercase tracking-wide">PC / Notebook</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group col-span-2">
                                     <input type="radio" name="category" value="accessory" class="sr-only">
-                                    <div class="p-4 rounded-xl border-2 border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-headphones text-3xl text-muted group-hover:text-yellow-500 transition"></i>
+                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-headphones text-3xl text-muted group-hover:text-yellow-600 transition"></i>
                                         <span class="text-xs font-bold uppercase tracking-wide">Acessórios / Controles</span>
                                     </div>
                                 </label>
@@ -474,30 +486,30 @@
                         <div id="step-2" class="calc-step mt-4">
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-semibold mb-2 text-muted">2. Modelo</label>
-                                    <select id="calc-model" class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
+                                    <label class="block text-sm font-bold mb-2 text-base">2. Modelo</label>
+                                    <select id="calc-model" class="w-full p-3.5 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
                                         <option value="" disabled selected>Selecione...</option>
                                     </select>
                                 </div>
                                 <div id="service-wrapper" class="hidden">
-                                    <label class="block text-sm font-semibold mb-2 text-muted">3. Serviço / Defeito</label>
-                                    <select id="calc-service" class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
+                                    <label class="block text-sm font-bold mb-2 text-base">3. Serviço / Defeito</label>
+                                    <select id="calc-service" class="w-full p-3.5 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
                                         <option value="" disabled selected>Selecione...</option>
                                     </select>
                                 </div>
                                 <!-- CUSTOM ISSUE INPUT (Hidden by default) -->
                                 <div id="custom-issue-wrapper" class="hidden">
-                                    <label class="block text-sm font-semibold mb-2 text-yellow-500">Descreva o Problema:</label>
-                                    <textarea id="calc-issue" rows="3" class="w-full p-3.5 rounded-2xl bg-base border-2 border-base focus:border-yellow-500 outline-none text-sm transition" placeholder="Ex: Console não liga, luz vermelha, caiu no chão..."></textarea>
+                                    <label class="block text-sm font-bold mb-2 text-yellow-600 dark:text-yellow-400">Descreva o Problema:</label>
+                                    <textarea id="calc-issue" rows="3" class="w-full p-3.5 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-sm transition" placeholder="Ex: Console não liga, luz vermelha, caiu no chão..."></textarea>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Passo 4: Logística -->
                         <div id="step-3" class="calc-step mt-4">
-                            <label class="block text-sm font-semibold mb-3 text-muted">4. Logística</label>
+                            <label class="block text-sm font-bold mb-3 text-base">4. Logística</label>
                             <div class="space-y-2">
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 border-base bg-base cursor-pointer hover:border-yellow-500 transition">
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
                                     <input type="radio" name="logistics" value="shop" checked class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
                                     <div class="flex-grow">
                                         <span class="block font-bold text-sm">Levar na Loja</span>
@@ -505,7 +517,7 @@
                                     </div>
                                     <i class="ph-bold ph-storefront text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 border-base bg-base cursor-pointer hover:border-yellow-500 transition">
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
                                     <input type="radio" name="logistics" value="local" class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
                                     <div class="flex-grow">
                                         <span class="block font-bold text-sm">Coleta Local</span>
@@ -513,7 +525,7 @@
                                     </div>
                                     <i class="ph-bold ph-moped text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 border-base bg-base cursor-pointer hover:border-yellow-500 transition">
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
                                     <input type="radio" name="logistics" value="interzonal" class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
                                     <div class="flex-grow">
                                         <span class="block font-bold text-sm">Coleta Interzonal</span>
@@ -521,7 +533,7 @@
                                     </div>
                                     <i class="ph-bold ph-truck text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 border-base bg-base cursor-pointer hover:border-yellow-500 transition">
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
                                     <input type="radio" name="logistics" value="remote" class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
                                     <div class="flex-grow">
                                         <span class="block font-bold text-sm">Baixada / Niterói</span>
@@ -536,12 +548,12 @@
                         <div id="result-area" class="calc-step mt-6 pt-6 border-t border-base text-center">
                             <span class="text-xs font-bold uppercase text-muted tracking-widest">Estimativa</span>
                             <div class="flex justify-center items-baseline gap-2 mt-1 mb-2">
-                                <span id="price-min" class="text-2xl font-black text-text">R$ 000</span>
+                                <span id="price-min" class="text-2xl font-black text-base">R$ 000</span>
                                 <span id="price-separator" class="text-sm text-muted">a</span>
                                 <span id="price-max" class="text-2xl font-black text-yellow-600 dark:text-yellow-400">R$ 000</span>
                             </div>
                             <p id="result-note" class="text-xs font-medium text-red-500 mb-4"></p>
-                            <button type="submit" id="btn-submit-calc" class="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/30 transition flex items-center justify-center gap-2">
+                            <button type="submit" id="btn-submit-calc" class="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 transform active:scale-98">
                                 <i class="ph-bold ph-whatsapp-logo text-xl"></i> Agendar Agora
                             </button>
                             <p class="text-[10px] text-muted mt-3">*Valores sujeitos a análise presencial.</p>
@@ -551,7 +563,7 @@
             </div>
         </section>
 
-        <!-- Dashboard Section -->
+        <!-- Dashboard Section (REDESIGNED) -->
         <section id="dashboard" class="py-24 bg-base scroll-mt-20" aria-labelledby="dashboard-title">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="text-center max-w-3xl mx-auto mb-16 reveal">
@@ -559,16 +571,31 @@
                     <h2 id="dashboard-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Aprovado pelos <span class="text-gradient">Gamers</span></h2>
                     <p class="text-muted text-lg">Transparência total: veja nossos números e o que dizem nossos clientes.</p>
                 </header>
-                <div class="grid md:grid-cols-2 gap-8 mb-16 reveal">
-                    <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center"><i class="ph-fill ph-star text-black text-xl"></i></div> Pontos Fortes (Média)</h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de radar"><canvas id="reputationChart"></canvas></div>
+                
+                <!-- New Stat Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16 reveal">
+                    <div class="metric-card">
+                        <i class="ph-fill ph-calendar-check metric-icon"></i>
+                        <span class="metric-value">10+</span>
+                        <span class="metric-label">Anos de Mercado</span>
                     </div>
-                    <div class="bento-card p-6 md:p-8">
-                        <h3 class="font-bold text-lg mb-6 flex items-center gap-3 text-base"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center"><i class="ph-fill ph-chart-pie-slice text-white text-xl"></i></div> Distribuição de Serviços</h3>
-                        <div class="chart-box" role="img" aria-label="Gráfico de pizza"><canvas id="servicesChart"></canvas></div>
+                    <div class="metric-card">
+                        <i class="ph-fill ph-users-three metric-icon"></i>
+                        <span class="metric-value">5k+</span>
+                        <span class="metric-label">Clientes Satisfeitos</span>
+                    </div>
+                    <div class="metric-card">
+                        <i class="ph-fill ph-game-controller metric-icon"></i>
+                        <span class="metric-value">8k+</span>
+                        <span class="metric-label">Consoles Salvos</span>
+                    </div>
+                    <div class="metric-card">
+                        <i class="ph-fill ph-star metric-icon"></i>
+                        <span class="metric-value">4.9</span>
+                        <span class="metric-label">Avaliação Google</span>
                     </div>
                 </div>
+
                 <article id="reviews" class="bento-card p-8 md:p-12 relative overflow-hidden reveal noise-overlay" aria-labelledby="reviews-title">
                     <div class="absolute top-4 right-4 opacity-5" aria-hidden="true"><i class="ph-fill ph-google-logo text-[150px]"></i></div>
                     <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 relative z-10 gap-6">
@@ -613,10 +640,10 @@
                 <div class="bento-card overflow-hidden shadow-2xl flex flex-col md:flex-row reveal" style="min-height: 480px;">
                     <div class="md:w-2/5 p-8 md:p-12 flex flex-col justify-center space-y-8 relative z-10">
                         <address class="not-italic">
-                            <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center flex-shrink-0 glow-gold"><i class="ph-fill ph-map-pin text-xl text-black"></i></div><div><h3 class="font-bold text-xl mb-2">Endereço</h3><p class="text-muted leading-relaxed">Av. Ministro Edgard Romero, 81<br>Loja 3 - Madureira<br>Rio de Janeiro - RJ</p></div></div>
+                            <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-xl bg-yellow-400 flex items-center justify-center flex-shrink-0"><i class="ph-fill ph-map-pin text-xl text-black"></i></div><div><h3 class="font-bold text-xl mb-2">Endereço</h3><p class="text-muted leading-relaxed">Av. Ministro Edgard Romero, 81<br>Loja 3 - Madureira<br>Rio de Janeiro - RJ</p></div></div>
                         </address>
-                        <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center flex-shrink-0"><i class="ph-fill ph-clock text-xl text-white"></i></div><div><h3 class="font-bold text-xl mb-2">Horário</h3><p class="text-muted leading-relaxed">Segunda a Sexta: 09h às 19h<br>Sábado: 09h às 14h<br><span class="text-red-500 font-medium">Domingo: Fechado</span></p></div></div>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-gray-900 to-black text-white rounded-2xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1"><i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota</a>
+                        <div class="flex items-start gap-4"><div class="w-14 h-14 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0"><i class="ph-fill ph-clock text-xl text-white"></i></div><div><h3 class="font-bold text-xl mb-2">Horário</h3><p class="text-muted leading-relaxed">Segunda a Sexta: 09h às 19h<br>Sábado: 09h às 14h<br><span class="text-red-500 font-medium">Domingo: Fechado</span></p></div></div>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Assistência+técnica+Madureira" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-black text-white rounded-xl font-bold hover:shadow-xl transition-all transform active:scale-98 hover:-translate-y-1"><i class="ph-bold ph-navigation-arrow text-xl"></i> Traçar Rota</a>
                     </div>
                     <div class="md:w-3/5 h-64 md:h-auto bg-gray-200 map-container">
                         <iframe src="https://maps.google.com/maps?q=Atomic%20Games%20Av.%20Ministro%20Edgard%20Romero%2081%20Madureira&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa Localização"></iframe>
@@ -642,7 +669,7 @@
         <div class="container mx-auto px-4 lg:px-8">
             <div class="text-center">
                 <a href="#top" class="inline-block hover:opacity-90 transition transform hover:scale-110 duration-300 mb-6" aria-label="Voltar ao topo">
-                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="h-20 w-20 mx-auto rounded-full shadow-2xl bg-black ring-4 ring-yellow-400/30 glow-gold" alt="Logo Atomic Games" loading="lazy">
+                    <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp" class="h-20 w-20 mx-auto rounded-full shadow-2xl bg-black ring-4 ring-yellow-400/30" alt="Logo Atomic Games" loading="lazy">
                 </a>
                 <p class="font-bold text-2xl mb-2 brand-font">ATOMIC GAMES</p>
                 <p class="text-muted mb-8">Madureira - Rio de Janeiro</p>
@@ -658,7 +685,7 @@
     </footer>
 
     <!-- Scripts Logic Split with new cache busters -->
-    <script src="main.js?v=2025.02.02-fix2" defer></script>
-    <script src="chatbot.js?v=2025.02.02-fix2" defer></script>
+    <script src="main.js?v=2025.02.04-neutral" defer></script>
+    <script src="chatbot.js?v=2025.02.04-neutral" defer></script>
 </body>
 </html>

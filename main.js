@@ -948,55 +948,9 @@ function loadVideo() {
     f.style.display = 'none'; container.classList.remove('hidden');
 }
 
-// Charts
+// Charts (REMOVEDO PARA OTIMIZAÇÃO E REDESIGN)
 function initCharts(theme) {
-    const dark = theme === 'dark';
-    const color = dark ? '#f1f5f9' : '#0f172a';
-    const gridColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-    
-    if (window.repChart) window.repChart.destroy();
-    if (window.servChart) window.servChart.destroy();
-    
-    const c1 = document.getElementById('reputationChart');
-    if (c1) window.repChart = new Chart(c1.getContext('2d'), {
-        type: 'radar',
-        data: { 
-            labels: ['Atendimento', 'Preço', 'Rapidez', 'Variedade', 'Confiança'], 
-            datasets: [{ 
-                label: 'Nota', 
-                data: [4.8, 4.2, 4.6, 4.4, 4.9], 
-                backgroundColor: 'rgba(255, 215, 0, 0.25)', 
-                borderColor: '#FFD700', 
-                borderWidth: 3,
-                pointBackgroundColor: '#FFD700',
-                pointBorderColor: dark ? '#1e293b' : '#fff',
-                pointBorderWidth: 2,
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#FFD700',
-                pointRadius: 4
-            }] 
-        },
-        options: { 
-            responsive: true, maintainAspectRatio: false,
-            scales: { 
-                r: { 
-                    min: 0, max: 5, beginAtZero: true,
-                    grid: { color: gridColor, circular: true }, 
-                    angleLines: { color: gridColor },
-                    pointLabels: { color: color, font: { size: 12, weight: '600', family: 'Inter' } },
-                    ticks: { display: false, backdropColor: 'transparent' } 
-                } 
-            }, 
-            plugins: { legend: { display: false } } 
-        }
-    });
-
-    const c2 = document.getElementById('servicesChart');
-    if (c2) window.servChart = new Chart(c2.getContext('2d'), {
-        type: 'doughnut',
-        data: { labels: ['Manutenção', 'Jogos', 'Consoles', 'Peças'], datasets: [{ data: [40, 20, 25, 15], backgroundColor: ['#FFD700', '#10B981', '#3B82F6', '#8B5CF6'], borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { color, usePointStyle: true, padding: 15, font: { family: 'Inter', size: 12 } } } } }
-    });
+    // Função removida para atender nova solicitação de design
 }
 
 // --- NEW PROGRESSIVE CALCULATOR LOGIC (PREP PARA PAINEL/CHATBOT) ---
@@ -1017,6 +971,16 @@ function initCalculator() {
     const serviceSelect = document.getElementById('calc-service');
     const serviceWrapper = document.getElementById('service-wrapper');
     const logInputs = document.querySelectorAll('input[name="logistics"]');
+
+    // Progress Bar Elements
+    const progressFill = document.getElementById('calc-progress-fill');
+    const progressText = document.getElementById('calc-progress-text');
+
+    // Helper to update progress
+    const updateProgress = (percent) => {
+        if (progressFill) progressFill.style.width = `${percent}%`;
+        if (progressText) progressText.textContent = `${percent}%`;
+    };
 
     // --- CONTEXTO UNIFICADO (Contrato Oficial para Integrações Futuras) ---
     // Este objeto não é usado para renderizar a UI (ainda), mas corre em paralelo
@@ -1102,6 +1066,7 @@ function initCalculator() {
             }
             
             resultArea.classList.add('active');
+            updateProgress(100);
         } else {
             resultArea.classList.remove('active');
         }
@@ -1133,6 +1098,7 @@ function initCalculator() {
             
             // Show Step 2
             step2.classList.add('active');
+            updateProgress(35);
         });
     });
 
@@ -1157,6 +1123,7 @@ function initCalculator() {
         }
         
         serviceWrapper.classList.remove('hidden');
+        updateProgress(65);
     });
 
     // Step 3: Service Change
@@ -1175,6 +1142,7 @@ function initCalculator() {
         }
         
         updateCalc();
+        // Note: updateCalc calls updateProgress(100) if valid
     });
 
     // Step 4: Logistics Change
@@ -1377,11 +1345,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    initCharts(theme);
+    initCharts(theme); // Mantido por compatibilidade, mas vazio
     loadGamesFromGitHub();
     loadBannersFromGitHub();
-    loadStatsFromGitHub(); // NOVA CHAMADA DE SINCRONIZAÇÃO DE ESTATÍSTICAS
-    initCalculator(); // INICIALIZA A NOVA CALCULADORA
+    loadStatsFromGitHub(); 
+    initCalculator();
 
     const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && (e.target.classList.add('visible'), observer.unobserve(e.target))), { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
@@ -1410,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('themeToggle')?.addEventListener('click', () => {
         const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-        document.documentElement.className = newTheme; localStorage.setItem('theme', newTheme); initCharts(newTheme);
+        document.documentElement.className = newTheme; localStorage.setItem('theme', newTheme);
     });
 
     let lastY = 0, ticking = false;
