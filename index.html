@@ -108,6 +108,7 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body class="antialiased bg-base text-base transition-colors duration-500" id="top">
     
@@ -212,9 +213,9 @@
 
                 <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold shadow-md transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
                 <div class="flex justify-center gap-4 pt-4">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition" aria-label="Instagram"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition" aria-label="Facebook"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition" aria-label="TikTok"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
                 </div>
             </div>
         </div>
@@ -223,7 +224,7 @@
     <!-- Install Guide Modal -->
     <div id="installGuideModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-base w-11/12 max-w-sm bg-card-solid rounded-3xl shadow-2xl border border-base p-6 text-center relative">
-            <button id="closeGuideModal" class="absolute top-4 right-4 p-2 hover:bg-base rounded-full transition"><i class="ph-bold ph-x text-xl"></i></button>
+            <button id="closeGuideModal" class="absolute top-4 right-4 p-2 hover:bg-base rounded-full transition" aria-label="Fechar guia"><i class="ph-bold ph-x text-xl"></i></button>
             <div class="mb-4 flex justify-center">
                 <div class="w-16 h-16 rounded-full bg-base flex items-center justify-center">
                     <i id="guideMainIcon" class=""></i>
@@ -289,7 +290,7 @@
         </nav>
     </header>
 
-    <main id="main-content">
+    <main id="main-content" role="main">
         <!-- Hero Section -->
         <section class="hero-section" aria-labelledby="hero-title">
             <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-8 md:gap-12">
@@ -672,10 +673,10 @@
                 <p class="font-bold text-2xl mb-2 brand-font">ATOMIC GAMES</p>
                 <p class="text-muted mb-8">Madureira - Rio de Janeiro</p>
                 <nav class="flex justify-center gap-4 mb-8" aria-label="Redes sociais">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-instagram-logo"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-facebook-logo"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:text-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-tiktok-logo"></i></a>
-                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-whatsapp-logo"></i></a>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="Instagram"><i class="ph-fill ph-instagram-logo"></i></a>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="Facebook"><i class="ph-fill ph-facebook-logo"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:text-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="TikTok"><i class="ph-fill ph-tiktok-logo"></i></a>
+                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="WhatsApp"><i class="ph-fill ph-whatsapp-logo"></i></a>
                 </nav>
                 <div class="border-t border-base pt-8"><p class="text-sm text-muted">&copy; <time datetime="2025">2025</time> Atomic Games. Todos os direitos reservados.</p></div>
             </div>
@@ -685,5 +686,6 @@
     <!-- Scripts Logic Split with new cache busters -->
     <script src="main.js?v=2025.02.04-neutral" defer></script>
     <script src="chatbot.js?v=2025.02.04-neutral" defer></script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>
