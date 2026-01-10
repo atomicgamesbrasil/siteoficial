@@ -6,6 +6,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     console.log("PWA install prompt captured");
+    updateInstallButtons(); // Force update when event fires
 });
 
 const CONFIG = {
@@ -407,24 +408,38 @@ function updateInstallButtons() {
     
     const installBtnDesktop = document.getElementById('installAppBtnDesktop');
     const installBtnMobile = document.getElementById('installAppBtnMobile');
+    const platform = detectPlatform();
 
+    // Se já estiver instalado (Standalone), ESCONDE os botões
     if (isInStandaloneMode) {
         if (installBtnDesktop) installBtnDesktop.style.display = 'none';
         if (installBtnMobile) installBtnMobile.style.display = 'none';
     } else {
+        // Se NÃO estiver instalado (Navegador)
+        // Mostra o botão SEMPRE (Visible by default strategy)
+        // A lógica do clique vai decidir se abre o Prompt (Android/Chrome) ou o Guia Manual (iOS/Outros)
         if (installBtnDesktop) installBtnDesktop.style.display = '';
         if (installBtnMobile) installBtnMobile.style.display = '';
     }
 }
 
 function handleInstallClick() {
+    const platform = detectPlatform();
+
+    // 1. Tenta usar o Prompt Nativo (Android / Desktop Chrome)
     if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') { console.log('User accepted install'); }
             deferredPrompt = null;
         });
-    } else {
+    } 
+    // 2. Se for iOS, força o Guia Manual (iPhone não suporta prompt automático)
+    else if (platform === 'ios') {
+        showManualGuide();
+    }
+    // 3. Fallback: Se não tiver prompt e não for iOS explícito, mas o usuário clicou, mostra o guia
+    else {
         showManualGuide();
     }
 }
@@ -684,8 +699,18 @@ function updateCartUI() {
     let total = 0;
     const frag = document.createDocumentFragment();
     cart.forEach((item, idx) => {
-        // FIX: Use Global Regex Replace /\./g to handle prices > 1k (e.g. 1.200,00)
-        total += parseFloat(item.price.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+        let rawPrice = item.price.replace('R$', '').trim();
+        let itemPrice = 0;
+
+        // Heuristic to detect format:
+        // If it contains a comma, it's definitely PT-BR style (decimal separator)
+        if (rawPrice.includes(',')) {
+            itemPrice = parseFloat(rawPrice.replace(/\./g, '').replace(',', '.'));
+        } else {
+            // Otherwise, assume it's US style or plain number (890.00 or 890)
+            itemPrice = parseFloat(rawPrice);
+        }
+        total += itemPrice || 0;
         
         const div = document.createElement('div');
         div.className = 'flex gap-4 bg-base p-4 rounded-2xl border border-base';
@@ -828,7 +853,7 @@ function createCheckoutModal() {
                 <i class="ph-fill ph-whatsapp-logo text-3xl text-green-500"></i>
             </div>
             <h3 class="text-2xl font-bold mb-2 text-gray-800 dark:text-white">Identifique-se</h3>
-            <p class="text-gray-600 dark:text-gray-300 text-sm">Digite seu nome para iniciarmos o atendimento.</p>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Digite seus dados para iniciarmos o atendimento.</p>
         </div>
         <form id="checkoutForm" class="space-y-4">
             <div class="relative text-left">
@@ -836,6 +861,13 @@ function createCheckoutModal() {
                 <div class="relative">
                     <i class="ph-bold ph-user absolute left-4 top-3.5 text-gray-400"></i>
                     <input type="text" id="checkoutName" required placeholder="Digite seu nome..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition font-medium text-gray-800 dark:text-white" autocomplete="name">
+                </div>
+            </div>
+            <div class="relative text-left">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">WhatsApp / Telefone</label>
+                <div class="relative">
+                    <i class="ph-bold ph-whatsapp-logo absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="tel" id="checkoutPhone" required placeholder="(21) 99999-9999" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition font-medium text-gray-800 dark:text-white" autocomplete="tel">
                 </div>
             </div>
             <button type="submit" class="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
@@ -854,11 +886,13 @@ function createCheckoutModal() {
     document.getElementById('checkoutForm').onsubmit = (e) => {
         e.preventDefault();
         const nameInput = document.getElementById('checkoutName');
+        const phoneInput = document.getElementById('checkoutPhone');
         const name = nameInput.value.trim();
+        const phone = phoneInput ? phoneInput.value.trim() : '';
         
-        if (name) {
+        if (name && phone) {
             // 1. Gera Link do WhatsApp
-            const msg = `Olá! Sou *${name}* e gostaria de fechar o pedido:\n\n` + 
+            const msg = `Olá! Sou *${name}* (${phone}) e gostaria de fechar o pedido:\n\n` + 
                         cart.map(i => `• ${i.name} - ${i.price}`).join('\n') + 
                         `\n\n*Total: ${els.cartTotal.textContent}*`;
             
@@ -867,7 +901,7 @@ function createCheckoutModal() {
             // 2. Registra o Evento e o Pedido (Background)
             trackAtomicEvent('whatsapp');
             // Mantém compatibilidade com chamada simples (sem telefone no carrinho por enquanto)
-            submitOrderToAPI(name, null, null, { source: 'Carrinho de Compras' });
+            submitOrderToAPI(name, null, null, { source: 'Carrinho de Compras', phone: phone });
 
             // 3. Redireciona IMEDIATAMENTE (Síncrono)
             // Usar window.location.href é a forma mais segura para deep links em mobile

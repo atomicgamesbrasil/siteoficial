@@ -102,11 +102,10 @@
             }
         }
     </script>
-    <!-- Chart.js removido para otimização -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Styles with Cache Busting v4 (FIXED) -->
-    <link rel="stylesheet" href="styles.css?v=2025.02.04-fix">
+    <!-- Styles with Cache Busting v5 (RESTORED) -->
+    <link rel="stylesheet" href="styles.css?v=2025.02.04-restore">
 <script type="importmap">
 {
   "imports": {
@@ -391,7 +390,7 @@
         <section id="services" class="py-24 bg-card scroll-mt-20" aria-labelledby="services-title">
             <div class="container mx-auto px-4 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-calculator"></i> Calculadora Oficial</span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-black text-yellow-400 border border-yellow-500/20 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-calculator"></i> Calculadora Oficial</span>
                     <h2 id="services-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-10">Orçamento <span class="text-gradient">Inteligente</span></h2>
                     <p class="text-muted text-lg mb-8 leading-relaxed">
                         Selecione seu aparelho e o serviço desejado para obter uma estimativa de preço imediata baseada em nossa tabela técnica 2025.
@@ -428,18 +427,6 @@
                     </div>
                     
                     <form id="serviceForm" class="space-y-6 relative z-10">
-                        <!-- Dados do Cliente -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-muted mb-2">Nome</label>
-                                <input type="text" id="calc-name" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="Seu Nome">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-muted mb-2">WhatsApp</label>
-                                <input type="tel" id="calc-phone" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="(21) 99999-9999">
-                            </div>
-                        </div>
-
                         <!-- Passo 1: Categoria (Cards) -->
                         <div id="step-1" class="calc-step active">
                             <label class="block text-sm font-bold mb-3 text-base">1. Qual o tipo de aparelho?</label>
@@ -544,8 +531,20 @@
                             </div>
                         </div>
 
+                        <!-- Dados do Cliente (Moved to bottom) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-base">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-muted mb-2">Seu Nome</label>
+                                <input type="text" id="calc-name" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="Digite seu nome" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-muted mb-2">WhatsApp / Telefone</label>
+                                <input type="tel" id="calc-phone" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="(21) 99999-9999" required>
+                            </div>
+                        </div>
+
                         <!-- Resultado -->
-                        <div id="result-area" class="calc-step mt-6 pt-6 border-t border-base text-center">
+                        <div id="result-area" class="calc-step mt-4 text-center">
                             <span class="text-xs font-bold uppercase text-muted tracking-widest">Estimativa</span>
                             <div class="flex justify-center items-baseline gap-2 mt-1 mb-2">
                                 <span id="price-min" class="text-2xl font-black text-base">R$ 000</span>
@@ -567,7 +566,7 @@
         <section id="dashboard" class="py-24 bg-base scroll-mt-20" aria-labelledby="dashboard-title">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="text-center max-w-3xl mx-auto mb-16 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-chart-line-up"></i> Nossa Reputação</span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-black text-yellow-400 border border-yellow-500/20 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-chart-line-up"></i> Nossa Reputação</span>
                     <h2 id="dashboard-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Aprovado pelos <span class="text-gradient">Gamers</span></h2>
                     <p class="text-muted text-lg">Transparência total: veja nossos números e o que dizem nossos clientes.</p>
                 </header>
@@ -633,7 +632,7 @@
         <section id="location" class="py-24 bg-base scroll-mt-20" aria-labelledby="location-title">
             <div class="container mx-auto px-4 lg:px-8">
                 <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-map-pin"></i> Visite-nos</span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-black text-yellow-400 border border-yellow-500/20 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-map-pin"></i> Visite-nos</span>
                     <h2 id="location-title" class="text-3xl md:text-4xl lg:text-5xl font-black mb-4">Venha Conhecer Nosso <span class="text-gradient">QG</span></h2>
                     <p class="text-muted text-lg">Fácil acesso no coração de Madureira.</p>
                 </header>
@@ -656,7 +655,7 @@
         <section id="faq" class="py-24 bg-card" aria-labelledby="faq-title">
             <div class="container mx-auto px-4 lg:px-8 max-w-4xl">
                 <header class="text-center mb-14 reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-question"></i> Dúvidas</span>
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-black text-yellow-400 border border-yellow-500/20 rounded-full text-xs font-bold uppercase tracking-wider mb-4"><i class="ph-fill ph-question"></i> Dúvidas</span>
                     <h2 id="faq-title" class="text-3xl md:text-4xl font-black text-base">Perguntas Frequentes</h2>
                 </header>
                 <div class="space-y-4 reveal" id="faqContainer" role="list"></div>
