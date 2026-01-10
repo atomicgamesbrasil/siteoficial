@@ -150,39 +150,33 @@
         
         if(content) bubble.appendChild(parseText(content));
         
-        // --- PRODUTOS (VITRINE NO CHAT) - HARDENED ---
+        // --- PRODUTOS (VITRINE NO CHAT) ---
         if(prods?.length) {
             const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
                 const card = document.createElement('div'); card.className = 'chat-product-card';
                 
-                // Create Image
                 const img = document.createElement('img');
                 img.src = p.image || 'https://placehold.co/100';
                 img.loading = 'lazy';
                 
-                // Create Title
                 const title = document.createElement('div');
                 title.className = 'chat-product-title';
                 title.textContent = p.name || p.nome;
                 
-                // Create Price
                 const price = document.createElement('div');
                 price.className = 'chat-product-price';
                 price.textContent = p.price || p.preco;
                 
-                // Create Button
                 const btn = document.createElement('button'); 
                 btn.className = 'chat-add-btn'; 
                 btn.textContent = 'VER DETALHES';
                 
-                // CORREÇÃO CRÍTICA DE UX MOBILE
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     const prodId = p.id; 
                     
                     if (window.showProductDetail && prodId) {
-                        // Se estiver no mobile, fecha o chat para mostrar o modal
                         if(window.innerWidth <= 768) {
                             updateChatUI(false); 
                         }
@@ -201,14 +195,12 @@
             bubble.appendChild(scroll);
         }
 
-        // --- LINKS DE AÇÃO (Botão Verde Padrão) ---
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
            btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
            btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
         }
 
-        // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
         if (actions && actions.length > 0) {
             const actionContainer = document.createElement('div');
             actionContainer.className = 'mt-3 flex flex-col gap-2';
@@ -224,7 +216,6 @@
                 actBtn.appendChild(span);
                 actBtn.appendChild(icon);
                 
-                // Suporte a URL direta ou Target ID
                 actBtn.onclick = () => {
                     if (act.targetId) {
                         const target = document.getElementById(act.targetId);
@@ -255,7 +246,6 @@
         els.msgs.appendChild(div); scrollToBottom();
     }
 
-    // --- CONTEXT AWARENESS (O Cérebro Local) ---
     function checkSiteContext(text) {
         const t = text.toLowerCase();
         const actions = [];
@@ -295,7 +285,8 @@
         addTyping();
         
         const localActions = checkSiteContext(txt);
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
+        // ALTERAÇÃO VERCEL: Mudamos o link do Render para a rota interna /api/chat
+        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : '/api/chat';
 
         try {
             const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
@@ -303,9 +294,10 @@
             
             document.getElementById('typing').remove();
             
-            if(data.success) {
+            // Ajustamos o retorno para aceitar tanto success quanto a resposta direta da API da Vercel
+            if(data.reply || data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
+                addMsg('bot', data.reply || data.response, data.produtos_sugeridos || [], data.action_link, localActions);
             } else {
                 addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
             }
@@ -322,13 +314,6 @@
         e.stopPropagation(); 
     });
     
-    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
-        els.input.addEventListener(evt, (e) => {
-            e.stopPropagation();
-            if (evt === 'mousedown') els.input.focus();
-        });
-    });
-
     // LOAD HISTORY
     try {
         const savedHist = localStorage.getItem('atomic_chat_history');
@@ -340,39 +325,23 @@
         }
     } catch(e) { console.error("History load error", e); }
 
-    setTimeout(() => {
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
-        const baseUrl = api.replace('/chat', ''); 
-        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
-    }, 1500);
-
-    // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO FASE 5) ===
+    // === ATOMIC GLOBAL API ===
     window.AtomicChat = {
-        /**
-         * Recebe o Objeto de Contexto Único da Calculadora e inicia o atendimento.
-         * @param {Object} context - Objeto budgetContext gerado no main.js
-         */
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
 
-            // 1. Abre o Chat
             if (!state.isOpen) openChat();
 
-            // 2. Formata Valores (Helper simples)
             const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             
-            // --- TRATAMENTO DE ORÇAMENTO PERSONALIZADO (OUTRO DEFEITO) ---
             let finalServiceName = context.service.name;
             let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
 
-            // Se tiver descrição personalizada, concatena e muda preço para Sob Análise
             if (context.service.customDescription) {
                 finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
                 finalPriceStr = "Sob Análise Técnica";
             }
-            // -------------------------------------------------------------
 
-            // 3. Constrói a Mensagem Contextual
             const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
                         `Recebi sua estimativa para o **${context.device.modelLabel}**.\n\n` +
                         `🔧 Serviço: ${finalServiceName}\n` +
@@ -380,7 +349,6 @@
                         `📍 Logística: ${context.logistics.label}\n\n` +
                         `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
 
-            // 4. Gera Link do WhatsApp (Baseado no Contexto)
             const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
                           `👤 *${context.customer.name}*\n` +
                           `📱 ${context.customer.phone}\n` +
@@ -394,8 +362,6 @@
             
             const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
 
-            // 5. Injeta a Mensagem no Chat com Ação
-            // Pequeno delay para parecer natural após o clique no botão calcular
             setTimeout(() => {
                 addMsg('bot', msg, [], null, [
                     { label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }
