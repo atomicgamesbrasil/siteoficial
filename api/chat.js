@@ -1,36 +1,43 @@
-// Este arquivo substitui o seu Back-end do Render
+// === VERCEL API HANDLER (DIAGNOSTIC VERSION) ===
 export default async function handler(req, res) {
-  // Configurações de Segurança Básica
+  // Configuração de Permissões (CORS)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Apenas chamadas POST são permitidas' });
-  }
-
-  const { message } = req.body;
+  // 1. Verificação das "Chaves" no Painel da Vercel
   const apiKey = process.env.GEMINI_API_KEY;
   const catalogUrl = process.env.CATALOG_URL;
+  const whatsapp = process.env.WHATSAPP_NUMBER || '5521995969378';
+
+  if (!apiKey) {
+    return res.status(500).json({ reply: "Erro: A GEMINI_API_KEY não foi configurada na Vercel." });
+  }
+  if (!catalogUrl) {
+    return res.status(500).json({ reply: "Erro: A CATALOG_URL não foi configurada na Vercel." });
+  }
 
   try {
-    // 1. Busca o catálogo de produtos no seu GitHub
-    const catalogResponse = await fetch(catalogUrl);
-    const catalogData = await catalogResponse.text();
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ reply: "Envie uma mensagem válida." });
 
-    // 2. Prepara a chamada para o Google Gemini
+    // 2. Busca o Catálogo
+    const catalogRes = await fetch(catalogUrl);
+    if (!catalogRes.ok) {
+      return res.status(500).json({ reply: "Erro: Não consegui ler o arquivo de produtos no GitHub." });
+    }
+    const catalogData = await catalogRes.text();
+
+    // 3. Fala com o Google Gemini
     const googleUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-
+    
     const prompt = {
       contents: [{
         parts: [{
-          text: `Você é um assistente de vendas da Atomic Games Brasil. 
-          Use o seguinte catálogo para responder: ${catalogData}. 
-          O número de WhatsApp para fechamento é ${process.env.WHATSAPP_NUMBER}.
+          text: `Você é o Thiago da Atomic Games Brasil. Use este catálogo: ${catalogData}. 
+          WhatsApp para vendas: ${whatsapp}. Seja direto e amigável.
           Pergunta do cliente: ${message}`
         }]
       }]
@@ -43,13 +50,15 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, tive um problema ao processar sua resposta.";
+    
+    if (data.error) {
+      return res.status(500).json({ reply: `Erro do Google: ${data.error.message}` });
+    }
 
-    // 3. Retorna a resposta para o seu site
+    const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui processar sua resposta agora.";
     return res.status(200).json({ reply: botReply });
 
   } catch (error) {
-    console.error('Erro no Chatbot:', error);
-    return res.status(500).json({ error: 'Erro interno no servidor' });
+    return res.status(500).json({ reply: "Erro interno: Verifique os Logs na Vercel." });
   }
 }
