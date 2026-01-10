@@ -31,15 +31,6 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Estilo para Radio Cards Selecionados */
-        input[type="radio"]:checked + div {
-            border-color: #FFD700;
-            background-color: rgba(255, 215, 0, 0.05);
-        }
-        input[type="radio"]:checked + div i {
-            color: #FFD700;
-        }
     </style>
 
     <!-- Skip Link for Accessibility -->
@@ -433,37 +424,37 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="console_modern" class="sr-only">
-                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-game-controller text-3xl text-muted group-hover:text-yellow-600 transition"></i>
-                                        <span class="text-xs font-bold uppercase tracking-wide">Consoles Atuais</span>
+                                    <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-game-controller text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">Consoles Atuais</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="console_retro" class="sr-only">
-                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-cassette-tape text-3xl text-muted group-hover:text-yellow-600 transition"></i>
-                                        <span class="text-xs font-bold uppercase tracking-wide">Consoles Retrô</span>
+                                    <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-cassette-tape text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">Consoles Retrô</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="handheld" class="sr-only">
-                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-device-mobile-camera text-3xl text-muted group-hover:text-yellow-600 transition"></i>
-                                        <span class="text-xs font-bold uppercase tracking-wide">Portáteis</span>
+                                    <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-device-mobile-camera text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">Portáteis</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="pc_notebook" class="sr-only">
-                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-desktop-tower text-3xl text-muted group-hover:text-yellow-600 transition"></i>
-                                        <span class="text-xs font-bold uppercase tracking-wide">PC / Notebook</span>
+                                    <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-desktop-tower text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">PC / Notebook</span>
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group col-span-2">
                                     <input type="radio" name="category" value="accessory" class="sr-only">
-                                    <div class="p-4 rounded-xl border border-base bg-base hover:border-yellow-500 transition flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-headphones text-3xl text-muted group-hover:text-yellow-600 transition"></i>
-                                        <span class="text-xs font-bold uppercase tracking-wide">Acessórios / Controles</span>
+                                    <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
+                                        <i class="ph-duotone ph-headphones text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
+                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">Acessórios / Controles</span>
                                     </div>
                                 </label>
                             </div>
@@ -474,20 +465,20 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-bold mb-2 text-base">2. Modelo</label>
-                                    <select id="calc-model" class="w-full p-3.5 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
+                                    <select id="calc-model" class="calc-select w-full p-3.5 cursor-pointer">
                                         <option value="" disabled selected>Selecione...</option>
                                     </select>
                                 </div>
                                 <div id="service-wrapper" class="hidden">
                                     <label class="block text-sm font-bold mb-2 text-base">3. Serviço / Defeito</label>
-                                    <select id="calc-service" class="w-full p-3.5 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition cursor-pointer">
+                                    <select id="calc-service" class="calc-select w-full p-3.5 cursor-pointer">
                                         <option value="" disabled selected>Selecione...</option>
                                     </select>
                                 </div>
                                 <!-- CUSTOM ISSUE INPUT (Hidden by default) -->
                                 <div id="custom-issue-wrapper" class="hidden">
                                     <label class="block text-sm font-bold mb-2 text-yellow-600 dark:text-yellow-400">Descreva o Problema:</label>
-                                    <textarea id="calc-issue" rows="3" class="w-full p-3.5 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-sm transition" placeholder="Ex: Console não liga, luz vermelha, caiu no chão..."></textarea>
+                                    <textarea id="calc-issue" rows="3" class="calc-textarea w-full p-3.5 text-sm" placeholder="Ex: Console não liga, luz vermelha, caiu no chão..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -496,37 +487,45 @@
                         <div id="step-3" class="calc-step mt-4">
                             <label class="block text-sm font-bold mb-3 text-base">4. Logística</label>
                             <div class="space-y-2">
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
-                                    <input type="radio" name="logistics" value="shop" checked class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
-                                    <div class="flex-grow">
-                                        <span class="block font-bold text-sm">Levar na Loja</span>
-                                        <span class="text-xs text-muted">Madureira (Sem custo)</span>
+                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
+                                    <input type="radio" name="logistics" value="shop" checked class="sr-only">
+                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
+                                        <div class="flex-grow">
+                                            <span class="block font-bold text-sm text-gray-300">Levar na Loja</span>
+                                            <span class="text-xs text-muted">Madureira (Sem custo)</span>
+                                        </div>
+                                        <i class="ph-bold ph-storefront text-xl text-muted"></i>
                                     </div>
-                                    <i class="ph-bold ph-storefront text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
-                                    <input type="radio" name="logistics" value="local" class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
-                                    <div class="flex-grow">
-                                        <span class="block font-bold text-sm">Coleta Local</span>
-                                        <span class="text-xs text-muted">Bairro vizinho (Até 5km)</span>
+                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
+                                    <input type="radio" name="logistics" value="local" class="sr-only">
+                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
+                                        <div class="flex-grow">
+                                            <span class="block font-bold text-sm text-gray-300">Coleta Local</span>
+                                            <span class="text-xs text-muted">Bairro vizinho (Até 5km)</span>
+                                        </div>
+                                        <i class="ph-bold ph-moped text-xl text-muted"></i>
                                     </div>
-                                    <i class="ph-bold ph-moped text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
-                                    <input type="radio" name="logistics" value="interzonal" class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
-                                    <div class="flex-grow">
-                                        <span class="block font-bold text-sm">Coleta Interzonal</span>
-                                        <span class="text-xs text-muted">Zona Norte / Centro</span>
+                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
+                                    <input type="radio" name="logistics" value="interzonal" class="sr-only">
+                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
+                                        <div class="flex-grow">
+                                            <span class="block font-bold text-sm text-gray-300">Coleta Interzonal</span>
+                                            <span class="text-xs text-muted">Zona Norte / Centro</span>
+                                        </div>
+                                        <i class="ph-bold ph-truck text-xl text-muted"></i>
                                     </div>
-                                    <i class="ph-bold ph-truck text-xl text-muted"></i>
                                 </label>
-                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-base bg-base cursor-pointer hover:border-yellow-500 transition">
-                                    <input type="radio" name="logistics" value="remote" class="w-5 h-5 text-yellow-500 focus:ring-yellow-500 bg-card border-gray-300">
-                                    <div class="flex-grow">
-                                        <span class="block font-bold text-sm">Baixada / Niterói</span>
-                                        <span class="text-xs text-muted">Logística Especializada</span>
+                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
+                                    <input type="radio" name="logistics" value="remote" class="sr-only">
+                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
+                                        <div class="flex-grow">
+                                            <span class="block font-bold text-sm text-gray-300">Baixada / Niterói</span>
+                                            <span class="text-xs text-muted">Logística Especializada</span>
+                                        </div>
+                                        <i class="ph-bold ph-map-pin-line text-xl text-muted"></i>
                                     </div>
-                                    <i class="ph-bold ph-map-pin-line text-xl text-muted"></i>
                                 </label>
                             </div>
                         </div>
@@ -535,11 +534,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-base">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-muted mb-2">Seu Nome</label>
-                                <input type="text" id="calc-name" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="Digite seu nome" required>
+                                <input type="text" id="calc-name" class="calc-input w-full p-3" placeholder="Digite seu nome" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-muted mb-2">WhatsApp / Telefone</label>
-                                <input type="tel" id="calc-phone" class="w-full p-3 rounded-xl bg-base border border-base focus:border-yellow-500 outline-none text-base transition focus:ring-1 focus:ring-yellow-500" placeholder="(21) 99999-9999" required>
+                                <input type="tel" id="calc-phone" class="calc-input w-full p-3" placeholder="(21) 99999-9999" required>
                             </div>
                         </div>
 
@@ -600,8 +599,8 @@
                     <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 relative z-10 gap-6">
                         <div>
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="flex gap-1" role="img" aria-label="5 estrelas"><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i><i class="ph-fill ph-star text-yellow-400 text-2xl"></i></div>
-                                <span class="font-black text-3xl">4.9</span><span class="text-muted text-lg">/ 5.0</span>
+                                <div class="flex gap-1" role="img" aria-label="5 estrelas"><i class="ph-fill ph-star text-yellow-500 text-2xl"></i><i class="ph-fill ph-star text-yellow-500 text-2xl"></i><i class="ph-fill ph-star text-yellow-500 text-2xl"></i><i class="ph-fill ph-star text-yellow-500 text-2xl"></i><i class="ph-fill ph-star text-yellow-500 text-2xl"></i></div>
+                                <span class="font-black text-3xl text-white">4.9</span><span class="text-muted text-lg">/ 5.0</span>
                             </div>
                             <h3 id="reviews-title" class="text-2xl md:text-3xl font-bold">O que falam da Atomic?</h3>
                         </div>
@@ -610,17 +609,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
                         <article class="review-card bg-base p-6 rounded-2xl border border-base">
                             <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white flex items-center justify-center font-bold text-lg">R</div><div class="flex-grow"><p class="font-bold">Rafael Costa</p><time class="text-xs text-muted">Há 2 semanas</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
+                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i></div>
                             <blockquote class="text-muted leading-relaxed">"Levei meu PS5 que estava desligando sozinho. Fizeram a limpeza e troca da pasta térmica no mesmo dia. Atendimento nota 10!"</blockquote>
                         </article>
                         <article class="review-card bg-base p-6 rounded-2xl border border-base">
                             <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-lg">F</div><div class="flex-grow"><p class="font-bold">Felipe Martins</p><time class="text-xs text-muted">Há 1 mês</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
+                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i></div>
                             <blockquote class="text-muted leading-relaxed">"Melhor preço do Rio pra comprar console. Comprei meu Xbox Series S lá, lacrado com garantia. Recomendo demais."</blockquote>
                         </article>
                         <article class="review-card bg-base p-6 rounded-2xl border border-base">
                             <div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center font-bold text-lg">J</div><div class="flex-grow"><p class="font-bold">Juliana Alves</p><time class="text-xs text-muted">Há 3 dias</time></div><i class="ph-fill ph-google-logo text-gray-300 text-xl"></i></div>
-                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i><i class="ph-fill ph-star text-yellow-400"></i></div>
+                            <div class="flex gap-0.5 mb-4"><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i><i class="ph-fill ph-star text-yellow-500"></i></div>
                             <blockquote class="text-muted leading-relaxed">"Minha loja de confiança em Madureira. Já arrumei controle de Switch, comprei jogos e sempre fui bem atendida."</blockquote>
                         </article>
                     </div>

@@ -189,10 +189,6 @@ h1, h2, h3, h4, .brand-font {
     50% { background-position: 100% center; }
 }
 
-/* Refined Glows */
-.glow-gold { box-shadow: 0 0 15px rgba(255, 215, 0, 0.15), 0 0 30px rgba(255, 215, 0, 0.05); }
-.glow-gold-intense { box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), 0 0 40px rgba(255, 215, 0, 0.1); }
-
 .reveal {
     opacity: 0;
     transform: translateY(30px);
@@ -201,21 +197,8 @@ h1, h2, h3, h4, .brand-font {
 }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
-.reveal-scale {
-    opacity: 0; transform: scale(0.95);
-    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    will-change: opacity, transform;
-}
-.reveal-scale.visible { opacity: 1; transform: scale(1); }
-
 @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(0.5deg); } }
 .float { animation: float 8s ease-in-out infinite; }
-
-@keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.5), 0 4px 15px rgba(255, 215, 0, 0.1); }
-    50% { box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.15), 0 4px 25px rgba(255, 215, 0, 0.2); }
-}
-.pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
 
 @keyframes icon-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 .icon-bounce { animation: icon-bounce 2s ease-in-out infinite; }
@@ -263,23 +246,25 @@ h1, h2, h3, h4, .brand-font {
 .btn-secondary:hover::before { opacity: 1; }
 .btn-secondary:hover { border-color: #FFD700; transform: translateY(-1px); }
 
-/* Cards */
+/* Cards - CLEANED UP (No static glow) */
 .bento-card {
     position: relative;
     background: var(--bg-card);
     border-radius: 20px;
     border: 1px solid var(--border-base);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    /* Removed static colored shadow for cleaner look */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     overflow: hidden;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s, border-color 0.4s;
 }
 .dark .bento-card { border-color: #27272a; }
 .bento-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.3); /* Border glow only on hover */
 }
 
-/* Stat Cards (New) */
+/* Stat Cards */
 .metric-card {
     background: var(--bg-base);
     border: 1px solid var(--border-base);
@@ -432,7 +417,7 @@ button.video-facade {
 }
 .modal-base.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 
-/* Calculator Specifics */
+/* === CALCULATOR (PREMIUM TOOL LOOK) === */
 .calc-progress-container {
     width: 100%;
     margin-bottom: 2rem;
@@ -442,25 +427,65 @@ button.video-facade {
     display: flex;
     justify-content: space-between;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--gold);
     margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
+/* Progress Bar: Thicker, Darker Track, Solid Yellow Fill */
 .calc-progress-track {
     width: 100%;
-    height: 6px;
-    background-color: rgba(200, 200, 200, 0.2);
+    height: 10px; /* Thicker */
+    background-color: #3f3f46; /* Zinc-700 (Dark Graphite) */
     border-radius: 99px;
     overflow: hidden;
 }
 .calc-progress-fill {
     height: 100%;
-    width: 5%; /* Start small */
-    background: var(--gradient-gold);
+    width: 5%; 
+    background: #FFD700; /* Solid Yellow */
     border-radius: 99px;
-    transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: width 0.4s linear; /* Smooth, linear */
+}
+
+/* Premium Inputs (Forced Graphite Theme) */
+.calc-input, .calc-select, .calc-textarea {
+    background-color: #27272a !important; /* Zinc-800 */
+    border: 1px solid #3f3f46 !important; /* Zinc-700 */
+    color: white !important;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+.calc-input:focus, .calc-select:focus, .calc-textarea:focus {
+    border-color: #FFD700 !important;
+    outline: none;
+    box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.1);
+}
+.calc-input::placeholder, .calc-textarea::placeholder {
+    color: #71717a; /* Zinc-500 */
+}
+
+/* Premium Radio Cards */
+.calc-radio-card {
+    background-color: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+.calc-radio-card:hover {
+    border-color: #52525b;
+}
+input[type="radio"]:checked + .calc-radio-card {
+    border-color: #FFD700;
+    background-color: #27272a; /* Keep dark */
+    box-shadow: inset 0 0 0 1px rgba(255, 215, 0, 0.1);
+}
+input[type="radio"]:checked + .calc-radio-card i {
+    color: #FFD700 !important;
+}
+input[type="radio"]:checked + .calc-radio-card span {
+    color: white !important;
 }
 
 /* Badges & Toasts */
