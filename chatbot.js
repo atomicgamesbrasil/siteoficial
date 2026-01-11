@@ -1,12 +1,14 @@
 
-// === CHATBOT 2.7 (HYBRID: V2.1 UI + V2.6 NETWORK ROBUSTNESS) ===
+// === CHATBOT PRODUCTION CLIENT (ATOMIC GAMES) ===
+// Features: Interface V2.1 (Classic Thiago) + Network V2.6 (Robustness)
 (function() {
     // 1. Support Global Config Override
     const GLOBAL_CONFIG = window.ATOMIC_CONFIG || {};
     
     const CONFIG = {
+        // FIXED: Pointing directly to your Render Backend
         API_URL: GLOBAL_CONFIG.API_URL || 'https://atomic-thiago-backend.onrender.com/chat',
-        TIMEOUT_MS: 60000, // 60s for Render Cold Start
+        TIMEOUT_MS: 60000, // 60s timeout to allow Render Free Tier to wake up
         ASSETS: {
             ICON_BUBBLE: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,48H40A16,16,0,0,0,24,64V224a15.84,15.84,0,0,0,9.25,14.5A16.05,16.05,0,0,0,40,240a15.89,15.89,0,0,0,10.25-3.78l.09-.07L83,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM216,192H83a8,8,0,0,0-5.23,1.95L48,220.67V64H216Z"></path></svg>',
             ICON_SEND: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-36.4-76.85L180.28,96.15a8,8,0,0,1,11.31,11.31l-58.85,58.85Zm-50.3-106.1-58.85-58.85a8,8,0,0,1,11.31-11.31L180.28,96.15Z"></path></svg>',
@@ -21,7 +23,7 @@
         removeItem: (key) => { try { localStorage.removeItem(key); } catch(e) { } }
     };
 
-    // --- 1. INJECT STYLES (RESTORED V2.1 + V2.6 FIXES) ---
+    // --- 1. INJECT STYLES ---
     const style = document.createElement('style');
     style.innerHTML = `
         :root { --chat-primary: #007bff; --chat-bg: #ffffff; --chat-text: #333; --chat-user-bg: #007bff; --chat-user-text: #fff; --chat-badge-bg: #ff3b30; }
@@ -31,7 +33,6 @@
         #chatBubble.snapping { transition: left 0.3s ease, top 0.3s ease; }
         #chatBubble:focus { outline: 3px solid rgba(0,123,255,0.5); outline-offset: 2px; }
 
-        /* Pulse Animation */
         @keyframes chat-pulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,0,0,0.0); }
             50% { transform: scale(1.08); box-shadow: 0 0 12px 6px rgba(255,0,0,0.12); }
@@ -62,7 +63,7 @@
         .message.user .message-bubble { background: var(--chat-user-bg); color: var(--chat-user-text); border-bottom-right-radius: 4px; }
         .message.bot .message-bubble { background: white; color: var(--chat-text); border-bottom-left-radius: 4px; border: 1px solid #eee; }
 
-        /* RESTORED V2.1 PRODUCT STYLES */
+        /* PRODUCT CARDS (V2.1 STYLE) */
         .chat-products-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; scrollbar-width: thin; }
         .chat-product-card { min-width: 140px; max-width: 140px; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .chat-product-card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 8px; }
@@ -81,9 +82,8 @@
         #sendBtn:focus { outline: 2px solid var(--chat-primary); outline-offset: 2px; }
         
         .message-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; width: 100%; }
-        /* V2.1 Button Style merged with V2.6 */
         .chat-action-btn { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 12px; background: #f1f3f5; border: none; border-radius: 8px; color: #333; font-weight: 600; font-size: 12px; cursor: pointer; transition: background 0.2s; text-decoration: none; font-family: inherit; }
-        .chat-action-btn:hover { background: #ffc107; color: #000; } /* Yellow hover from v2.1 */
+        .chat-action-btn:hover { background: #ffc107; color: #000; }
         .chat-action-btn.primary { background: #10b981; color: white; }
         .chat-action-btn.primary:hover { background: #059669; }
 
@@ -146,9 +146,9 @@
     let sessionId = safeStorage.getItem('chat_sess_id');
     let isSending = false;
     let lastMsgTime = 0;
-    let msgHistory = []; // Restored local history
+    let msgHistory = [];
 
-    // --- 3. BADGE & A11Y HELPERS ---
+    // --- 3. BADGE & A11Y ---
     function showBadge(count) {
         const n = Math.max(0, Number(count || els.badge.textContent || 0));
         els.badge.textContent = n > 99 ? '99+' : String(n);
@@ -277,7 +277,7 @@
         } catch (_) { return false; }
     }
 
-    // --- 7. MESSAGE RENDERER (RESTORED V2.1 CAPABILITIES) ---
+    // --- 7. MESSAGE RENDERER ---
     function addMessage(role, content, prods = [], link = null, actions = [], save = true) {
         const div = document.createElement('div');
         div.className = `message ${role}`;
@@ -286,7 +286,7 @@
         bubble.className = 'message-bubble';
         bubble.innerHTML = parseMarkdownSafe(content);
         
-        // --- RESTORED PRODUCT CARDS ---
+        // Product Cards
         if(prods && prods.length > 0) {
             const scroll = document.createElement('div'); 
             scroll.className = 'chat-products-scroll';
@@ -329,7 +329,7 @@
             bubble.appendChild(scroll);
         }
 
-        // --- RESTORED LINK BUTTON ---
+        // Link Button
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
            btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
@@ -338,7 +338,7 @@
            bubble.appendChild(btn);
         }
 
-        // --- ACTIONS ---
+        // Action Buttons
         if (actions && Array.isArray(actions) && actions.length > 0) {
             const actionsContainer = document.createElement('div');
             actionsContainer.className = 'message-actions';
@@ -381,7 +381,7 @@
         els.msgs.appendChild(div);
         scrollToBottom();
 
-        // Restore History Saving
+        // History
         if (save) {
             msgHistory.push({ role, content, prods, link, actions });
             safeStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
@@ -401,11 +401,10 @@
 
     function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
 
-    // --- 8. CONTEXT AWARENESS (RESTORED V2.1) ---
+    // --- 8. CONTEXT AWARENESS ---
     function checkSiteContext(text) {
         const t = text.toLowerCase();
         const actions = [];
-        // Local logic to suggest site sections
         if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo')) {
             actions.push({ label: 'Abrir Simulador de Reparo', icon: 'ph-wrench', targetId: 'services' });
         }
@@ -415,7 +414,7 @@
         return actions;
     }
 
-    // --- 9. API COMMUNICATION (RETRY + QUEUE + V2.1 UI INTEGRATION) ---
+    // --- 9. API COMMUNICATION (Network Layer) ---
     const RETRY_CONFIG = { maxRetries: 3, baseDelay: 1000 };
     const outgoingQueue = [];
 
@@ -450,7 +449,6 @@
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
         
-        // Check for local context actions
         const localActions = checkSiteContext(txt);
 
         const payload = {
@@ -479,7 +477,6 @@
             const data = await res.json();
             if (!data || typeof data.reply === 'undefined' && !data.response) throw new Error('Invalid response schema');
 
-            // Handle API variations (reply vs response)
             const replyText = data.reply || data.response;
             const actions = (Array.isArray(data.actions) ? data.actions : []).concat(localActions);
             const products = data.produtos_sugeridos || [];
@@ -490,10 +487,8 @@
                 safeStorage.setItem('chat_sess_id', sessionId);
             }
 
-            // Call restored addMessage with all v2.1 parameters
             addMessage('bot', replyText, products, actionLink, actions, true);
             
-            // Notify & Badge Logic
             if (data.notify) {
                 const unread = Number(data.notify.unread || 1);
                 if (!state.isOpen) incrementBadge(unread);
@@ -589,28 +584,27 @@
         });
     });
 
-    // --- 11. RESTORED INITIALIZATION (HISTORY + THIAGO WELCOME) ---
+    // --- 11. INITIALIZATION ---
     try {
         const savedHist = safeStorage.getItem('atomic_chat_history');
         if (savedHist) {
             msgHistory = JSON.parse(savedHist);
-            // Re-render history with full fidelity
             msgHistory.forEach(m => addMessage(m.role, m.content, m.prods, m.link, m.actions, false));
         } else {
-            // ORIGINAL WELCOME MESSAGE
             setTimeout(() => {
                 addMessage('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?', [], null, [], true);
             }, 1000);
         }
     } catch(e) { console.error("History load error", e); }
 
-    // --- 12. SERVER WARM-UP ---
+    // --- 12. SERVER WARM-UP (Wakes up Render) ---
     setTimeout(() => {
+        // Automatically strips '/chat' to ping the root URL
         const baseUrl = CONFIG.API_URL.replace('/chat', '');
         fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
     }, 1500);
 
-    // --- 13. GLOBAL API HOOK (Fase 5 Support) ---
+    // --- 13. GLOBAL API HOOK ---
     window.AtomicChat = {
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
