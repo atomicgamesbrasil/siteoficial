@@ -1,13 +1,12 @@
 
-// === CHATBOT 2.6 (FIXED: WAKE-UP PING & INCREASED TIMEOUT) ===
+// === CHATBOT 2.7 (HYBRID: V2.1 UI + V2.6 NETWORK ROBUSTNESS) ===
 (function() {
-    // 1. Support Global Config Override (Restored from v2.1 logic)
+    // 1. Support Global Config Override
     const GLOBAL_CONFIG = window.ATOMIC_CONFIG || {};
     
     const CONFIG = {
         API_URL: GLOBAL_CONFIG.API_URL || 'https://atomic-thiago-backend.onrender.com/chat',
-        // Increased to 60s to allow Render Free Tier to "Wake Up" without aborting
-        TIMEOUT_MS: 60000, 
+        TIMEOUT_MS: 60000, // 60s for Render Cold Start
         ASSETS: {
             ICON_BUBBLE: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,48H40A16,16,0,0,0,24,64V224a15.84,15.84,0,0,0,9.25,14.5A16.05,16.05,0,0,0,40,240a15.89,15.89,0,0,0,10.25-3.78l.09-.07L83,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM216,192H83a8,8,0,0,0-5.23,1.95L48,220.67V64H216Z"></path></svg>',
             ICON_SEND: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-36.4-76.85L180.28,96.15a8,8,0,0,1,11.31,11.31l-58.85,58.85Zm-50.3-106.1-58.85-58.85a8,8,0,0,1,11.31-11.31L180.28,96.15Z"></path></svg>',
@@ -22,7 +21,7 @@
         removeItem: (key) => { try { localStorage.removeItem(key); } catch(e) { } }
     };
 
-    // --- 1. INJECT STYLES (Includes Pulse Animation) ---
+    // --- 1. INJECT STYLES (RESTORED V2.1 + V2.6 FIXES) ---
     const style = document.createElement('style');
     style.innerHTML = `
         :root { --chat-primary: #007bff; --chat-bg: #ffffff; --chat-text: #333; --chat-user-bg: #007bff; --chat-user-text: #fff; --chat-badge-bg: #ff3b30; }
@@ -62,6 +61,15 @@
         .message-bubble { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .message.user .message-bubble { background: var(--chat-user-bg); color: var(--chat-user-text); border-bottom-right-radius: 4px; }
         .message.bot .message-bubble { background: white; color: var(--chat-text); border-bottom-left-radius: 4px; border: 1px solid #eee; }
+
+        /* RESTORED V2.1 PRODUCT STYLES */
+        .chat-products-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; scrollbar-width: thin; }
+        .chat-product-card { min-width: 140px; max-width: 140px; background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .chat-product-card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 8px; }
+        .chat-product-title { font-size: 11px; font-weight: 600; color: #333; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 28px; }
+        .chat-product-price { font-size: 13px; font-weight: bold; color: #007bff; margin-bottom: 8px; }
+        .chat-add-btn { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 15px; font-size: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
+        .chat-add-btn:hover { background: #0056b3; }
         
         #chatControls { padding: 15px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
         #chatInput { flex: 1; padding: 12px 16px; border: 1px solid #ddd; border-radius: 24px; font-size: 14px; outline: none; transition: border-color 0.2s; }
@@ -73,11 +81,11 @@
         #sendBtn:focus { outline: 2px solid var(--chat-primary); outline-offset: 2px; }
         
         .message-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; width: 100%; }
-        .chat-action-btn { display: block; width: 100%; padding: 10px; background: #f1f3f5; border: none; border-radius: 8px; color: #333; font-weight: 600; font-size: 12px; cursor: pointer; text-align: center; transition: background 0.2s; text-decoration: none; font-family: inherit; }
-        .chat-action-btn:hover { background: #e9ecef; }
+        /* V2.1 Button Style merged with V2.6 */
+        .chat-action-btn { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 12px; background: #f1f3f5; border: none; border-radius: 8px; color: #333; font-weight: 600; font-size: 12px; cursor: pointer; transition: background 0.2s; text-decoration: none; font-family: inherit; }
+        .chat-action-btn:hover { background: #ffc107; color: #000; } /* Yellow hover from v2.1 */
         .chat-action-btn.primary { background: #10b981; color: white; }
         .chat-action-btn.primary:hover { background: #059669; }
-        .chat-action-btn:focus { outline: 2px solid var(--chat-primary); outline-offset: 1px; }
 
         .typing-indicator { display: flex; gap: 4px; padding: 4px 8px; }
         .typing-dot { width: 6px; height: 6px; background: #ccc; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
@@ -138,6 +146,7 @@
     let sessionId = safeStorage.getItem('chat_sess_id');
     let isSending = false;
     let lastMsgTime = 0;
+    let msgHistory = []; // Restored local history
 
     // --- 3. BADGE & A11Y HELPERS ---
     function showBadge(count) {
@@ -161,9 +170,7 @@
         }
     }
 
-    function clearBadge() {
-        showBadge(0);
-    }
+    function clearBadge() { showBadge(0); }
 
     function announceForA11y(text) {
         let el = document.getElementById('chat-a11y');
@@ -178,12 +185,6 @@
         el.textContent = text;
     }
 
-    function welcomeMessage() {
-        const h = new Date().getHours();
-        const timeGreet = (h < 12) ? 'Bom dia' : (h < 18) ? 'Boa tarde' : 'Boa noite';
-        return `${timeGreet}! 🎮 Eu sou o assistente da Atomic Games. Quer montar um PC, pedir orçamento de manutenção ou tirar dúvida sobre periféricos? Posso ajudar com tudo isso — manda ver!`;
-    }
-
     // --- 4. UI LOGIC ---
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
@@ -193,7 +194,7 @@
         els.bubble.setAttribute('aria-expanded', String(open));
         
         if (open) {
-            clearBadge(); // Clear notifications on open
+            clearBadge();
             els.bubble.style.transform = 'scale(0)';
             els.bubble.style.opacity = '0';
             els.bubble.style.pointerEvents = 'none';
@@ -276,43 +277,115 @@
         } catch (_) { return false; }
     }
 
-    // --- 7. MESSAGE RENDERER ---
-    function addMessage(role, content, actions = []) {
+    // --- 7. MESSAGE RENDERER (RESTORED V2.1 CAPABILITIES) ---
+    function addMessage(role, content, prods = [], link = null, actions = [], save = true) {
         const div = document.createElement('div');
         div.className = `message ${role}`;
         
         const bubble = document.createElement('div');
         bubble.className = 'message-bubble';
         bubble.innerHTML = parseMarkdownSafe(content);
-        div.appendChild(bubble);
         
+        // --- RESTORED PRODUCT CARDS ---
+        if(prods && prods.length > 0) {
+            const scroll = document.createElement('div'); 
+            scroll.className = 'chat-products-scroll';
+            prods.forEach(p => {
+                const card = document.createElement('div'); 
+                card.className = 'chat-product-card';
+                
+                const img = document.createElement('img');
+                img.src = p.image || 'https://placehold.co/100';
+                img.loading = 'lazy';
+                
+                const title = document.createElement('div');
+                title.className = 'chat-product-title';
+                title.textContent = p.name || p.nome;
+                
+                const price = document.createElement('div');
+                price.className = 'chat-product-price';
+                price.textContent = p.price || p.preco;
+                
+                const btn = document.createElement('button'); 
+                btn.className = 'chat-add-btn'; 
+                btn.textContent = 'VER DETALHES';
+                
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (window.showProductDetail && p.id) {
+                        if(window.innerWidth <= 768) updateChatUI(false); 
+                        window.showProductDetail(p.id);
+                    } else {
+                        window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
+                    }
+                };
+                
+                card.appendChild(img);
+                card.appendChild(title);
+                card.appendChild(price);
+                card.appendChild(btn);
+                scroll.appendChild(card);
+            });
+            bubble.appendChild(scroll);
+        }
+
+        // --- RESTORED LINK BUTTON ---
+        if(link) {
+           const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
+           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
+           btn.style = 'display:block; margin-top:8px; text-align:center; background:#28a745; color:white; font-weight:bold; padding:8px; border-radius:8px; font-size:12px; text-decoration:none;';
+           btn.textContent = 'NEGOCIAR AGORA'; 
+           bubble.appendChild(btn);
+        }
+
+        // --- ACTIONS ---
         if (actions && Array.isArray(actions) && actions.length > 0) {
             const actionsContainer = document.createElement('div');
             actionsContainer.className = 'message-actions';
             actions.forEach(action => {
                 if (!action.label) return;
-                const isHandoff = action.type === 'human_handoff';
-                const className = isHandoff ? 'chat-action-btn primary' : 'chat-action-btn';
-                if (action.url && isSafeUrl(action.url)) {
-                    const a = document.createElement('a');
-                    a.className = className;
-                    a.href = action.url;
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-                    a.textContent = action.label;
-                    actionsContainer.appendChild(a);
-                } else {
-                    const btn = document.createElement('button');
-                    btn.className = className;
-                    btn.textContent = action.label;
-                    btn.onclick = () => window.dispatchEvent(new CustomEvent('atomic_chat_action', { detail: { action } }));
-                    actionsContainer.appendChild(btn);
+                
+                const actBtn = document.createElement('button');
+                actBtn.className = action.type === 'human_handoff' ? 'chat-action-btn primary' : 'chat-action-btn';
+                
+                const span = document.createElement('span');
+                span.textContent = action.label;
+                actBtn.appendChild(span);
+                
+                if(action.icon) {
+                    const icon = document.createElement('i');
+                    icon.className = `ph-bold ${action.icon}`;
+                    actBtn.appendChild(icon);
                 }
+
+                if (action.url && isSafeUrl(action.url)) {
+                    actBtn.onclick = () => window.open(action.url, '_blank');
+                } else if (action.targetId) {
+                    actBtn.onclick = () => {
+                        const target = document.getElementById(action.targetId);
+                        if(target) {
+                            if(window.innerWidth < 768) updateChatUI(false);
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                } else {
+                    actBtn.onclick = () => window.dispatchEvent(new CustomEvent('atomic_chat_action', { detail: { action } }));
+                }
+                
+                actionsContainer.appendChild(actBtn);
             });
             div.appendChild(actionsContainer);
         }
+
+        div.appendChild(bubble);
         els.msgs.appendChild(div);
         scrollToBottom();
+
+        // Restore History Saving
+        if (save) {
+            msgHistory.push({ role, content, prods, link, actions });
+            safeStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
+        }
     }
 
     function addTyping() {
@@ -328,7 +401,21 @@
 
     function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
 
-    // --- 8. API COMMUNICATION (FIXED: RETRY + WAKE UP PING) ---
+    // --- 8. CONTEXT AWARENESS (RESTORED V2.1) ---
+    function checkSiteContext(text) {
+        const t = text.toLowerCase();
+        const actions = [];
+        // Local logic to suggest site sections
+        if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo')) {
+            actions.push({ label: 'Abrir Simulador de Reparo', icon: 'ph-wrench', targetId: 'services' });
+        }
+        if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização')) {
+            actions.push({ label: 'Ver Mapa e Endereço', icon: 'ph-map-pin', targetId: 'location' });
+        }
+        return actions;
+    }
+
+    // --- 9. API COMMUNICATION (RETRY + QUEUE + V2.1 UI INTEGRATION) ---
     const RETRY_CONFIG = { maxRetries: 3, baseDelay: 1000 };
     const outgoingQueue = [];
 
@@ -361,8 +448,10 @@
 
     async function sendMessagePayload(txt, attempt = 0) {
         const controller = new AbortController();
-        // Use increased timeout to handle cold starts
         const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
+        
+        // Check for local context actions
+        const localActions = checkSiteContext(txt);
 
         const payload = {
             message: txt,
@@ -388,20 +477,27 @@
             }
 
             const data = await res.json();
-            if (!data || typeof data.reply === 'undefined') throw new Error('Invalid response schema');
+            if (!data || typeof data.reply === 'undefined' && !data.response) throw new Error('Invalid response schema');
+
+            // Handle API variations (reply vs response)
+            const replyText = data.reply || data.response;
+            const actions = (Array.isArray(data.actions) ? data.actions : []).concat(localActions);
+            const products = data.produtos_sugeridos || [];
+            const actionLink = data.action_link || null;
 
             if (data.session_id) {
                 sessionId = data.session_id;
                 safeStorage.setItem('chat_sess_id', sessionId);
             }
 
-            addMessage('bot', data.reply, Array.isArray(data.actions) ? data.actions : []);
+            // Call restored addMessage with all v2.1 parameters
+            addMessage('bot', replyText, products, actionLink, actions, true);
             
             // Notify & Badge Logic
             if (data.notify) {
                 const unread = Number(data.notify.unread || 1);
                 if (!state.isOpen) incrementBadge(unread);
-                else if (data.notify.message) addMessage('bot', data.notify.message);
+                else if (data.notify.message) addMessage('bot', data.notify.message, [], null, [], true);
                 window.dispatchEvent(new CustomEvent('atomic_chat_notify', { detail: data.notify }));
             } else {
                 if (!state.isOpen) incrementBadge(1);
@@ -436,17 +532,17 @@
 
         const sensitiveKeywords = ['senha','password','cvv','cartão de crédito','cartao de credito','cpf'];
         if (sensitiveKeywords.some(k => txt.toLowerCase().includes(k))) {
-            addMessage('bot','⚠️ Por motivos de segurança, não compartilhe senhas ou dados financeiros por aqui.');
+            addMessage('bot','⚠️ Por motivos de segurança, não compartilhe senhas ou dados financeiros por aqui.', [], null, [], true);
             return;
         }
 
         els.input.value = '';
-        addMessage('user', txt);
+        addMessage('user', txt, [], null, [], true);
 
         if (!navigator.onLine) {
             outgoingQueue.push({ txt, attempt: 0 });
             window.dispatchEvent(new CustomEvent('atomic_chat_queue', { detail: { queued: outgoingQueue.length } }));
-            addMessage('bot', 'Você está sem conexão. Mensagem enfileirada para envio automático.');
+            addMessage('bot', 'Você está sem conexão. Mensagem enfileirada para envio automático.', [], null, [], false);
             return;
         }
 
@@ -465,14 +561,9 @@
                 if (attempt === RETRY_CONFIG.maxRetries) {
                     removeTyping(typingId);
                     const isAbort = e && e.name === 'AbortError';
-                    // More descriptive error message for Render cold start scenarios
                     const errorMsg = isAbort ? 'O servidor está acordando. Tente novamente em 1 minuto.' : 'Desculpe, tive um problema de conexão. Tente novamente em instantes.';
-                    addMessage('bot', errorMsg);
+                    addMessage('bot', errorMsg, [], null, [], false);
                     window.dispatchEvent(new CustomEvent('atomic_chat_error', { detail: { error: e && e.message } }));
-                    
-                    // Optional: Queue even if server error, so user doesn't lose text? 
-                    // For now, standard behavior: drop message, user must retry.
-                    // outgoingQueue.push({ txt, attempt: 0 });
                     break;
                 } else {
                     attempt++;
@@ -490,8 +581,7 @@
     els.sendBtn.addEventListener('click', sendMessage);
     els.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-    // --- 9. MOBILE INPUT FIX (Restored from v2.1) ---
-    // Fixes issue where keyboard closes immediately on Android/iOS when tapping input
+    // --- 10. MOBILE INPUT FIX ---
     ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
         els.input.addEventListener(evt, (e) => {
             e.stopPropagation();
@@ -499,17 +589,46 @@
         });
     });
 
-    // Initial Welcome
-    if (!els.msgs.hasChildNodes()) {
-         addMessage('bot', welcomeMessage());
-    }
+    // --- 11. RESTORED INITIALIZATION (HISTORY + THIAGO WELCOME) ---
+    try {
+        const savedHist = safeStorage.getItem('atomic_chat_history');
+        if (savedHist) {
+            msgHistory = JSON.parse(savedHist);
+            // Re-render history with full fidelity
+            msgHistory.forEach(m => addMessage(m.role, m.content, m.prods, m.link, m.actions, false));
+        } else {
+            // ORIGINAL WELCOME MESSAGE
+            setTimeout(() => {
+                addMessage('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?', [], null, [], true);
+            }, 1000);
+        }
+    } catch(e) { console.error("History load error", e); }
 
-    // --- 10. SERVER WARM-UP (Restored from v2.1) ---
-    // Critical for Render Free Tier: Pings server on load to start waking it up
+    // --- 12. SERVER WARM-UP ---
     setTimeout(() => {
-        // Strip endpoint to get base URL
         const baseUrl = CONFIG.API_URL.replace('/chat', '');
         fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
     }, 1500);
+
+    // --- 13. GLOBAL API HOOK (Fase 5 Support) ---
+    window.AtomicChat = {
+        processBudget: function(context) {
+            if (!context || context.status !== 'completed') return;
+            if (!state.isOpen) updateChatUI(true);
+            const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            let finalServiceName = context.service.name;
+            let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
+            if (context.service.customDescription) {
+                finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
+                finalPriceStr = "Sob Análise Técnica";
+            }
+            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\nRecebi sua estimativa para o **${context.device.modelLabel}**.\n\n🔧 Serviço: ${finalServiceName}\n💰 Estimativa: **${finalPriceStr}**\n📍 Logística: ${context.logistics.label}\n\nPosso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
+            const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n👤 *${context.customer.name}*\n📱 ${context.customer.phone}\n--------------------------------\n🎮 *Aparelho:* ${context.device.modelLabel}\n🛠️ *Serviço:* ${finalServiceName}\n📍 *Logística:* ${context.logistics.label}\n💰 *Estimativa:* ${finalPriceStr}\n--------------------------------\n*Obs:* Vim pelo Chat do Site.`;
+            const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
+            setTimeout(() => {
+                addMessage('bot', msg, [], null, [{ label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }], true);
+            }, 500);
+        }
+    };
 
 })();
