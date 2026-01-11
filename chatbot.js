@@ -1,9 +1,11 @@
 
-// === CHATBOT 2.3 (HARDENED & ACCESSIBLE) ===
+// === CHATBOT 2.4 (RESILIENT: QUEUE & RETRY) ===
 (function() {
     const CONFIG = {
         API_URL: 'https://atomic-thiago-backend.onrender.com/chat',
-        TIMEOUT_MS: 20000, // 20 seconds timeout
+        TIMEOUT_MS: 40000, // Increased to 40s to handle Render cold starts
+        MAX_RETRIES: 3,
+        RETRY_DELAY_BASE: 1000,
         ASSETS: {
             ICON_BUBBLE: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,48H40A16,16,0,0,0,24,64V224a15.84,15.84,0,0,0,9.25,14.5A16.05,16.05,0,0,0,40,240a15.89,15.89,0,0,0,10.25-3.78l.09-.07L83,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM216,192H83a8,8,0,0,0-5.23,1.95L48,220.67V64H216Z"></path></svg>',
             ICON_SEND: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-36.4-76.85L180.28,96.15a8,8,0,0,1,11.31,11.31l-58.85,58.85Zm-50.3-106.1-58.85-58.85a8,8,0,0,1,11.31-11.31L180.28,96.15Z"></path></svg>',
@@ -125,8 +127,10 @@
 
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
     let sessionId = safeStorage.getItem('chat_sess_id');
-    let isSending = false;
-    let lastMsgTime = 0;
+    
+    // Message Queue System
+    let messageQueue = [];
+    let isProcessingQueue = false;
 
     // --- 3. UI LOGIC & ACCESSIBILITY ---
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
@@ -204,7 +208,6 @@
 
     // --- 5. SECURITY & PARSING ---
 
-    // A - Escape HTML
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -215,7 +218,6 @@
             .replace(/'/g, '&#39;');
     }
 
-    // A - Safe Markdown
     function parseMarkdownSafe(text) {
         if (!text) return '';
         let safe = escapeHtml(text);
@@ -226,21 +228,12 @@
         return safe;
     }
 
-    // F - URL Sanitization (Relative path support)
     function isSafeUrl(string) {
         try {
-            // Allow relative paths by basing on current location
             const url = new URL(string, window.location.href);
-            
-            // Standard protocols
             if (['mailto:', 'tel:', 'whatsapp:'].includes(url.protocol)) return true;
-            
-            // HTTP/S logic
             if (url.protocol === 'http:' || url.protocol === 'https:') {
-                // If it's the same origin (relative path resolved), it's safe
                 if (url.origin === window.location.origin) return true;
-                
-                // If it's external, strictly enforce HTTPS
                 return url.protocol === 'https:';
             }
             return false;
@@ -312,57 +305,67 @@
         if (el) el.remove();
     }
 
-    // --- 7. API COMMUNICATION ---
-    async function sendMessage() {
-        // D - Double Submit & Rate Limiting (1 sec throttle)
-        if (isSending) return;
-        const now = Date.now();
-        if (now - lastMsgTime < 1000) return;
-        lastMsgTime = now;
+    // --- 7. QUEUE & NETWORK LOGIC ---
 
-        const txt = els.input.value.trim();
-        if (!txt) return;
+    async function fetchWithRetry(url, options, retries = CONFIG.MAX_RETRIES, backoff = CONFIG.RETRY_DELAY_BASE) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
+            
+            const res = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (!res.ok) {
+                // Do not retry 4xx errors (client faults), only 5xx or network
+                if (res.status >= 400 && res.status < 500) throw new Error(`Client Error: ${res.status}`);
+                throw new Error(`Server Error: ${res.status}`);
+            }
+            return res;
+        } catch (err) {
+            if (retries <= 0 || err.name === 'AbortError') throw err; // Don't retry aborts (timeouts) indefinitely
+            
+            // Dispatch Retry Event
+            window.dispatchEvent(new CustomEvent('atomic_chat_retry', { detail: { attemptsLeft: retries - 1, error: err.message } }));
+            
+            await new Promise(resolve => setTimeout(resolve, backoff));
+            return fetchWithRetry(url, options, retries - 1, backoff * 2);
+        }
+    }
 
-        // G - Sensitive Data Warning
-        const sensitiveKeywords = ['senha', 'password', 'cvv', 'cartão de crédito', 'cartao de credito', 'cpf'];
-        if (sensitiveKeywords.some(k => txt.toLowerCase().includes(k))) {
-            addMessage('bot', '⚠️ Por motivos de segurança, não compartilhe senhas ou dados financeiros por aqui. Nosso atendimento solicitará apenas o necessário via canais oficiais.');
+    async function processQueue() {
+        if (isProcessingQueue || messageQueue.length === 0) return;
+        
+        // Check internet connection
+        if (!navigator.onLine) {
+            window.addEventListener('online', processQueue, { once: true });
             return;
         }
 
-        els.input.value = '';
-        addMessage('user', txt);
-        
-        isSending = true;
+        isProcessingQueue = true;
         els.sendBtn.disabled = true;
         els.input.disabled = true;
         const typingId = addTyping();
 
-        // AbortController for Timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
-
         try {
+            const currentMsg = messageQueue[0]; // Peek
             const payload = {
-                message: txt,
+                message: currentMsg,
                 session_id: sessionId,
                 origin: 'embedded-chatbot',
                 channel: 'website'
             };
 
-            const res = await fetch(CONFIG.API_URL, {
+            const res = await fetchWithRetry(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
-                signal: controller.signal,
                 credentials: 'omit'
             });
 
-            clearTimeout(timeoutId);
-
-            if (!res.ok) throw new Error(`Server error: ${res.status}`);
-
             const data = await res.json();
+            
+            // Success: Remove from queue
+            messageQueue.shift();
             removeTyping(typingId);
 
             if (!data || typeof data.reply === 'undefined') throw new Error('Invalid response schema');
@@ -383,29 +386,60 @@
             }
 
         } catch (e) {
-            clearTimeout(timeoutId);
             removeTyping(typingId);
+            console.error(e);
             
-            let errorMsg = 'Desculpe, tive um problema de conexão. Tente novamente em instantes.';
-            if (e.name === 'AbortError') {
-                errorMsg = 'O servidor demorou muito para responder. Verifique sua conexão.';
-            }
-
+            // Failure logic: Drop message from queue to avoid stuck loop, but notify user.
+            messageQueue.shift();
+            
+            let errorMsg = 'Desculpe, tive um problema de conexão.';
+            if (e.name === 'AbortError') errorMsg = 'O servidor demorou muito. Verifique sua conexão.';
+            
             addMessage('bot', errorMsg);
-            
-            // Dispatch error event for telemetry
             window.dispatchEvent(new CustomEvent('atomic_chat_error', { detail: { error: e.message } }));
             
             els.input.disabled = false;
         } finally {
-            isSending = false;
-            els.sendBtn.disabled = false;
+            isProcessingQueue = false;
+            // If there are more messages, keep processing
+            if (messageQueue.length > 0) {
+                processQueue();
+            } else {
+                els.sendBtn.disabled = false;
+            }
         }
     }
 
-    els.sendBtn.addEventListener('click', sendMessage);
+    // Listen for network recovery
+    window.addEventListener('online', processQueue);
+
+    function enqueueMessage() {
+        const txt = els.input.value.trim();
+        if (!txt) return;
+
+        // G - Sensitive Data Warning
+        const sensitiveKeywords = ['senha', 'password', 'cvv', 'cartão de crédito', 'cartao de credito', 'cpf'];
+        if (sensitiveKeywords.some(k => txt.toLowerCase().includes(k))) {
+            addMessage('bot', '⚠️ Por motivos de segurança, não compartilhe senhas ou dados financeiros por aqui.');
+            return;
+        }
+
+        els.input.value = '';
+        addMessage('user', txt);
+
+        // Add to queue
+        messageQueue.push(txt);
+        
+        // Dispatch Queue Event
+        window.dispatchEvent(new CustomEvent('atomic_chat_queue', { detail: { queueLength: messageQueue.length } }));
+
+        // Trigger processing
+        processQueue();
+    }
+
+    els.sendBtn.addEventListener('click', enqueueMessage);
     els.input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') sendMessage();
+        if (e.key === 'Enter') enqueueMessage();
     });
 
     // Initial Welcome
