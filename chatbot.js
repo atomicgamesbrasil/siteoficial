@@ -1,407 +1,416 @@
-// === CHATBOT 2.1 (FLUID, MAGNETIC & SITE-AWARE) ===
+
+// === CHATBOT 2.3 (HARDENED & ACCESSIBLE) ===
 (function() {
-    const els = { 
-        bubble: document.getElementById('chatBubble'), 
-        win: document.getElementById('chatWindow'), 
-        msgs: document.getElementById('chatMessages'), 
-        input: document.getElementById('chatInput'),
-        badge: document.getElementById('chatBadge')
+    const CONFIG = {
+        API_URL: 'https://atomic-thiago-backend.onrender.com/chat',
+        TIMEOUT_MS: 20000, // 20 seconds timeout
+        ASSETS: {
+            ICON_BUBBLE: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,48H40A16,16,0,0,0,24,64V224a15.84,15.84,0,0,0,9.25,14.5A16.05,16.05,0,0,0,40,240a15.89,15.89,0,0,0,10.25-3.78l.09-.07L83,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM216,192H83a8,8,0,0,0-5.23,1.95L48,220.67V64H216Z"></path></svg>',
+            ICON_SEND: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-36.4-76.85L180.28,96.15a8,8,0,0,1,11.31,11.31l-58.85,58.85Zm-50.3-106.1-58.85-58.85a8,8,0,0,1,11.31-11.31L180.28,96.15Z"></path></svg>',
+            ICON_CLOSE: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>'
+        }
     };
-    
-    // Check if chatbot elements exist (in case of partial page loads)
-    if (!els.bubble || !els.win) return;
+
+    // --- UTILS: SAFE STORAGE ---
+    const safeStorage = {
+        getItem: (key) => { try { return localStorage.getItem(key); } catch(e) { return null; } },
+        setItem: (key, val) => { try { localStorage.setItem(key, val); } catch(e) { } },
+        removeItem: (key) => { try { localStorage.removeItem(key); } catch(e) { } }
+    };
+
+    // --- 1. INJECT STYLES ---
+    const style = document.createElement('style');
+    style.innerHTML = `
+        :root { --chat-primary: #007bff; --chat-bg: #ffffff; --chat-text: #333; --chat-user-bg: #007bff; --chat-user-text: #fff; }
+        #chatBubble { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--chat-primary); border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
+        #chatBubble:hover { transform: scale(1.1); }
+        #chatBubble.snapping { transition: left 0.3s ease, top 0.3s ease; }
+        #chatBubble:focus { outline: 3px solid rgba(0,123,255,0.5); outline-offset: 2px; }
+
+        #chatBadge { position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; font-size: 12px; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; display: none; }
+        
+        #chatWindow { position: fixed; bottom: 90px; right: 20px; width: 380px; height: 600px; max-height: 80vh; background: var(--chat-bg); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 9999; display: flex; flexDirection: column; overflow: hidden; transform-origin: bottom right; transform: scale(0); opacity: 0; pointer-events: none; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        #chatWindow.open { transform: scale(1); opacity: 1; pointer-events: all; }
+        
+        #chatHeader { background: var(--chat-primary); color: white; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        #chatHeader h3 { margin: 0; font-size: 16px; font-weight: 600; }
+        #chatHeader p { margin: 2px 0 0; font-size: 12px; opacity: 0.9; }
+        #closeChatBtn { background: none; border: none; color: white; cursor: pointer; padding: 5px; border-radius: 50%; display: flex; transition: background 0.2s; }
+        #closeChatBtn:hover { background: rgba(255,255,255,0.2); }
+        #closeChatBtn:focus { outline: 2px solid white; }
+
+        #chatMessages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; background: #f8f9fa; }
+        
+        .message { display: flex; flex-direction: column; max-width: 85%; }
+        .message.user { align-self: flex-end; align-items: flex-end; }
+        .message.bot { align-self: flex-start; align-items: flex-start; }
+        
+        .message-bubble { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .message.user .message-bubble { background: var(--chat-user-bg); color: var(--chat-user-text); border-bottom-right-radius: 4px; }
+        .message.bot .message-bubble { background: white; color: var(--chat-text); border-bottom-left-radius: 4px; border: 1px solid #eee; }
+        
+        #chatControls { padding: 15px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+        #chatInput { flex: 1; padding: 12px 16px; border: 1px solid #ddd; border-radius: 24px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        #chatInput:focus { border-color: var(--chat-primary); }
+        #chatInput:disabled { background: #f0f0f0; cursor: not-allowed; }
+        #sendBtn { width: 40px; height: 40px; background: var(--chat-primary); border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; }
+        #sendBtn:hover { transform: scale(1.05); }
+        #sendBtn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        #sendBtn:focus { outline: 2px solid var(--chat-primary); outline-offset: 2px; }
+        
+        .message-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; width: 100%; }
+
+        /* Action Buttons */
+        .chat-action-btn { display: block; width: 100%; padding: 10px; background: #f1f3f5; border: none; border-radius: 8px; color: #333; font-weight: 600; font-size: 12px; cursor: pointer; text-align: center; transition: background 0.2s; text-decoration: none; font-family: inherit; }
+        .chat-action-btn:hover { background: #e9ecef; }
+        .chat-action-btn.primary { background: #10b981; color: white; }
+        .chat-action-btn.primary:hover { background: #059669; }
+        .chat-action-btn:focus { outline: 2px solid var(--chat-primary); outline-offset: 1px; }
+
+        /* Typing Indicator */
+        .typing-indicator { display: flex; gap: 4px; padding: 4px 8px; }
+        .typing-dot { width: 6px; height: 6px; background: #ccc; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        @media (max-width: 480px) {
+            #chatWindow { width: 100%; height: 100%; max-height: 100%; bottom: 0; right: 0; border-radius: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // --- 2. INJECT DOM (Accessible) ---
+    if (!document.getElementById('chatBubble')) {
+        const bubble = document.createElement('div');
+        bubble.id = 'chatBubble';
+        bubble.setAttribute('role', 'button');
+        bubble.setAttribute('aria-expanded', 'false');
+        bubble.setAttribute('aria-label', 'Abrir Chat de Atendimento');
+        bubble.setAttribute('tabindex', '0');
+        bubble.innerHTML = `${CONFIG.ASSETS.ICON_BUBBLE}<div id="chatBadge">0</div>`;
+        document.body.appendChild(bubble);
+
+        const win = document.createElement('div');
+        win.id = 'chatWindow';
+        win.setAttribute('role', 'dialog');
+        win.setAttribute('aria-modal', 'false');
+        win.setAttribute('aria-label', 'Janela de Chat');
+        win.innerHTML = `
+            <div id="chatHeader">
+                <div>
+                    <h3>Assistente Virtual</h3>
+                    <p>Online agora</p>
+                </div>
+                <button id="closeChatBtn" aria-label="Fechar Chat">${CONFIG.ASSETS.ICON_CLOSE}</button>
+            </div>
+            <div id="chatMessages" role="log" aria-live="polite" aria-atomic="false"></div>
+            <div id="chatControls">
+                <input type="text" id="chatInput" placeholder="Digite sua mensagem..." autocomplete="off" aria-label="Digite sua mensagem">
+                <button id="sendBtn" aria-label="Enviar mensagem">${CONFIG.ASSETS.ICON_SEND}</button>
+            </div>
+        `;
+        document.body.appendChild(win);
+    }
+
+    const els = {
+        bubble: document.getElementById('chatBubble'),
+        win: document.getElementById('chatWindow'),
+        msgs: document.getElementById('chatMessages'),
+        input: document.getElementById('chatInput'),
+        badge: document.getElementById('chatBadge'),
+        closeBtn: document.getElementById('closeChatBtn'),
+        sendBtn: document.getElementById('sendBtn')
+    };
 
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
-    let sessionId = localStorage.getItem('chat_sess_id');
-    let msgHistory = []; // Local history storage
+    let sessionId = safeStorage.getItem('chat_sess_id');
+    let isSending = false;
+    let lastMsgTime = 0;
 
-    // --- UI LOGIC ---
+    // --- 3. UI LOGIC & ACCESSIBILITY ---
+    function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
+
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
-        els.badge.style.display = open ? 'none' : 'flex';
-        document.body.classList.toggle('chat-open', open);
+        els.badge.style.display = 'none';
+        els.bubble.setAttribute('aria-expanded', String(open));
         
         if (open) {
-            // Morph effect for mobile
-            if(window.innerWidth <= 480) {
-                const rect = els.bubble.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                els.win.style.transformOrigin = `${centerX}px ${centerY}px`;
-            }
-
-            els.bubble.style.transform = 'scale(0)'; 
+            els.bubble.style.transform = 'scale(0)';
             els.bubble.style.opacity = '0';
             els.bubble.style.pointerEvents = 'none';
-            
-            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
+            // A11y Focus Management
+            if (window.innerWidth > 768) {
+                setTimeout(() => els.input.focus(), 300);
+            }
             scrollToBottom();
         } else {
             els.bubble.style.transform = 'scale(1)';
             els.bubble.style.opacity = '1';
             els.bubble.style.pointerEvents = 'auto';
             els.input.blur();
+            els.bubble.focus(); // Return focus to trigger
         }
     }
 
-    // --- HISTORY API ---
-    function openChat() {
-        if(state.isOpen) return;
-        history.pushState({chat: true}, '', '#chat'); 
-        updateChatUI(true);
-    }
+    els.bubble.addEventListener('click', () => { if(!state.isDragging) updateChatUI(true); });
+    els.bubble.addEventListener('keydown', (e) => { 
+        if(e.key === 'Enter' || e.key === ' ') { 
+            e.preventDefault(); 
+            updateChatUI(true); 
+        } 
+    });
+    
+    els.closeBtn.addEventListener('click', () => updateChatUI(false));
 
-    function closeChat() {
-        if(!state.isOpen) return;
-        history.back(); 
-    }
+    // --- 4. DRAG PHYSICS ---
+    const setPos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; };
+    
+    els.bubble.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        state.startX = t.clientX; state.startY = t.clientY;
+        const rect = els.bubble.getBoundingClientRect();
+        state.initialLeft = rect.left; state.initialTop = rect.top;
+        state.isDragging = false;
+        els.bubble.classList.remove('snapping');
+    }, { passive: true });
 
-    window.addEventListener('popstate', (e) => {
-        if(state.isOpen) updateChatUI(false);
+    els.bubble.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        const dx = t.clientX - state.startX;
+        const dy = t.clientY - state.startY;
+        if (Math.sqrt(dx*dx + dy*dy) > 10) state.isDragging = true;
+        if (state.isDragging) {
+            e.preventDefault();
+            setPos(state.initialLeft + dx, state.initialTop + dy);
+        }
+    }, { passive: false });
+
+    els.bubble.addEventListener('touchend', () => {
+        if (state.isDragging) {
+            els.bubble.classList.add('snapping');
+            const rect = els.bubble.getBoundingClientRect();
+            const midX = window.innerWidth / 2;
+            const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
+            let snapY = rect.top;
+            if (snapY < 20) snapY = 20;
+            if (snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
+            setPos(snapX, snapY);
+        }
+        setTimeout(() => { state.isDragging = false; }, 100);
     });
 
-    function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
+    // --- 5. SECURITY & PARSING ---
 
-    // --- DRAG PHYSICS ---
-    if(els.bubble) {
-        const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
-        
-        els.bubble.addEventListener('touchstart', (e) => {
-            const t = e.touches[0];
-            state.startX = t.clientX; state.startY = t.clientY;
-            const rect = els.bubble.getBoundingClientRect();
-            state.initialLeft = rect.left; state.initialTop = rect.top;
-            state.isDragging = false;
+    // A - Escape HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // A - Safe Markdown
+    function parseMarkdownSafe(text) {
+        if (!text) return '';
+        let safe = escapeHtml(text);
+        safe = safe
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+            .replace(/\*(.*?)\*/g, '<i>$1</i>');
+        return safe;
+    }
+
+    // F - URL Sanitization (Relative path support)
+    function isSafeUrl(string) {
+        try {
+            // Allow relative paths by basing on current location
+            const url = new URL(string, window.location.href);
             
-            els.bubble.classList.add('no-transition');
-            els.bubble.classList.remove('snapping');
-            els.bubble.style.transform = 'scale(0.95)';
-            els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
-            updatePos(rect.left, rect.top);
-        }, { passive: true });
-
-        els.bubble.addEventListener('touchmove', (e) => {
-            const t = e.touches[0];
-            const dx = t.clientX - state.startX;
-            const dy = t.clientY - state.startY;
-            if (Math.sqrt(dx*dx + dy*dy) > 15) state.isDragging = true;
-            if (state.isDragging) { e.preventDefault(); updatePos(state.initialLeft + dx, state.initialTop + dy); }
-        }, { passive: false });
-
-        els.bubble.addEventListener('touchend', (e) => {
-            els.bubble.classList.remove('no-transition');
-            if (!state.isDragging) {
-                e.preventDefault(); els.bubble.style.transform = 'scale(1)'; openChat(); 
-            } else {
-                els.bubble.style.transform = 'scale(1)';
-                els.bubble.classList.add('snapping');
-                const rect = els.bubble.getBoundingClientRect();
-                const midX = window.innerWidth / 2;
-                const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
-                let snapY = rect.top;
-                if(snapY < 20) snapY = 20;
-                if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
-                updatePos(snapX, snapY);
+            // Standard protocols
+            if (['mailto:', 'tel:', 'whatsapp:'].includes(url.protocol)) return true;
+            
+            // HTTP/S logic
+            if (url.protocol === 'http:' || url.protocol === 'https:') {
+                // If it's the same origin (relative path resolved), it's safe
+                if (url.origin === window.location.origin) return true;
+                
+                // If it's external, strictly enforce HTTPS
+                return url.protocol === 'https:';
             }
-            state.isDragging = false;
-        });
+            return false;
+        } catch (_) { 
+            return false; 
+        }
+    }
+
+    // --- 6. MESSAGE RENDERER ---
+
+    function addMessage(role, content, actions = []) {
+        const div = document.createElement('div');
+        div.className = `message ${role}`;
         
-        els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
-        document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = parseMarkdownSafe(content);
+        div.appendChild(bubble);
         
-        // --- CHAT RESET LOGIC ---
-        const resetBtn = document.getElementById('resetChatBtn');
-        if(resetBtn) {
-            resetBtn.onclick = (e) => {
-                e.stopPropagation();
-                if(confirm('Tem certeza que deseja limpar o histórico da conversa?')) {
-                    localStorage.removeItem('atomic_chat_history');
-                    localStorage.removeItem('chat_sess_id');
-                    msgHistory = [];
-                    els.msgs.innerHTML = '';
-                    sessionId = null;
-                    
-                    setTimeout(() => {
-                        addMsg('bot', 'Histórico limpo! Como posso ajudar agora?', [], null, [], false);
-                    }, 200);
+        if (actions && Array.isArray(actions) && actions.length > 0) {
+            const actionsContainer = document.createElement('div');
+            actionsContainer.className = 'message-actions';
+            
+            actions.forEach(action => {
+                if (!action.label) return;
+
+                const isHandoff = action.type === 'human_handoff';
+                const className = isHandoff ? 'chat-action-btn primary' : 'chat-action-btn';
+
+                if (action.url && isSafeUrl(action.url)) {
+                    const a = document.createElement('a');
+                    a.className = className;
+                    a.href = action.url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.textContent = action.label;
+                    actionsContainer.appendChild(a);
+                } else {
+                    const btn = document.createElement('button');
+                    btn.className = className;
+                    btn.textContent = action.label;
+                    btn.onclick = () => {
+                        const event = new CustomEvent('atomic_chat_action', { detail: { action } });
+                        window.dispatchEvent(event);
+                    };
+                    actionsContainer.appendChild(btn);
                 }
-            };
-        }
-    }
-
-    // --- MESSAGING LOGIC ---
-    function parseText(text) {
-        if(!text) return document.createTextNode("");
-        const frag = document.createDocumentFragment();
-        text.split('\n').forEach((line, i) => {
-            if(i>0) frag.appendChild(document.createElement('br'));
-            line.split('**').forEach((part, j) => {
-                j%2 ? frag.appendChild(Object.assign(document.createElement('b'),{textContent:part})) 
-                    : frag.appendChild(document.createTextNode(part));
             });
-        });
-        return frag;
-    }
-
-    function addMsg(role, content, prods, link, actions = [], save = true) {
-        const div = document.createElement('div'); div.className = `message ${role}`;
-        const bubble = document.createElement('div'); bubble.className = 'message-bubble';
-        
-        if(content) bubble.appendChild(parseText(content));
-        
-        // --- PRODUTOS (VITRINE NO CHAT) - HARDENED ---
-        if(prods?.length) {
-            const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
-            prods.forEach(p => {
-                const card = document.createElement('div'); card.className = 'chat-product-card';
-                
-                // Create Image
-                const img = document.createElement('img');
-                img.src = p.image || 'https://placehold.co/100';
-                img.loading = 'lazy';
-                
-                // Create Title
-                const title = document.createElement('div');
-                title.className = 'chat-product-title';
-                title.textContent = p.name || p.nome;
-                
-                // Create Price
-                const price = document.createElement('div');
-                price.className = 'chat-product-price';
-                price.textContent = p.price || p.preco;
-                
-                // Create Button
-                const btn = document.createElement('button'); 
-                btn.className = 'chat-add-btn'; 
-                btn.textContent = 'VER DETALHES';
-                
-                // CORREÇÃO CRÍTICA DE UX MOBILE
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const prodId = p.id; 
-                    
-                    if (window.showProductDetail && prodId) {
-                        // Se estiver no mobile, fecha o chat para mostrar o modal
-                        if(window.innerWidth <= 768) {
-                            updateChatUI(false); 
-                        }
-                        window.showProductDetail(prodId);
-                    } else {
-                        window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
-                    }
-                };
-                
-                card.appendChild(img);
-                card.appendChild(title);
-                card.appendChild(price);
-                card.appendChild(btn);
-                scroll.appendChild(card);
-            });
-            bubble.appendChild(scroll);
+            div.appendChild(actionsContainer);
         }
 
-        // --- LINKS DE AÇÃO (Botão Verde Padrão) ---
-        if(link) {
-           const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
-           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
-           btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
-        }
-
-        // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
-        if (actions && actions.length > 0) {
-            const actionContainer = document.createElement('div');
-            actionContainer.className = 'mt-3 flex flex-col gap-2';
-            actions.forEach(act => {
-                const actBtn = document.createElement('button');
-                actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
-                
-                const span = document.createElement('span');
-                span.textContent = act.label;
-                const icon = document.createElement('i');
-                icon.className = `ph-bold ${act.icon}`;
-                
-                actBtn.appendChild(span);
-                actBtn.appendChild(icon);
-                
-                // Suporte a URL direta ou Target ID
-                actBtn.onclick = () => {
-                    if (act.targetId) {
-                        const target = document.getElementById(act.targetId);
-                        if(target) {
-                            if(window.innerWidth < 768) updateChatUI(false);
-                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    } else if (act.url) {
-                        window.open(act.url, '_blank');
-                    }
-                };
-                actionContainer.appendChild(actBtn);
-            });
-            bubble.appendChild(actionContainer);
-        }
-
-        div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
-
-        if (save) {
-            msgHistory.push({ role, content, prods, link, actions });
-            localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
-        }
+        els.msgs.appendChild(div);
+        scrollToBottom();
     }
 
     function addTyping() {
-        const div = document.createElement('div'); div.id='typing'; div.className='message bot';
+        const id = 'typing-' + Date.now();
+        const div = document.createElement('div');
+        div.id = id;
+        div.className = 'message bot';
         div.innerHTML = `<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-        els.msgs.appendChild(div); scrollToBottom();
+        els.msgs.appendChild(div);
+        scrollToBottom();
+        return id;
     }
 
-    // --- CONTEXT AWARENESS (O Cérebro Local) ---
-    function checkSiteContext(text) {
-        const t = text.toLowerCase();
-        const actions = [];
-
-        if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo') || t.includes('orçamento') || t.includes('arrumar') || t.includes('quebrado')) {
-            const serviceSec = document.getElementById('services');
-            let dir = '👇';
-            if(serviceSec) {
-                const rect = serviceSec.getBoundingClientRect();
-                if(rect.top < 0) dir = '👆';
-            }
-            
-            actions.push({
-                label: `Abrir Simulador de Reparo ${dir}`,
-                icon: 'ph-wrench',
-                targetId: 'services'
-            });
-        }
-
-        if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização') || t.includes('chegar')) {
-            actions.push({
-                label: 'Ver Mapa e Endereço',
-                icon: 'ph-map-pin',
-                targetId: 'location'
-            });
-        }
-
-        return actions;
+    function removeTyping(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
     }
 
-    async function send() {
+    // --- 7. API COMMUNICATION ---
+    async function sendMessage() {
+        // D - Double Submit & Rate Limiting (1 sec throttle)
+        if (isSending) return;
+        const now = Date.now();
+        if (now - lastMsgTime < 1000) return;
+        lastMsgTime = now;
+
         const txt = els.input.value.trim();
-        if(!txt) return;
+        if (!txt) return;
+
+        // G - Sensitive Data Warning
+        const sensitiveKeywords = ['senha', 'password', 'cvv', 'cartão de crédito', 'cartao de credito', 'cpf'];
+        if (sensitiveKeywords.some(k => txt.toLowerCase().includes(k))) {
+            addMessage('bot', '⚠️ Por motivos de segurança, não compartilhe senhas ou dados financeiros por aqui. Nosso atendimento solicitará apenas o necessário via canais oficiais.');
+            return;
+        }
+
+        els.input.value = '';
+        addMessage('user', txt);
         
-        els.input.value = ''; 
-        addMsg('user', txt); 
-        addTyping();
-        
-        const localActions = checkSiteContext(txt);
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
+        isSending = true;
+        els.sendBtn.disabled = true;
+        els.input.disabled = true;
+        const typingId = addTyping();
+
+        // AbortController for Timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
 
         try {
-            const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
+            const payload = {
+                message: txt,
+                session_id: sessionId,
+                origin: 'embedded-chatbot',
+                channel: 'website'
+            };
+
+            const res = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal,
+                credentials: 'omit'
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
             const data = await res.json();
-            
-            document.getElementById('typing').remove();
-            
-            if(data.success) {
-                if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
-            } else {
-                addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
+            removeTyping(typingId);
+
+            if (!data || typeof data.reply === 'undefined') throw new Error('Invalid response schema');
+
+            if (data.session_id) {
+                sessionId = data.session_id;
+                safeStorage.setItem('chat_sess_id', sessionId);
             }
-        } catch { 
-            document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
-            addMsg('bot', 'Sem conexão com a internet.', [], null, localActions); 
+
+            addMessage('bot', data.reply, data.actions);
+
+            if (data.escalate) {
+                els.input.placeholder = "Atendimento humano solicitado...";
+                window.dispatchEvent(new CustomEvent('atomic_chat_escalate', { detail: data }));
+            } else {
+                els.input.disabled = false;
+                setTimeout(() => els.input.focus(), 100);
+            }
+
+        } catch (e) {
+            clearTimeout(timeoutId);
+            removeTyping(typingId);
+            
+            let errorMsg = 'Desculpe, tive um problema de conexão. Tente novamente em instantes.';
+            if (e.name === 'AbortError') {
+                errorMsg = 'O servidor demorou muito para responder. Verifique sua conexão.';
+            }
+
+            addMessage('bot', errorMsg);
+            
+            // Dispatch error event for telemetry
+            window.dispatchEvent(new CustomEvent('atomic_chat_error', { detail: { error: e.message } }));
+            
+            els.input.disabled = false;
+        } finally {
+            isSending = false;
+            els.sendBtn.disabled = false;
         }
     }
 
-    document.getElementById('sendBtn').onclick = send;
-    
+    els.sendBtn.addEventListener('click', sendMessage);
     els.input.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') send();
-        e.stopPropagation(); 
-    });
-    
-    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
-        els.input.addEventListener(evt, (e) => {
-            e.stopPropagation();
-            if (evt === 'mousedown') els.input.focus();
-        });
+        if (e.key === 'Enter') sendMessage();
     });
 
-    // LOAD HISTORY
-    try {
-        const savedHist = localStorage.getItem('atomic_chat_history');
-        if (savedHist) {
-            msgHistory = JSON.parse(savedHist);
-            msgHistory.forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false));
-        } else {
-            setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
-        }
-    } catch(e) { console.error("History load error", e); }
-
-    setTimeout(() => {
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
-        const baseUrl = api.replace('/chat', ''); 
-        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
-    }, 1500);
-
-    // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO FASE 5) ===
-    window.AtomicChat = {
-        /**
-         * Recebe o Objeto de Contexto Único da Calculadora e inicia o atendimento.
-         * @param {Object} context - Objeto budgetContext gerado no main.js
-         */
-        processBudget: function(context) {
-            if (!context || context.status !== 'completed') return;
-
-            // 1. Abre o Chat
-            if (!state.isOpen) openChat();
-
-            // 2. Formata Valores (Helper simples)
-            const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            
-            // --- TRATAMENTO DE ORÇAMENTO PERSONALIZADO (OUTRO DEFEITO) ---
-            let finalServiceName = context.service.name;
-            let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
-
-            // Se tiver descrição personalizada, concatena e muda preço para Sob Análise
-            if (context.service.customDescription) {
-                finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
-                finalPriceStr = "Sob Análise Técnica";
-            }
-            // -------------------------------------------------------------
-
-            // 3. Constrói a Mensagem Contextual
-            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
-                        `Recebi sua estimativa para o **${context.device.modelLabel}**.\n\n` +
-                        `🔧 Serviço: ${finalServiceName}\n` +
-                        `💰 Estimativa: **${finalPriceStr}**\n` +
-                        `📍 Logística: ${context.logistics.label}\n\n` +
-                        `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
-
-            // 4. Gera Link do WhatsApp (Baseado no Contexto)
-            const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
-                          `👤 *${context.customer.name}*\n` +
-                          `📱 ${context.customer.phone}\n` +
-                          `--------------------------------\n` +
-                          `🎮 *Aparelho:* ${context.device.modelLabel}\n` +
-                          `🛠️ *Serviço:* ${finalServiceName}\n` +
-                          `📍 *Logística:* ${context.logistics.label}\n` +
-                          `💰 *Estimativa:* ${finalPriceStr}\n` +
-                          `--------------------------------\n` +
-                          `*Obs:* Vim pelo Chat do Site.`;
-            
-            const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
-
-            // 5. Injeta a Mensagem no Chat com Ação
-            // Pequeno delay para parecer natural após o clique no botão calcular
-            setTimeout(() => {
-                addMsg('bot', msg, [], null, [
-                    { label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }
-                ], true);
-            }, 500);
-        }
-    };
+    // Initial Welcome
+    if (!els.msgs.hasChildNodes()) {
+         addMessage('bot', 'Olá! Como posso ajudar você hoje?');
+    }
 
 })();
