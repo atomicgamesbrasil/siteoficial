@@ -1,11 +1,13 @@
 
-// === CHATBOT 2.4 (RESILIENT: QUEUE & RETRY) ===
+// === CHATBOT 2.6 (FIXED: WAKE-UP PING & INCREASED TIMEOUT) ===
 (function() {
+    // 1. Support Global Config Override (Restored from v2.1 logic)
+    const GLOBAL_CONFIG = window.ATOMIC_CONFIG || {};
+    
     const CONFIG = {
-        API_URL: 'https://atomic-thiago-backend.onrender.com/chat',
-        TIMEOUT_MS: 40000, // Increased to 40s to handle Render cold starts
-        MAX_RETRIES: 3,
-        RETRY_DELAY_BASE: 1000,
+        API_URL: GLOBAL_CONFIG.API_URL || 'https://atomic-thiago-backend.onrender.com/chat',
+        // Increased to 60s to allow Render Free Tier to "Wake Up" without aborting
+        TIMEOUT_MS: 60000, 
         ASSETS: {
             ICON_BUBBLE: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,48H40A16,16,0,0,0,24,64V224a15.84,15.84,0,0,0,9.25,14.5A16.05,16.05,0,0,0,40,240a15.89,15.89,0,0,0,10.25-3.78l.09-.07L83,208H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM216,192H83a8,8,0,0,0-5.23,1.95L48,220.67V64H216Z"></path></svg>',
             ICON_SEND: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-36.4-76.85L180.28,96.15a8,8,0,0,1,11.31,11.31l-58.85,58.85Zm-50.3-106.1-58.85-58.85a8,8,0,0,1,11.31-11.31L180.28,96.15Z"></path></svg>',
@@ -20,16 +22,26 @@
         removeItem: (key) => { try { localStorage.removeItem(key); } catch(e) { } }
     };
 
-    // --- 1. INJECT STYLES ---
+    // --- 1. INJECT STYLES (Includes Pulse Animation) ---
     const style = document.createElement('style');
     style.innerHTML = `
-        :root { --chat-primary: #007bff; --chat-bg: #ffffff; --chat-text: #333; --chat-user-bg: #007bff; --chat-user-text: #fff; }
+        :root { --chat-primary: #007bff; --chat-bg: #ffffff; --chat-text: #333; --chat-user-bg: #007bff; --chat-user-text: #fff; --chat-badge-bg: #ff3b30; }
+        
         #chatBubble { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--chat-primary); border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
         #chatBubble:hover { transform: scale(1.1); }
         #chatBubble.snapping { transition: left 0.3s ease, top 0.3s ease; }
         #chatBubble:focus { outline: 3px solid rgba(0,123,255,0.5); outline-offset: 2px; }
 
-        #chatBadge { position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; font-size: 12px; font-weight: bold; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; display: none; }
+        /* Pulse Animation */
+        @keyframes chat-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,0,0,0.0); }
+            50% { transform: scale(1.08); box-shadow: 0 0 12px 6px rgba(255,0,0,0.12); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,0,0,0.0); }
+        }
+        #chatBubble.pulse { animation: chat-pulse 1.6s infinite ease-in-out; }
+
+        #chatBadge { position: absolute; top: -5px; right: -5px; background: var(--chat-badge-bg); color: white; font-size: 11px; font-weight: bold; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; display: none; align-items: center; justify-content: center; border: 2px solid white; box-sizing: border-box; }
+        #chatBadge.show { display: flex; }
         
         #chatWindow { position: fixed; bottom: 90px; right: 20px; width: 380px; height: 600px; max-height: 80vh; background: var(--chat-bg); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 9999; display: flex; flexDirection: column; overflow: hidden; transform-origin: bottom right; transform: scale(0); opacity: 0; pointer-events: none; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
         #chatWindow.open { transform: scale(1); opacity: 1; pointer-events: all; }
@@ -61,15 +73,12 @@
         #sendBtn:focus { outline: 2px solid var(--chat-primary); outline-offset: 2px; }
         
         .message-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; width: 100%; }
-
-        /* Action Buttons */
         .chat-action-btn { display: block; width: 100%; padding: 10px; background: #f1f3f5; border: none; border-radius: 8px; color: #333; font-weight: 600; font-size: 12px; cursor: pointer; text-align: center; transition: background 0.2s; text-decoration: none; font-family: inherit; }
         .chat-action-btn:hover { background: #e9ecef; }
         .chat-action-btn.primary { background: #10b981; color: white; }
         .chat-action-btn.primary:hover { background: #059669; }
         .chat-action-btn:focus { outline: 2px solid var(--chat-primary); outline-offset: 1px; }
 
-        /* Typing Indicator */
         .typing-indicator { display: flex; gap: 4px; padding: 4px 8px; }
         .typing-dot { width: 6px; height: 6px; background: #ccc; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
@@ -82,7 +91,7 @@
     `;
     document.head.appendChild(style);
 
-    // --- 2. INJECT DOM (Accessible) ---
+    // --- 2. INJECT DOM ---
     if (!document.getElementById('chatBubble')) {
         const bubble = document.createElement('div');
         bubble.id = 'chatBubble';
@@ -127,49 +136,86 @@
 
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
     let sessionId = safeStorage.getItem('chat_sess_id');
-    
-    // Message Queue System
-    let messageQueue = [];
-    let isProcessingQueue = false;
+    let isSending = false;
+    let lastMsgTime = 0;
 
-    // --- 3. UI LOGIC & ACCESSIBILITY ---
+    // --- 3. BADGE & A11Y HELPERS ---
+    function showBadge(count) {
+        const n = Math.max(0, Number(count || els.badge.textContent || 0));
+        els.badge.textContent = n > 99 ? '99+' : String(n);
+        if (n > 0) {
+            els.badge.classList.add('show');
+            els.bubble.classList.add('pulse');
+        } else {
+            els.badge.classList.remove('show');
+            els.bubble.classList.remove('pulse');
+        }
+    }
+
+    function incrementBadge(by = 1) {
+        const current = parseInt(els.badge.textContent || '0') || 0;
+        const newVal = current + Math.max(0, by);
+        showBadge(newVal);
+        if (newVal > 0) {
+            announceForA11y(`Você tem ${newVal} nova${newVal > 1 ? 's' : ''} mensagem${newVal > 1 ? 's' : ''}`);
+        }
+    }
+
+    function clearBadge() {
+        showBadge(0);
+    }
+
+    function announceForA11y(text) {
+        let el = document.getElementById('chat-a11y');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'chat-a11y';
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            el.setAttribute('aria-live', 'polite');
+            document.body.appendChild(el);
+        }
+        el.textContent = text;
+    }
+
+    function welcomeMessage() {
+        const h = new Date().getHours();
+        const timeGreet = (h < 12) ? 'Bom dia' : (h < 18) ? 'Boa tarde' : 'Boa noite';
+        return `${timeGreet}! 🎮 Eu sou o assistente da Atomic Games. Quer montar um PC, pedir orçamento de manutenção ou tirar dúvida sobre periféricos? Posso ajudar com tudo isso — manda ver!`;
+    }
+
+    // --- 4. UI LOGIC ---
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
-        els.badge.style.display = 'none';
         els.bubble.setAttribute('aria-expanded', String(open));
         
         if (open) {
+            clearBadge(); // Clear notifications on open
             els.bubble.style.transform = 'scale(0)';
             els.bubble.style.opacity = '0';
             els.bubble.style.pointerEvents = 'none';
-            // A11y Focus Management
-            if (window.innerWidth > 768) {
-                setTimeout(() => els.input.focus(), 300);
-            }
+            if (window.innerWidth > 768) setTimeout(() => els.input.focus(), 300);
             scrollToBottom();
+            announceForA11y('Janela de chat aberta');
         } else {
             els.bubble.style.transform = 'scale(1)';
             els.bubble.style.opacity = '1';
             els.bubble.style.pointerEvents = 'auto';
             els.input.blur();
-            els.bubble.focus(); // Return focus to trigger
+            els.bubble.focus();
         }
     }
 
     els.bubble.addEventListener('click', () => { if(!state.isDragging) updateChatUI(true); });
     els.bubble.addEventListener('keydown', (e) => { 
-        if(e.key === 'Enter' || e.key === ' ') { 
-            e.preventDefault(); 
-            updateChatUI(true); 
-        } 
+        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); updateChatUI(true); } 
     });
-    
     els.closeBtn.addEventListener('click', () => updateChatUI(false));
 
-    // --- 4. DRAG PHYSICS ---
+    // --- 5. DRAG PHYSICS ---
     const setPos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; };
     
     els.bubble.addEventListener('touchstart', (e) => {
@@ -206,26 +252,16 @@
         setTimeout(() => { state.isDragging = false; }, 100);
     });
 
-    // --- 5. SECURITY & PARSING ---
-
+    // --- 6. SECURITY & PARSING ---
     function escapeHtml(str) {
         if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function parseMarkdownSafe(text) {
         if (!text) return '';
         let safe = escapeHtml(text);
-        safe = safe
-            .replace(/\n/g, '<br>')
-            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-            .replace(/\*(.*?)\*/g, '<i>$1</i>');
-        return safe;
+        return safe.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\*(.*?)\*/g, '<i>$1</i>');
     }
 
     function isSafeUrl(string) {
@@ -237,13 +273,10 @@
                 return url.protocol === 'https:';
             }
             return false;
-        } catch (_) { 
-            return false; 
-        }
+        } catch (_) { return false; }
     }
 
-    // --- 6. MESSAGE RENDERER ---
-
+    // --- 7. MESSAGE RENDERER ---
     function addMessage(role, content, actions = []) {
         const div = document.createElement('div');
         div.className = `message ${role}`;
@@ -256,13 +289,10 @@
         if (actions && Array.isArray(actions) && actions.length > 0) {
             const actionsContainer = document.createElement('div');
             actionsContainer.className = 'message-actions';
-            
             actions.forEach(action => {
                 if (!action.label) return;
-
                 const isHandoff = action.type === 'human_handoff';
                 const className = isHandoff ? 'chat-action-btn primary' : 'chat-action-btn';
-
                 if (action.url && isSafeUrl(action.url)) {
                     const a = document.createElement('a');
                     a.className = className;
@@ -275,16 +305,12 @@
                     const btn = document.createElement('button');
                     btn.className = className;
                     btn.textContent = action.label;
-                    btn.onclick = () => {
-                        const event = new CustomEvent('atomic_chat_action', { detail: { action } });
-                        window.dispatchEvent(event);
-                    };
+                    btn.onclick = () => window.dispatchEvent(new CustomEvent('atomic_chat_action', { detail: { action } }));
                     actionsContainer.appendChild(btn);
                 }
             });
             div.appendChild(actionsContainer);
         }
-
         els.msgs.appendChild(div);
         scrollToBottom();
     }
@@ -300,74 +326,68 @@
         return id;
     }
 
-    function removeTyping(id) {
-        const el = document.getElementById(id);
-        if (el) el.remove();
-    }
+    function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
 
-    // --- 7. QUEUE & NETWORK LOGIC ---
+    // --- 8. API COMMUNICATION (FIXED: RETRY + WAKE UP PING) ---
+    const RETRY_CONFIG = { maxRetries: 3, baseDelay: 1000 };
+    const outgoingQueue = [];
 
-    async function fetchWithRetry(url, options, retries = CONFIG.MAX_RETRIES, backoff = CONFIG.RETRY_DELAY_BASE) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
-            
-            const res = await fetch(url, { ...options, signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            if (!res.ok) {
-                // Do not retry 4xx errors (client faults), only 5xx or network
-                if (res.status >= 400 && res.status < 500) throw new Error(`Client Error: ${res.status}`);
-                throw new Error(`Server Error: ${res.status}`);
+    function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    window.addEventListener('online', () => {
+        if (outgoingQueue.length) {
+            window.dispatchEvent(new CustomEvent('atomic_chat_retry', { detail: { queued: outgoingQueue.length } }));
+            flushQueue();
+        }
+    });
+
+    async function flushQueue() {
+        while (outgoingQueue.length) {
+            const item = outgoingQueue.shift();
+            try {
+                await sendMessagePayload(item.txt, item.attempt || 0);
+            } catch (err) {
+                item.attempt = (item.attempt || 0) + 1;
+                if (item.attempt <= RETRY_CONFIG.maxRetries) {
+                    outgoingQueue.unshift(item);
+                    await wait(RETRY_CONFIG.baseDelay * Math.pow(2, item.attempt));
+                } else {
+                    window.dispatchEvent(new CustomEvent('atomic_chat_error', { detail: { error: 'max_retries_exceeded', info: err && err.message } }));
+                }
+                break;
             }
-            return res;
-        } catch (err) {
-            if (retries <= 0 || err.name === 'AbortError') throw err; // Don't retry aborts (timeouts) indefinitely
-            
-            // Dispatch Retry Event
-            window.dispatchEvent(new CustomEvent('atomic_chat_retry', { detail: { attemptsLeft: retries - 1, error: err.message } }));
-            
-            await new Promise(resolve => setTimeout(resolve, backoff));
-            return fetchWithRetry(url, options, retries - 1, backoff * 2);
         }
     }
 
-    async function processQueue() {
-        if (isProcessingQueue || messageQueue.length === 0) return;
-        
-        // Check internet connection
-        if (!navigator.onLine) {
-            window.addEventListener('online', processQueue, { once: true });
-            return;
-        }
+    async function sendMessagePayload(txt, attempt = 0) {
+        const controller = new AbortController();
+        // Use increased timeout to handle cold starts
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT_MS);
 
-        isProcessingQueue = true;
-        els.sendBtn.disabled = true;
-        els.input.disabled = true;
-        const typingId = addTyping();
+        const payload = {
+            message: txt,
+            session_id: sessionId,
+            origin: 'embedded-chatbot',
+            channel: 'website'
+        };
 
         try {
-            const currentMsg = messageQueue[0]; // Peek
-            const payload = {
-                message: currentMsg,
-                session_id: sessionId,
-                origin: 'embedded-chatbot',
-                channel: 'website'
-            };
-
-            const res = await fetchWithRetry(CONFIG.API_URL, {
+            const res = await fetch(CONFIG.API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
+                signal: controller.signal,
                 credentials: 'omit'
             });
 
-            const data = await res.json();
-            
-            // Success: Remove from queue
-            messageQueue.shift();
-            removeTyping(typingId);
+            clearTimeout(timeoutId);
 
+            if (!res.ok) {
+                const text = await res.text().catch(()=>null);
+                throw new Error(`Server error: ${res.status} ${text||''}`);
+            }
+
+            const data = await res.json();
             if (!data || typeof data.reply === 'undefined') throw new Error('Invalid response schema');
 
             if (data.session_id) {
@@ -375,76 +395,121 @@
                 safeStorage.setItem('chat_sess_id', sessionId);
             }
 
-            addMessage('bot', data.reply, data.actions);
+            addMessage('bot', data.reply, Array.isArray(data.actions) ? data.actions : []);
+            
+            // Notify & Badge Logic
+            if (data.notify) {
+                const unread = Number(data.notify.unread || 1);
+                if (!state.isOpen) incrementBadge(unread);
+                else if (data.notify.message) addMessage('bot', data.notify.message);
+                window.dispatchEvent(new CustomEvent('atomic_chat_notify', { detail: data.notify }));
+            } else {
+                if (!state.isOpen) incrementBadge(1);
+            }
 
             if (data.escalate) {
                 els.input.placeholder = "Atendimento humano solicitado...";
                 window.dispatchEvent(new CustomEvent('atomic_chat_escalate', { detail: data }));
+                els.input.disabled = true;
+                els.sendBtn.disabled = true;
             } else {
                 els.input.disabled = false;
-                setTimeout(() => els.input.focus(), 100);
+                setTimeout(()=> els.input.focus(), 100);
             }
 
-        } catch (e) {
-            removeTyping(typingId);
-            console.error(e);
-            
-            // Failure logic: Drop message from queue to avoid stuck loop, but notify user.
-            messageQueue.shift();
-            
-            let errorMsg = 'Desculpe, tive um problema de conexão.';
-            if (e.name === 'AbortError') errorMsg = 'O servidor demorou muito. Verifique sua conexão.';
-            
-            addMessage('bot', errorMsg);
-            window.dispatchEvent(new CustomEvent('atomic_chat_error', { detail: { error: e.message } }));
-            
-            els.input.disabled = false;
-        } finally {
-            isProcessingQueue = false;
-            // If there are more messages, keep processing
-            if (messageQueue.length > 0) {
-                processQueue();
-            } else {
-                els.sendBtn.disabled = false;
-            }
+            return data;
+
+        } catch (err) {
+            clearTimeout(timeoutId);
+            throw err;
         }
     }
 
-    // Listen for network recovery
-    window.addEventListener('online', processQueue);
+    async function sendMessage() {
+        if (isSending) return;
+        const now = Date.now();
+        if (now - lastMsgTime < 1000) return;
+        lastMsgTime = now;
 
-    function enqueueMessage() {
         const txt = els.input.value.trim();
         if (!txt) return;
 
-        // G - Sensitive Data Warning
-        const sensitiveKeywords = ['senha', 'password', 'cvv', 'cartão de crédito', 'cartao de credito', 'cpf'];
+        const sensitiveKeywords = ['senha','password','cvv','cartão de crédito','cartao de credito','cpf'];
         if (sensitiveKeywords.some(k => txt.toLowerCase().includes(k))) {
-            addMessage('bot', '⚠️ Por motivos de segurança, não compartilhe senhas ou dados financeiros por aqui.');
+            addMessage('bot','⚠️ Por motivos de segurança, não compartilhe senhas ou dados financeiros por aqui.');
             return;
         }
 
         els.input.value = '';
         addMessage('user', txt);
 
-        // Add to queue
-        messageQueue.push(txt);
-        
-        // Dispatch Queue Event
-        window.dispatchEvent(new CustomEvent('atomic_chat_queue', { detail: { queueLength: messageQueue.length } }));
+        if (!navigator.onLine) {
+            outgoingQueue.push({ txt, attempt: 0 });
+            window.dispatchEvent(new CustomEvent('atomic_chat_queue', { detail: { queued: outgoingQueue.length } }));
+            addMessage('bot', 'Você está sem conexão. Mensagem enfileirada para envio automático.');
+            return;
+        }
 
-        // Trigger processing
-        processQueue();
+        isSending = true;
+        els.sendBtn.disabled = true;
+        els.input.disabled = true;
+        const typingId = addTyping();
+
+        let attempt = 0;
+        while (attempt <= RETRY_CONFIG.maxRetries) {
+            try {
+                await sendMessagePayload(txt, attempt);
+                removeTyping(typingId);
+                break;
+            } catch (e) {
+                if (attempt === RETRY_CONFIG.maxRetries) {
+                    removeTyping(typingId);
+                    const isAbort = e && e.name === 'AbortError';
+                    // More descriptive error message for Render cold start scenarios
+                    const errorMsg = isAbort ? 'O servidor está acordando. Tente novamente em 1 minuto.' : 'Desculpe, tive um problema de conexão. Tente novamente em instantes.';
+                    addMessage('bot', errorMsg);
+                    window.dispatchEvent(new CustomEvent('atomic_chat_error', { detail: { error: e && e.message } }));
+                    
+                    // Optional: Queue even if server error, so user doesn't lose text? 
+                    // For now, standard behavior: drop message, user must retry.
+                    // outgoingQueue.push({ txt, attempt: 0 });
+                    break;
+                } else {
+                    attempt++;
+                    window.dispatchEvent(new CustomEvent('atomic_chat_retry', { detail: { attempt, error: e && e.message } }));
+                    const backoff = RETRY_CONFIG.baseDelay * Math.pow(2, attempt - 1);
+                    await wait(backoff);
+                }
+            }
+        }
+        isSending = false;
+        els.sendBtn.disabled = false;
+        if (!outgoingQueue.length) els.input.disabled = false;
     }
 
-    els.sendBtn.addEventListener('click', enqueueMessage);
-    els.input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') enqueueMessage();
+    els.sendBtn.addEventListener('click', sendMessage);
+    els.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    // --- 9. MOBILE INPUT FIX (Restored from v2.1) ---
+    // Fixes issue where keyboard closes immediately on Android/iOS when tapping input
+    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
+        els.input.addEventListener(evt, (e) => {
+            e.stopPropagation();
+            if (evt === 'mousedown') els.input.focus();
+        });
     });
 
     // Initial Welcome
     if (!els.msgs.hasChildNodes()) {
-         addMessage('bot', 'Olá! Como posso ajudar você hoje?');
+         addMessage('bot', welcomeMessage());
     }
+
+    // --- 10. SERVER WARM-UP (Restored from v2.1) ---
+    // Critical for Render Free Tier: Pings server on load to start waking it up
+    setTimeout(() => {
+        // Strip endpoint to get base URL
+        const baseUrl = CONFIG.API_URL.replace('/chat', '');
+        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
+    }, 1500);
 
 })();
