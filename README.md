@@ -1,105 +1,134 @@
-# Atomic Games – Chatbot Embed
+# Atomic Games — Site Oficial
 
-Widget de chatbot plug-and-play, autossuficiente no front-end, projetado para integração em qualquer site de terceiros via uma única tag <script>.
+Bem-vindo ao repositório do **site oficial da Atomic Games**.
 
-Toda a lógica cognitiva, tomada de decisão, segurança, regras e inteligência artificial reside exclusivamente no backend.
-O front-end atua apenas como renderizador passivo e canal de comunicação HTTP.
-
----
-
-## Visão Geral da Arquitetura
-
-Frontend (chatbot.js):
-- Autônomo
-- Injeta seu próprio HTML e CSS
-- Nenhuma lógica de decisão
-- Nenhum conhecimento hardcoded
-- Apenas envia mensagens e renderiza respostas
-
-Backend (/chat):
-- Orquestra o cérebro cognitivo
-- Lê artefatos JSON (intenções, regras, conhecimento, guardrails)
-- Decide intenção, segurança e escalonamento
-- Usa LLM apenas como redator final
+Este projeto representa o **front-end institucional e comercial** da Atomic Games, funcionando como a principal interface pública da marca, integrando catálogo, identidade visual, experiência do usuário e comunicação direta com o chatbot inteligente.
 
 ---
 
-## Estrutura do Repositório
+## Visão Geral
 
-chatbot/
-├── chatbot.js
-├── index.html
-└── README.md
+O site da Atomic Games foi desenvolvido com foco em:
 
-O index.html é apenas para demonstração.
-Em produção, apenas o chatbot.js é necessário.
+- Performance e carregamento rápido
+- Experiência mobile-first
+- Arquitetura desacoplada (front-end independente)
+- Integração limpa com serviços externos (Chatbot, APIs e catálogo)
+- Identidade visual forte e coerente com o universo gamer e tecnológico
 
----
-
-## Como Integrar no Site
-
-Adicionar antes do fechamento do </body>:
-
-<script src="https://SEU-DOMINIO/chatbot.js"></script>
+O site **não executa lógica cognitiva**, não processa regras de negócio complexas e não toma decisões. Ele atua exclusivamente como **camada de apresentação e interação**.
 
 ---
 
-## Configuração
+## Arquitetura do Projeto
 
-No topo do chatbot.js:
+### Estrutura Conceitual
 
-const CONFIG = {
-  API_URL: 'https://api.atomicgames.com/chat',
-  TIMEOUT_MS: 20000
-};
+```
+[ Usuário ]
+     ↓
+[ Site Atomic Games ]
+     ↓
+[ Chatbot Externo (chatbot.js) ]
+     ↓
+[ API Backend ]
+     ↓
+[ Motor Cognitivo (Gemini) ]
+```
 
----
+### Responsabilidades do Site
 
-## Protocolo de Comunicação
-
-POST /chat
-
-Payload:
-
-{
-  "message": "Texto do usuário",
-  "session_id": "string|null",
-  "origin": "embedded-chatbot",
-  "channel": "website"
-}
-
----
-
-## Resposta Esperada
-
-{
-  "reply": "Mensagem do bot",
-  "actions": [],
-  "session_id": "string",
-  "escalate": false
-}
+- Renderizar páginas institucionais e comerciais
+- Exibir catálogo e informações visuais
+- Carregar o chatbot via script externo
+- Disparar eventos de interação do usuário
+- Não armazenar nem processar dados sensíveis
 
 ---
 
-## Eventos Globais
+## Integração do Chatbot
 
-atomic_chat_action
-atomic_chat_escalate
-atomic_chat_error
+O chatbot **não está embutido no código do site**.
+
+Ele é carregado via script externo, geralmente desta forma:
+
+```html
+<script src="https://atomicgamesbrasil.github.io/chatbot/chatbot.js"></script>
+```
+
+### Importante
+
+- O site **não conhece a lógica do chatbot**
+- O site **não possui acesso ao cérebro do bot**
+- Toda comunicação ocorre via HTTP (`POST /chat`)
+- O site apenas hospeda o ponto de entrada visual
+
+Isso garante:
+- Segurança
+- Facilidade de atualização
+- Independência entre front-end e inteligência
 
 ---
 
 ## Segurança
 
-- Escape de HTML (XSS)
-- Sanitização de URL
-- Rate limit
-- Timeout com AbortController
-- Alerta de dados sensíveis
-- Nenhuma execução dinâmica
+O site segue os seguintes princípios:
+
+- Nenhum dado sensível é coletado diretamente
+- Nenhuma chave de API é exposta
+- Nenhuma lógica crítica roda no navegador
+- Toda inteligência está isolada no backend
+
+O chatbot possui sua própria camada de proteção (XSS, sanitização, timeout, abort, rate limit), sem depender do site.
+
+---
+
+## Tecnologias Utilizadas
+
+- HTML5 semântico
+- CSS moderno (layout responsivo)
+- JavaScript puro (sem frameworks pesados)
+- GitHub Pages para hospedagem estática
+- Integração externa via HTTP
+
+---
+
+## Hospedagem
+
+O site é hospedado via **GitHub Pages**, garantindo:
+
+- Alta disponibilidade
+- Baixo custo
+- Deploy simples
+- Versionamento transparente
+
+---
+
+## Manutenção e Evolução
+
+Este repositório representa **apenas a camada visual**.
+
+Evoluções futuras podem incluir:
+- Melhorias visuais e de UX
+- Novas páginas institucionais
+- Ajustes de performance
+- Atualização de integrações externas
+
+Qualquer evolução cognitiva ou de automação ocorre **fora deste repositório**.
+
+---
+
+## Autor e Idealização
+
+Projeto idealizado, arquitetado e dirigido por:
+
+**Tiago Castro**  
+Fundador e Criador da Atomic Games  
+Direção de Produto, Arquitetura e Experiência
 
 ---
 
 ## Licença
 
-Uso interno – Atomic Games
+Este projeto é de uso exclusivo da Atomic Games.  
+Todos os direitos reservados.
