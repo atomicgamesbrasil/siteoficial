@@ -1,19 +1,28 @@
 
-// === CHATBOT 2.4 (INTERFACE INTELIGENTE - CONECTADA A API) ===
+// === CHATBOT 2.6 (CLIENT-SIDE MEMORY & CONTEXT FIX) ===
 (function() {
     
     // --- 0. CONFIGURAÇÃO LOCAL (INTERFACE) ---
-    // Apenas lógica visual e de segurança imediata. A inteligência conversacional vem da API.
     const UI_HELPER = {
-        // Bloqueio preventivo de crimes para não sujar o histórico da IA
         critical_blocklist: [
             "crack", "ativador", "torrent", "baixar de graça", "pirata", 
             "senha do banco", "cartão de crédito", "cvv", "conserta agora"
         ],
-        // Mapeamento de botões que levam a lugares do site
+        // GATILHOS VISUAIS: Forçam o botão aparecer mesmo se a IA alucinar
         site_actions: {
-            services: { keys: ["conserto", "reparo", "arrumar", "quebrado", "simulador", "orçamento"], id: "services", label: "Abrir Simulador de Reparo" },
-            location: { keys: ["onde", "endereço", "local", "fica", "chegar", "perto"], id: "location", label: "Ver Mapa e Endereço" }
+            services: { 
+                keys: [
+                    "conserto", "reparo", "arrumar", "quebrado", "simulador", "orçamento",
+                    "lento", "travando", "barulho", "aquecendo", "tela azul", "manutenção", "limpeza", "formatar", "virus", "laggando"
+                ], 
+                id: "services", 
+                label: "Abrir Simulador de Reparo" 
+            },
+            location: { 
+                keys: ["onde", "endereço", "local", "fica", "chegar", "perto", "loja"], 
+                id: "location", 
+                label: "Ver Mapa e Endereço" 
+            }
         }
     };
 
@@ -31,7 +40,7 @@
     let sessionId = localStorage.getItem('chat_sess_id');
     let msgHistory = []; 
 
-    // --- 1. UI LOGIC (VISUAL) ---
+    // --- UI LOGIC ---
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
@@ -63,7 +72,7 @@
     window.addEventListener('popstate', (e) => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- 2. DRAG PHYSICS (MANTIDA) ---
+    // --- DRAG PHYSICS ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         els.bubble.addEventListener('touchstart', (e) => {
@@ -102,7 +111,7 @@
         }
     }
 
-    // --- 3. HELPER DE MENSAGENS ---
+    // --- MESSAGING HELPER ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
@@ -114,11 +123,20 @@
     }
 
     function addMsg(role, content, prods, link, actions = [], save = true) {
+        // --- FILTRO DE REPETIÇÃO (CLIENT-SIDE) ---
+        // Se não for a primeira mensagem, remove a apresentação "Olá! Sou o Thiago..."
+        let cleanContent = content;
+        if (role === 'bot' && msgHistory.length > 1) {
+             // Regex para remover variações de apresentação
+             cleanContent = cleanContent.replace(/^(Olá|E aí|Oi)! (Eu sou o|Aqui é o|Sou o) Thiago.*?(\.|\!|\n)/i, "").trim();
+             // Capitaliza a primeira letra se ficou minúscula após o corte
+             if(cleanContent.length > 0) cleanContent = cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1);
+        }
+
         const div = document.createElement('div'); div.className = `message ${role}`;
         const bubble = document.createElement('div'); bubble.className = 'message-bubble';
-        if(content) bubble.appendChild(parseText(content));
+        if(cleanContent) bubble.appendChild(parseText(cleanContent));
         
-        // Vitrine de Produtos (vinda da API)
         if(prods?.length) {
             const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
@@ -133,14 +151,12 @@
             bubble.appendChild(scroll);
         }
 
-        // Link de Ação Principal
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
            btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
            btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
         }
 
-        // Botões de Navegação (Contexto Local ou API)
         if (actions && actions.length > 0) {
             const actionContainer = document.createElement('div'); actionContainer.className = 'mt-3 flex flex-col gap-2';
             actions.forEach(act => {
@@ -167,12 +183,11 @@
         els.msgs.appendChild(div); scrollToBottom();
     }
 
-    // --- 4. CÉREBRO LOCAL (Apenas para refinar a UI) ---
-    // Detecta se precisa sugerir um botão de scroll ANTES da API responder
     function getVisualContext(text) {
         const lower = text.toLowerCase();
         let actions = [];
         
+        // Verifica sintomas de manutenção
         if (UI_HELPER.site_actions.services.keys.some(k => lower.includes(k))) {
             const serviceSec = document.getElementById('services');
             let dir = serviceSec && serviceSec.getBoundingClientRect().top < 0 ? '👆' : '👇';
@@ -184,18 +199,13 @@
         return actions;
     }
 
-    // --- 5. COMUNICAÇÃO COM O CÉREBRO (API GEMINI) ---
     async function send() {
         const txt = els.input.value.trim();
         if(!txt) return;
 
-        // GUARDIÃO CRÍTICO: Bloqueia ilegalidades antes de incomodar a IA
         if (UI_HELPER.critical_blocklist.some(term => txt.toLowerCase().includes(term))) {
-             els.input.value = '';
-             addMsg('user', txt);
-             setTimeout(() => {
-                 addMsg('bot', '🔒 **Segurança:** Identifiquei termos que violam nossas diretrizes. Não realizamos procedimentos com softwares não oficiais.', [], null, [], true);
-             }, 600);
+             els.input.value = ''; addMsg('user', txt);
+             setTimeout(() => { addMsg('bot', '🔒 **Segurança:** Identifiquei termos não permitidos. Não oferecemos suporte a softwares ilegais.', [], null, [], true); }, 600);
              return;
         }
 
@@ -203,13 +213,12 @@
         addMsg('user', txt); 
         addTyping();
 
-        // Detecta botões úteis locais
         const localActions = getVisualContext(txt);
-
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
-            // Envia para o Cérebro Real (API)
+            // Nota: Se a API não tiver memória, enviamos apenas a mensagem atual.
+            // A correção de "Contexto" foi feita no front removendo as repetições.
             const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
             const data = await res.json();
             
@@ -218,16 +227,22 @@
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
                 
-                // Combina a inteligência da IA com a utilidade local (botões)
+                // Mescla os botões locais (simulador) com os da API
                 const finalActions = [...localActions, ...(data.actions || [])];
                 
-                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, finalActions);
+                // Verifica corte de mensagem (se não termina em pontuação)
+                let responseText = data.response;
+                if (responseText && !/[.!?;]$/.test(responseText.trim())) {
+                    responseText += " ..."; // Indicador visual de corte
+                }
+
+                addMsg('bot', responseText, data.produtos_sugeridos, data.action_link, finalActions);
             } else {
-                addMsg('bot', 'Desculpe, meu cérebro está um pouco sobrecarregado agora. Pode tentar de novo?', [], null, localActions);
+                addMsg('bot', 'Desculpe, meu cérebro está um pouco lento hoje. Pode repetir?', [], null, localActions);
             }
         } catch { 
             document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
-            addMsg('bot', 'Estou com dificuldade de conexão. Verifique sua internet.', [], null, localActions); 
+            addMsg('bot', 'Estou sem sinal. Verifique sua internet.', [], null, localActions); 
         }
     }
 
@@ -241,6 +256,7 @@
             msgHistory = JSON.parse(savedHist);
             msgHistory.forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false));
         } else {
+            // Mensagem de boas-vindas inicial (única que deve ter o "Olá! Sou Thiago")
             setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
         }
     } catch(e) { console.error("History load error", e); }
@@ -251,7 +267,6 @@
         fetch(api.replace('/chat', ''), { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
     }, 1500);
 
-    // --- 6. INTEGRAÇÃO EXTERNA (CALCULADORA) ---
     window.AtomicChat = {
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
