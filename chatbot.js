@@ -1,9 +1,14 @@
 
-// === CHATBOT 3.3 (CÉREBRO LOCAL COM INJEÇÃO DE CONTEXTO) ===
-// Estratégia: Classifica localmente -> Injeta instrução no texto -> Servidor processa sem erro 500
+// === CHATBOT 3.4 (CÉREBRO LOCAL + CONEXÃO RENDER FIXA) ===
+// Atualização: URL Hardcoded para evitar erros de config e Logs Detalhados
 
 (function() {
-    // --- 1. ESTILOS E ESTRUTURA ---
+    // --- 1. CONFIGURAÇÃO DE CONEXÃO ---
+    // URL fixa conforme seu painel do Render. 
+    // NOTA: Se der erro de CORS no console (F12), verifique a variável ALLOWED_ORIGINS no Render.
+    const API_URL = 'https://atomic-thiago-backend.onrender.com/chat';
+
+    // --- 2. ESTILOS E ESTRUTURA ---
     const STYLES = `
         :root { --chat-primary: #10b981; --chat-bg: #ffffff; --chat-dark: #1f2937; }
         #chatBubble {
@@ -109,8 +114,7 @@
     }
     injectInterface();
 
-    // --- 2. CÉREBRO LOCAL (DEFINIÇÕES DE REGRAS) ---
-    // Estas regras rodam direto no navegador para velocidade máxima.
+    // --- 3. CÉREBRO LOCAL (REGRAS & SEGURANÇA) ---
     const BRAIN = {
         classification: {
             leigo: ["computador lento", "travando", "não entendo", "vírus", "luz piscando", "barulho estranho", "coisa de computador", "não liga", "tela azul"],
@@ -142,7 +146,7 @@
     let sessionId = localStorage.getItem('chat_sess_id');
     let msgHistory = []; 
 
-    // --- 3. CONTROLES DE INTERFACE (UI) ---
+    // --- 4. CONTROLES DE INTERFACE (UI) ---
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
@@ -167,7 +171,7 @@
     window.addEventListener('popstate', () => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- 4. FÍSICA DE ARRASTAR (DRAG) ---
+    // --- 5. FÍSICA DE ARRASTAR (DRAG) ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         els.bubble.addEventListener('touchstart', (e) => {
@@ -205,7 +209,7 @@
         };
     }
 
-    // --- 5. RENDERIZAÇÃO DE MENSAGENS ---
+    // --- 6. RENDERIZAÇÃO DE MENSAGENS ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
@@ -218,7 +222,6 @@
 
     function addMsg(role, content, prods, link, actions = [], save = true) {
         let cleanContent = content;
-        // Pequena limpeza de saudação repetitiva do bot
         if (role === 'bot' && msgHistory.length > 0) {
              cleanContent = cleanContent.replace(/^(Olá|Oi|E aí|Opa)(!|,|\.)? (Eu )?(Sou|Aqui é) o Thiago.*?(\.|\!|\?|\n)/si, "").trim();
              if(cleanContent.length > 0) cleanContent = cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1);
@@ -268,7 +271,7 @@
         if (save) { msgHistory.push({ role, content, prods, link, actions }); localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory)); }
     }
 
-    // --- 6. INTELIGÊNCIA LOCAL (O CÉREBRO) ---
+    // --- 7. INTELIGÊNCIA LOCAL (CLASSIFICAÇÃO & SEGURANÇA) ---
     
     function classifyUser(text) {
         const t = text.toLowerCase();
@@ -301,20 +304,14 @@
     }
 
     function getEmergencyResponse(text) {
-        const lower = text.toLowerCase();
-        if (lower.match(/(lento|travando|barulho|esquentando|manutenção|conserto|reparo|formatar)/)) 
-            return "Notei que você está precisando de assistência técnica. No momento estou com uma instabilidade, mas use nosso **Simulador de Reparo** abaixo!";
-        if (lower.match(/(preço|valor|custa|quanto)/)) 
-            return "Para valores exatos, preciso que nossa equipe analise. Clique no botão abaixo para simular um orçamento!";
-        return "Estou com uma pequena instabilidade de conexão. Mas não se preocupe! Nossa equipe humana está pronta no WhatsApp.";
+        return "Estou com uma pequena instabilidade de conexão com o servidor. Nossa equipe humana está pronta no WhatsApp.";
     }
 
     async function send() {
         const txt = els.input.value.trim();
         if(!txt) return;
 
-        // 1. SEGURANÇA (RODA LOCALMENTE)
-        // Se houver violação, a mensagem nem sai do computador do usuário.
+        // 1. SEGURANÇA (LOCAL)
         const securityAlert = checkSecurity(txt);
         if (securityAlert) {
              els.input.value = ''; addMsg('user', txt);
@@ -322,7 +319,7 @@
              return;
         }
 
-        // 2. CLASSIFICAÇÃO (RODA LOCALMENTE)
+        // 2. CLASSIFICAÇÃO (LOCAL)
         const userProfile = classifyUser(txt);
         console.log(`[Cérebro Local] Perfil Detectado: ${userProfile}`);
 
@@ -332,11 +329,8 @@
         els.msgs.appendChild(loadingDiv); scrollToBottom();
 
         const localActions = checkContextActions(txt);
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
-
-        // 3. INJEÇÃO DE CONTEXTO (TRUQUE ANTI-ERRO 500)
-        // Como o servidor não aceita campos extras, embutimos o perfil no texto.
-        // O usuário NÃO vê isso, apenas o servidor.
+        
+        // 3. INJEÇÃO DE CONTEXTO (PREVINE ERRO 500)
         let payloadMessage = txt;
         if (userProfile !== 'INDEFINIDO') {
             const instructions = userProfile === 'LEIGO' 
@@ -345,21 +339,28 @@
             payloadMessage = `${instructions} ${txt}`;
         }
 
+        console.log(`[Conexão] Tentando conectar em: ${API_URL}`);
+
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s Timeout para Render Cold Start
+            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s Timeout
             
-            const res = await fetch(api, { 
+            const res = await fetch(API_URL, { 
                 method: 'POST', 
                 headers: {'Content-Type':'application/json'}, 
                 body: JSON.stringify({ 
-                    message: payloadMessage, // Enviamos a mensagem modificada
+                    message: payloadMessage, 
                     session_id: sessionId
                 }),
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
             
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`Erro do Servidor: ${res.status} - ${errText}`);
+            }
+
             const data = await res.json();
             document.getElementById('typing')?.remove();
             
@@ -369,10 +370,12 @@
                 let responseText = data.response || "";
                 if (responseText.length > 20 && !/[.!?;]$/.test(responseText.trim())) responseText += "...";
                 addMsg('bot', responseText, data.produtos_sugeridos, data.action_link, finalActions);
-            } else { throw new Error("API Logical Error"); }
+            } else { throw new Error("API retornou erro lógico"); }
+
         } catch (e) { 
-            console.warn("Fallback Triggered:", e);
+            console.error("[ERRO FATAL DE CONEXÃO]", e);
             document.getElementById('typing')?.remove();
+            // Fallback apenas se for erro de rede/servidor
             localStorage.removeItem('chat_sess_id'); sessionId = null;
             addMsg('bot', getEmergencyResponse(txt), [], null, localActions); 
         }
@@ -388,10 +391,10 @@
         else { setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nComo posso ajudar hoje?'), 1000); }
     } catch(e) {}
 
-    // Wake Up Ping
+    // Wake Up Ping (usando o domínio base extraído da URL fixa)
     setTimeout(() => {
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
-        fetch(api.replace('/chat', ''), { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
+        const baseUrl = API_URL.replace('/chat', ''); 
+        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
     }, 2000);
 
     window.AtomicChat = {
