@@ -1,14 +1,13 @@
 
-// === CHATBOT 2.6 (CLIENT-SIDE MEMORY & CONTEXT FIX) ===
+// === CHATBOT 2.8 (MODO HÍBRIDO: RETRY + WAIT TIME CORRIGIDO) ===
 (function() {
     
-    // --- 0. CONFIGURAÇÃO LOCAL (INTERFACE) ---
+    // --- 0. CONFIGURAÇÃO E DADOS LOCAIS ---
     const UI_HELPER = {
         critical_blocklist: [
             "crack", "ativador", "torrent", "baixar de graça", "pirata", 
             "senha do banco", "cartão de crédito", "cvv", "conserta agora"
         ],
-        // GATILHOS VISUAIS: Forçam o botão aparecer mesmo se a IA alucinar
         site_actions: {
             services: { 
                 keys: [
@@ -40,46 +39,38 @@
     let sessionId = localStorage.getItem('chat_sess_id');
     let msgHistory = []; 
 
-    // --- UI LOGIC ---
+    // --- 1. UI CONTROL ---
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
         els.badge.style.display = open ? 'none' : 'flex';
         document.body.classList.toggle('chat-open', open);
-        
         if (open) {
             if(window.innerWidth <= 480) {
                 const rect = els.bubble.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                els.win.style.transformOrigin = `${centerX}px ${centerY}px`;
+                els.win.style.transformOrigin = `${rect.left + rect.width/2}px ${rect.top + rect.height/2}px`;
             }
-            els.bubble.style.transform = 'scale(0)'; 
-            els.bubble.style.opacity = '0';
-            els.bubble.style.pointerEvents = 'none';
+            els.bubble.style.transform = 'scale(0)'; els.bubble.style.opacity = '0'; els.bubble.style.pointerEvents = 'none';
             if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
             scrollToBottom();
         } else {
-            els.bubble.style.transform = 'scale(1)';
-            els.bubble.style.opacity = '1';
-            els.bubble.style.pointerEvents = 'auto';
+            els.bubble.style.transform = 'scale(1)'; els.bubble.style.opacity = '1'; els.bubble.style.pointerEvents = 'auto';
             els.input.blur();
         }
     }
-
     function openChat() { if(state.isOpen) return; history.pushState({chat: true}, '', '#chat'); updateChatUI(true); }
     function closeChat() { if(!state.isOpen) return; history.back(); }
-    window.addEventListener('popstate', (e) => { if(state.isOpen) updateChatUI(false); });
+    window.addEventListener('popstate', () => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- DRAG PHYSICS ---
+    // --- 2. DRAG PHYSICS ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         els.bubble.addEventListener('touchstart', (e) => {
             const t = e.touches[0]; state.startX = t.clientX; state.startY = t.clientY;
             const rect = els.bubble.getBoundingClientRect(); state.initialLeft = rect.left; state.initialTop = rect.top;
             state.isDragging = false; els.bubble.classList.add('no-transition'); els.bubble.classList.remove('snapping');
-            els.bubble.style.transform = 'scale(0.95)'; els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; updatePos(rect.left, rect.top);
+            els.bubble.style.transform = 'scale(0.95)'; updatePos(rect.left, rect.top);
         }, { passive: true });
         els.bubble.addEventListener('touchmove', (e) => {
             const t = e.touches[0]; const dx = t.clientX - state.startX; const dy = t.clientY - state.startY;
@@ -100,18 +91,10 @@
         els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
         document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
         const resetBtn = document.getElementById('resetChatBtn');
-        if(resetBtn) {
-            resetBtn.onclick = (e) => {
-                e.stopPropagation();
-                if(confirm('Tem certeza que deseja limpar o histórico da conversa?')) {
-                    localStorage.removeItem('atomic_chat_history'); localStorage.removeItem('chat_sess_id'); msgHistory = []; els.msgs.innerHTML = ''; sessionId = null;
-                    setTimeout(() => { addMsg('bot', 'Histórico limpo! Como posso ajudar agora?', [], null, [], false); }, 200);
-                }
-            };
-        }
+        if(resetBtn) resetBtn.onclick = (e) => { e.stopPropagation(); if(confirm('Limpar histórico?')) { localStorage.removeItem('atomic_chat_history'); localStorage.removeItem('chat_sess_id'); msgHistory = []; els.msgs.innerHTML = ''; sessionId = null; setTimeout(() => addMsg('bot', 'Histórico limpo!'), 200); } };
     }
 
-    // --- MESSAGING HELPER ---
+    // --- 3. RENDERING ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
@@ -123,13 +106,11 @@
     }
 
     function addMsg(role, content, prods, link, actions = [], save = true) {
-        // --- FILTRO DE REPETIÇÃO (CLIENT-SIDE) ---
-        // Se não for a primeira mensagem, remove a apresentação "Olá! Sou o Thiago..."
+        // === CORREÇÃO DE MEMÓRIA: REMOVE APRESENTAÇÃO REPETIDA ===
         let cleanContent = content;
-        if (role === 'bot' && msgHistory.length > 1) {
-             // Regex para remover variações de apresentação
-             cleanContent = cleanContent.replace(/^(Olá|E aí|Oi)! (Eu sou o|Aqui é o|Sou o) Thiago.*?(\.|\!|\n)/i, "").trim();
-             // Capitaliza a primeira letra se ficou minúscula após o corte
+        if (role === 'bot' && msgHistory.length > 0) {
+             // Regex agressivo para remover "Olá sou Thiago" no início da frase
+             cleanContent = cleanContent.replace(/^(Olá|Oi|E aí|Opa)(!|,|\.)? (Eu )?(Sou|Aqui é) o Thiago.*?(\.|\!|\?|\n)/si, "").trim();
              if(cleanContent.length > 0) cleanContent = cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1);
         }
 
@@ -141,11 +122,11 @@
             const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
                 const card = document.createElement('div'); card.className = 'chat-product-card';
-                const img = document.createElement('img'); img.src = p.image || 'https://placehold.co/100'; img.loading = 'lazy';
+                const img = document.createElement('img'); img.src = p.image || 'https://placehold.co/100';
                 const title = document.createElement('div'); title.className = 'chat-product-title'; title.textContent = p.name || p.nome;
                 const price = document.createElement('div'); price.className = 'chat-product-price'; price.textContent = p.price || p.preco;
                 const btn = document.createElement('button'); btn.className = 'chat-add-btn'; btn.textContent = 'VER DETALHES';
-                btn.onclick = (e) => { e.stopPropagation(); const prodId = p.id; if (window.showProductDetail && prodId) { if(window.innerWidth <= 768) { updateChatUI(false); } window.showProductDetail(prodId); } else { window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`); } };
+                btn.onclick = (e) => { e.stopPropagation(); if(window.showProductDetail) window.showProductDetail(p.id); else window.open(`https://wa.me/5521995969378?text=Interesse em: ${p.name}`); };
                 card.append(img, title, price, btn); scroll.appendChild(card);
             });
             bubble.appendChild(scroll);
@@ -153,7 +134,7 @@
 
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
-           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
+           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600';
            btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
         }
 
@@ -161,14 +142,9 @@
             const actionContainer = document.createElement('div'); actionContainer.className = 'mt-3 flex flex-col gap-2';
             actions.forEach(act => {
                 const actBtn = document.createElement('button');
-                actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
-                const span = document.createElement('span'); span.textContent = act.label;
-                const icon = document.createElement('i'); icon.className = `ph-bold ${act.icon}`;
-                actBtn.append(span, icon);
-                actBtn.onclick = () => {
-                    if (act.targetId) { const target = document.getElementById(act.targetId); if(target) { if(window.innerWidth < 768) updateChatUI(false); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } 
-                    else if (act.url) { window.open(act.url, '_blank'); }
-                };
+                actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold hover:bg-yellow-400 hover:text-black transition-colors';
+                actBtn.innerHTML = `<span>${act.label}</span><i class="ph-bold ${act.icon}"></i>`;
+                actBtn.onclick = () => { if (act.targetId) document.getElementById(act.targetId)?.scrollIntoView({behavior:'smooth'}); else if (act.url) window.open(act.url, '_blank'); };
                 actionContainer.appendChild(actBtn);
             });
             bubble.appendChild(actionContainer);
@@ -177,26 +153,27 @@
         if (save) { msgHistory.push({ role, content, prods, link, actions }); localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory)); }
     }
 
-    function addTyping() {
-        const div = document.createElement('div'); div.id='typing'; div.className='message bot';
-        div.innerHTML = `<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-        els.msgs.appendChild(div); scrollToBottom();
-    }
-
+    // --- 4. INTELLIGENCE ---
     function getVisualContext(text) {
         const lower = text.toLowerCase();
         let actions = [];
-        
-        // Verifica sintomas de manutenção
-        if (UI_HELPER.site_actions.services.keys.some(k => lower.includes(k))) {
-            const serviceSec = document.getElementById('services');
-            let dir = serviceSec && serviceSec.getBoundingClientRect().top < 0 ? '👆' : '👇';
-            actions.push({ label: `${UI_HELPER.site_actions.services.label} ${dir}`, icon: 'ph-wrench', targetId: 'services' });
-        }
-        if (UI_HELPER.site_actions.location.keys.some(k => lower.includes(k))) {
+        if (UI_HELPER.site_actions.services.keys.some(k => lower.includes(k))) 
+            actions.push({ label: `${UI_HELPER.site_actions.services.label} 👇`, icon: 'ph-wrench', targetId: 'services' });
+        if (UI_HELPER.site_actions.location.keys.some(k => lower.includes(k))) 
             actions.push({ label: UI_HELPER.site_actions.location.label, icon: 'ph-map-pin', targetId: 'location' });
-        }
         return actions;
+    }
+
+    // === MODO DE EMERGÊNCIA LOCAL (FALLBACK) ===
+    function getEmergencyResponse(text) {
+        const lower = text.toLowerCase();
+        if (lower.match(/(lento|travando|barulho|esquentando|manutenção|conserto|reparo|formatar)/)) {
+            return "Notei que você está precisando de assistência técnica. No momento estou com uma instabilidade para consultar detalhes, mas você pode usar nosso **Simulador de Reparo** abaixo para ter uma estimativa agora mesmo!";
+        }
+        if (lower.match(/(preço|valor|custa|quanto)/)) {
+            return "Para te passar o valor exato, preciso que nossa equipe analise. Mas você pode clicar no botão abaixo para simular um orçamento ou chamar no WhatsApp!";
+        }
+        return "Estou com uma pequena instabilidade de conexão com meu servidor central. Mas não se preocupe! Nossa equipe humana está pronta no WhatsApp, ou você pode usar os botões abaixo.";
     }
 
     async function send() {
@@ -205,50 +182,57 @@
 
         if (UI_HELPER.critical_blocklist.some(term => txt.toLowerCase().includes(term))) {
              els.input.value = ''; addMsg('user', txt);
-             setTimeout(() => { addMsg('bot', '🔒 **Segurança:** Identifiquei termos não permitidos. Não oferecemos suporte a softwares ilegais.', [], null, [], true); }, 600);
+             setTimeout(() => addMsg('bot', '🔒 **Segurança:** Identifiquei termos não permitidos. Não realizamos procedimentos em softwares ilegais.', [], null, [], true), 600);
              return;
         }
 
-        els.input.value = ''; 
-        addMsg('user', txt); 
-        addTyping();
+        els.input.value = ''; addMsg('user', txt); 
+        const loadingDiv = document.createElement('div'); loadingDiv.id='typing'; loadingDiv.className='message bot';
+        loadingDiv.innerHTML = `<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+        els.msgs.appendChild(loadingDiv); scrollToBottom();
 
         const localActions = getVisualContext(txt);
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
-            // Nota: Se a API não tiver memória, enviamos apenas a mensagem atual.
-            // A correção de "Contexto" foi feita no front removendo as repetições.
-            const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
+            // REMOVIDO: AbortController com 10s. Isso causava o erro imediato em cold starts.
+            // Agora confiamos no timeout padrão do navegador (~60s), dando tempo para o Render acordar.
+            
+            const res = await fetch(api, { 
+                method: 'POST', 
+                headers: {'Content-Type':'application/json'}, 
+                body: JSON.stringify({ message: txt, session_id: sessionId })
+            });
+
             const data = await res.json();
             
-            document.getElementById('typing').remove();
+            document.getElementById('typing')?.remove();
             
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                
-                // Mescla os botões locais (simulador) com os da API
                 const finalActions = [...localActions, ...(data.actions || [])];
                 
-                // Verifica corte de mensagem (se não termina em pontuação)
-                let responseText = data.response;
-                if (responseText && !/[.!?;]$/.test(responseText.trim())) {
-                    responseText += " ..."; // Indicador visual de corte
-                }
+                let responseText = data.response || "";
+                if (responseText && responseText.length > 20 && !/[.!?;]$/.test(responseText.trim())) responseText += "...";
 
                 addMsg('bot', responseText, data.produtos_sugeridos, data.action_link, finalActions);
             } else {
-                addMsg('bot', 'Desculpe, meu cérebro está um pouco lento hoje. Pode repetir?', [], null, localActions);
+                throw new Error("API Logical Error"); 
             }
-        } catch { 
-            document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
-            addMsg('bot', 'Estou sem sinal. Verifique sua internet.', [], null, localActions); 
+        } catch (e) { 
+            console.warn("Chatbot Fallback Triggered:", e);
+            document.getElementById('typing')?.remove();
+            
+            // Em caso de erro real (servidor offline após tempo limite), reseta ID e usa fallback
+            localStorage.removeItem('chat_sess_id'); sessionId = null;
+            const emergencyText = getEmergencyResponse(txt);
+            addMsg('bot', emergencyText, [], null, localActions); 
         }
     }
 
     document.getElementById('sendBtn').onclick = send;
-    els.input.addEventListener('keydown', (e) => { if(e.key === 'Enter') send(); e.stopPropagation(); });
-    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => { els.input.addEventListener(evt, (e) => { e.stopPropagation(); if (evt === 'mousedown') els.input.focus(); }); });
+    els.input.addEventListener('keydown', (e) => { if(e.key === 'Enter') send(); });
+    ['mousedown', 'touchstart'].forEach(evt => els.input.addEventListener(evt, (e) => { e.stopPropagation(); els.input.focus(); }));
 
     try {
         const savedHist = localStorage.getItem('atomic_chat_history');
@@ -256,31 +240,29 @@
             msgHistory = JSON.parse(savedHist);
             msgHistory.forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false));
         } else {
-            // Mensagem de boas-vindas inicial (única que deve ter o "Olá! Sou Thiago")
             setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
         }
-    } catch(e) { console.error("History load error", e); }
+    } catch(e) {}
 
-    // Wake up API
+    // Wake up API silently (Ping)
     setTimeout(() => {
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
         fetch(api.replace('/chat', ''), { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
-    }, 1500);
+    }, 2000);
 
+    // External Trigger
     window.AtomicChat = {
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
             if (!state.isOpen) openChat();
             const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            let finalServiceName = context.service.name;
-            let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
-            if (context.service.customDescription) {
-                finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
-                finalPriceStr = "Sob Análise Técnica";
-            }
-            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\nRecebi sua estimativa para o **${context.device.modelLabel}**.\n\n🔧 Serviço: ${finalServiceName}\n💰 Estimativa: **${finalPriceStr}**\n📍 Logística: ${context.logistics.label}\n\nPosso confirmar o agendamento?`;
-            const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n👤 *${context.customer.name}*\n📱 ${context.customer.phone}\n--------------------------------\n🎮 *Aparelho:* ${context.device.modelLabel}\n🛠️ *Serviço:* ${finalServiceName}\n📍 *Logística:* ${context.logistics.label}\n💰 *Estimativa:* ${finalPriceStr}\n--------------------------------\n*Obs:* Vim pelo Chat do Site.`;
-            const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
+            let servName = context.service.name;
+            let priceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
+            if (context.service.customDescription) { servName += `: "${context.service.customDescription}"`; priceStr = "Sob Análise"; }
+            
+            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\nRecebi sua estimativa para o **${context.device.modelLabel}**.\n\n🔧 Serviço: ${servName}\n💰 Estimativa: **${priceStr}**\n\nPosso confirmar o agendamento?`;
+            const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(`*ORÇAMENTO WEB*\n${context.device.modelLabel} - ${servName}\nValor: ${priceStr}`)}`;
+            
             setTimeout(() => { addMsg('bot', msg, [], null, [{ label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }], true); }, 500);
         }
     };
