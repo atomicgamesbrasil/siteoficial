@@ -1,6 +1,6 @@
 
-// === CHATBOT 3.1 (BRAIN INTEGRATION: CLASSIFICATION & SECURITY) ===
-// Inclui: Injeção de CSS/HTML + Lógica de Classificação do Cliente + Guardrails de Segurança
+// === CHATBOT 3.2 (BRAIN INTEGRATION: CLASSIFICATION & SECURITY + STABILITY FIX) ===
+// Inclui: Injeção de CSS/HTML + Lógica de Classificação Local + Payload Higienizado
 
 (function() {
     // --- 1. ESTILOS E ESTRUTURA ---
@@ -109,27 +109,16 @@
     }
     injectInterface();
 
-    // --- 2. CONFIGURAÇÃO DO CÉREBRO (BRAIN CONFIG) ---
-    // Implementação da Lógica de Classificação e Segurança (Rules & Guardrails)
+    // --- 2. CÉREBRO (BRAIN) ---
     const BRAIN = {
         classification: {
-            leigo: [
-                "computador lento", "travando", "não entendo", "vírus", "luz piscando", 
-                "barulho estranho", "coisa de computador", "não liga", "tela azul"
-            ],
-            entusiasta: [
-                "fps", "hz", "overclock", "gargalo", "driver", "bios", "nvme", 
-                "thermal throttling", "xmp", "chipset", "gpu", "cpu", "water cooler"
-            ]
+            leigo: ["computador lento", "travando", "não entendo", "vírus", "luz piscando", "barulho estranho", "coisa de computador", "não liga", "tela azul"],
+            entusiasta: ["fps", "hz", "overclock", "gargalo", "driver", "bios", "nvme", "thermal throttling", "xmp", "chipset", "gpu", "cpu", "water cooler"]
         },
         guardrails: {
-            blocklist: [
-                "crack", "ativador", "torrent", "baixar de graça", "pirata", 
-                "senha do banco", "cartão de crédito", "cvv", "conserta agora", 
-                "garante que resolve", "certeza absoluta"
-            ],
+            blocklist: ["crack", "ativador", "torrent", "baixar de graça", "pirata", "senha do banco", "cartão de crédito", "cvv", "conserta agora", "garante que resolve", "certeza absoluta"],
             responses: {
-                piracy: "🔒 **Segurança:** Por questões éticas e de segurança, nossa loja trabalha exclusivamente com softwares originais e procedimentos oficiais. Não realizamos instalações de programas não licenciados.",
+                piracy: "🔒 **Segurança:** Por questões éticas e de segurança, nossa loja trabalha exclusivamente com softwares originais. Não realizamos instalações de programas não licenciados.",
                 financial: "🔒 **Segurança:** Para sua segurança, por favor não compartilhe senhas ou dados financeiros por aqui. Nosso atendimento solicitará apenas o necessário no balcão.",
                 generic: "🔒 **Segurança:** Identifiquei termos que violam nossas diretrizes de segurança. Por favor, reformule sua dúvida."
             }
@@ -277,12 +266,10 @@
         if (save) { msgHistory.push({ role, content, prods, link, actions }); localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory)); }
     }
 
-    // --- 6. BRAIN LOGIC IMPLEMENTATION ---
+    // --- 6. INTELLIGENCE & API LOGIC ---
     function classifyUser(text) {
         const t = text.toLowerCase();
-        // Check Enthusiast
         if (BRAIN.classification.entusiasta.some(k => t.includes(k))) return 'ENTUSIASTA';
-        // Check Layman
         if (BRAIN.classification.leigo.some(k => t.includes(k))) return 'LEIGO';
         return 'INDEFINIDO';
     }
@@ -323,7 +310,7 @@
         const txt = els.input.value.trim();
         if(!txt) return;
 
-        // 1. SECURITY CHECK (Local Guardrails)
+        // 1. SEGURANÇA (Rodando Localmente)
         const securityAlert = checkSecurity(txt);
         if (securityAlert) {
              els.input.value = ''; addMsg('user', txt);
@@ -331,9 +318,9 @@
              return;
         }
 
-        // 2. USER CLASSIFICATION (Local Brain)
+        // 2. CLASSIFICAÇÃO (Rodando Localmente)
         const userProfile = classifyUser(txt);
-        console.log(`[AtomicBrain] User Classified: ${userProfile}`);
+        console.log(`[AtomicBrain] Classificado: ${userProfile}`);
 
         els.input.value = ''; addMsg('user', txt); 
         const loadingDiv = document.createElement('div'); loadingDiv.id='typing'; loadingDiv.className='message bot';
@@ -344,14 +331,21 @@
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
+            // FIX CRÍTICO: Removido 'client_context' para evitar erro 500 no Backend
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s Timeout
+            
             const res = await fetch(api, { 
-                method: 'POST', headers: {'Content-Type':'application/json'}, 
+                method: 'POST', 
+                headers: {'Content-Type':'application/json'}, 
                 body: JSON.stringify({ 
                     message: txt, 
-                    session_id: sessionId,
-                    client_context: { user_profile: userProfile } // Pass classification context
-                })
+                    session_id: sessionId
+                }),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
+            
             const data = await res.json();
             document.getElementById('typing')?.remove();
             
@@ -361,9 +355,9 @@
                 let responseText = data.response || "";
                 if (responseText.length > 20 && !/[.!?;]$/.test(responseText.trim())) responseText += "...";
                 addMsg('bot', responseText, data.produtos_sugeridos, data.action_link, finalActions);
-            } else { throw new Error("API Error"); }
+            } else { throw new Error("API Logical Error"); }
         } catch (e) { 
-            console.warn("Fallback Triggered");
+            console.warn("Fallback Triggered:", e);
             document.getElementById('typing')?.remove();
             localStorage.removeItem('chat_sess_id'); sessionId = null;
             addMsg('bot', getEmergencyResponse(txt), [], null, localActions); 
@@ -374,20 +368,17 @@
     els.input.addEventListener('keydown', (e) => { if(e.key === 'Enter') send(); });
     ['mousedown', 'touchstart'].forEach(evt => els.input.addEventListener(evt, (e) => { e.stopPropagation(); els.input.focus(); }));
 
-    // Load History
     try {
         const savedHist = localStorage.getItem('atomic_chat_history');
         if (savedHist) { JSON.parse(savedHist).forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false)); }
         else { setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nComo posso ajudar hoje?'), 1000); }
     } catch(e) {}
 
-    // Wake Up Ping
     setTimeout(() => {
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
         fetch(api.replace('/chat', ''), { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
     }, 2000);
 
-    // External Integration
     window.AtomicChat = {
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
