@@ -11,9 +11,24 @@
             ],
             response: "🔒 Por questões de segurança e ética, não posso processar solicitações contendo dados sensíveis, pirataria ou promessas de resultado sem avaliação."
         },
-        context: {
-            manutencao: ["limpeza", "manutenção", "conserto", "reparo", "orçamento", "arrumar", "quebrado", "lento", "travando"],
-            localizacao: ["onde fica", "endereço", "localização", "chegar", "perto"]
+        // Mapeamento de Intenções para Palavras-Chave
+        intents: {
+            manutencao: {
+                keywords: ["limpeza", "manutenção", "conserto", "reparo", "orçamento", "arrumar", "quebrado", "lento", "travando", "pasta térmica", "formatar", "formatação"],
+                // Resposta Oficial Baseada no knowledge.json
+                reply: "Sim, somos especialistas nisso! 🛠️\n\nRealizamos desde **Limpeza Preventiva** (com troca de pasta térmica e cable management) até **Diagnósticos Avançados** e **Formatação**.\n\nPara te dar uma estimativa de valor agora mesmo, recomendo usar nosso Simulador aqui abaixo:",
+                force_local: true // Força resposta local, ignora backend
+            },
+            localizacao: {
+                keywords: ["onde fica", "endereço", "localização", "chegar", "perto", "bairro", "loja física"],
+                reply: "Estamos localizados num ponto estratégico para melhor te atender! 📍\n\nVocê pode ver o mapa exato e traçar a rota clicando no botão abaixo.",
+                force_local: true
+            },
+            vendas: {
+                keywords: ["comprar", "preço", "quanto custa", "gamer", "pc", "upgrade", "loja", "vende"],
+                reply: "Com certeza! Trabalhamos com **PCs Gamer de Alta Performance**, Periféricos e Upgrades.\n\nVocê busca algo para rodar jogos competitivos ou para trabalho pesado?",
+                force_local: false // Deixa o backend responder, mas adiciona contexto se necessário
+            }
         }
     };
 
@@ -276,56 +291,67 @@
     function checkSiteContext(text) {
         const t = text.toLowerCase();
         const actions = [];
+        let matchedIntent = null;
 
-        // Lógica atualizada para usar o BRAIN centralizado
-        if (BRAIN.context.manutencao.some(key => t.includes(key))) {
+        // Verifica intenções mapeadas no BRAIN
+        if (BRAIN.intents.manutencao.keywords.some(k => t.includes(k))) {
             const serviceSec = document.getElementById('services');
             let dir = '👇';
             if(serviceSec) {
                 const rect = serviceSec.getBoundingClientRect();
                 if(rect.top < 0) dir = '👆';
             }
-            
             actions.push({
                 label: `Abrir Simulador de Reparo ${dir}`,
                 icon: 'ph-wrench',
                 targetId: 'services'
             });
+            matchedIntent = BRAIN.intents.manutencao;
         }
 
-        if (BRAIN.context.localizacao.some(key => t.includes(key))) {
+        else if (BRAIN.intents.localizacao.keywords.some(k => t.includes(k))) {
             actions.push({
                 label: 'Ver Mapa e Endereço',
                 icon: 'ph-map-pin',
                 targetId: 'location'
             });
+            matchedIntent = BRAIN.intents.localizacao;
         }
 
-        return actions;
+        return { actions, matchedIntent };
     }
 
     async function send() {
         const txt = els.input.value.trim();
         if(!txt) return;
 
-        // --- SECURITY GUARDRAIL CHECK (NOVA CAMADA DE SEGURANÇA) ---
-        // Verifica se existe algum termo proibido ANTES de enviar para o backend
+        // 1. GUARDIÃO (SEGURANÇA)
         if (BRAIN.security.forbidden_terms.some(term => txt.toLowerCase().includes(term))) {
             els.input.value = '';
             addMsg('user', txt);
-            
-            // Simula um pequeno delay para parecer natural
-            setTimeout(() => {
-                addMsg('bot', BRAIN.security.response, [], null, [], true);
-            }, 600);
-            return; // Bloqueia execução do fetch
+            setTimeout(() => { addMsg('bot', BRAIN.security.response, [], null, [], true); }, 600);
+            return; 
         }
         
         els.input.value = ''; 
         addMsg('user', txt); 
         addTyping();
         
-        const localActions = checkSiteContext(txt);
+        // 2. DETECÇÃO DE CONTEXTO E INTENÇÃO LOCAL
+        const contextData = checkSiteContext(txt);
+        
+        // 3. INTERCEPÇÃO DE CÉREBRO LOCAL (Híbrido)
+        // Se for uma intenção crítica e estiver marcada como force_local, respondemos direto
+        // sem consultar o backend (que pode ser genérico/burro).
+        if (contextData.matchedIntent && contextData.matchedIntent.force_local) {
+            setTimeout(() => {
+                document.getElementById('typing').remove();
+                addMsg('bot', contextData.matchedIntent.reply, [], null, contextData.actions);
+            }, 800); // Delay natural
+            return;
+        }
+
+        // 4. FALLBACK PARA BACKEND (Se não for crítico ou se for papo furado)
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
@@ -336,13 +362,15 @@
             
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
+                // Mescla ações locais com ações do servidor
+                const finalActions = [...contextData.actions, ...(data.actions || [])];
+                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, finalActions);
             } else {
-                addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
+                addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, contextData.actions);
             }
         } catch { 
             document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
-            addMsg('bot', 'Sem conexão com a internet.', [], null, localActions); 
+            addMsg('bot', 'Sem conexão com a internet.', [], null, contextData.actions); 
         }
     }
 
