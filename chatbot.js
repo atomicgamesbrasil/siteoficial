@@ -1,13 +1,14 @@
 
-// === CHATBOT 4.1 (CORREÇÃO DE PONTUAÇÃO E TRUNCAMENTO) ===
-// Atualização: Removida a lógica que cortava mensagens com "..." e relaxado o limite de palavras.
+// === CHATBOT 3.9 (INTELIGÊNCIA HÍBRIDA + CALCULADORA) ===
+// Atualização: Categorização estrita de SERVIÇO vs VENDA.
+// Garante link da calculadora para serviços e ajusta tom de voz por perfil.
 
 (function() {
     // --- 1. CONFIGURAÇÃO DE CONEXÃO ---
     const API_URL = 'https://atomic-thiago-backend.onrender.com/chat';
     const TIMEOUT_MS = 60000; 
 
-    // --- 2. ESTILOS ---
+    // --- 2. ESTILOS (Mantidos) ---
     const STYLES = `
         :root { --chat-primary: #10b981; --chat-bg: #ffffff; --chat-dark: #1f2937; }
         #chatBubble {
@@ -70,39 +71,8 @@
         .chat-product-card img { width: 80px; height: 80px; object-fit: contain; }
         .chat-product-title { font-size: 12px; font-weight: bold; text-align: center; color: #111827; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .chat-product-price { color: #10b981; font-weight: 800; font-size: 13px; }
-        .chat-add-btn { background: #111827; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
-        .chat-add-btn:hover { background: #10b981; }
+        .chat-add-btn { background: #111827; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; width: 100%; }
 
-        /* --- STYLES DO MODAL DE PREVIEW --- */
-        #chatProductModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 10000;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-        }
-        #chatProductModal.open { opacity: 1; pointer-events: auto; }
-        .cpm-card {
-            background: white; width: 90%; max-width: 400px; padding: 24px;
-            border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            position: relative; transform: translateY(20px); transition: transform 0.3s ease;
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-        }
-        #chatProductModal.open .cpm-card { transform: translateY(0); }
-        .cpm-close {
-            position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 24px; 
-            cursor: pointer; color: #9ca3af; padding: 4px; line-height: 1;
-        }
-        .cpm-img { width: 100%; height: 220px; object-fit: contain; margin-bottom: 20px; }
-        .cpm-title { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px; line-height: 1.3; }
-        .cpm-price { font-size: 28px; color: #10b981; font-weight: 800; margin-bottom: 24px; }
-        .cpm-btn {
-            width: 100%; padding: 14px; background: #25d366; color: white; 
-            border: none; border-radius: 12px; font-weight: bold; font-size: 16px;
-            cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: transform 0.2s, background 0.2s;
-        }
-        .cpm-btn:hover { transform: scale(1.02); background: #1fad53; }
-        
         @media (max-width: 480px) {
             #chatWindow { width: 100%; height: 100%; bottom: 0; right: 0; border-radius: 0; max-height: 100%; }
             #chatBubble { bottom: 20px; right: 20px; }
@@ -132,19 +102,6 @@
             <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="Digite sua dúvida..." autocomplete="off">
                 <button id="sendBtn"><svg style="width:20px;height:20px;fill:currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
-            </div>
-        </div>
-        <!-- MODAL DE PRODUTO INTEGRADO -->
-        <div id="chatProductModal">
-            <div class="cpm-card">
-                <button class="cpm-close" id="cpmCloseBtn">×</button>
-                <img src="" class="cpm-img" id="cpmImg" alt="Produto">
-                <div class="cpm-title" id="cpmTitle"></div>
-                <div class="cpm-price" id="cpmPrice"></div>
-                <a href="#" target="_blank" class="cpm-btn" id="cpmActionBtn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12.01 2C6.48 2 2 6.48 2 12c0 2.16.7 4.16 1.91 5.82L3 22l4.33-.94C8.78 21.69 10.36 22 12.01 22c5.52 0 10-4.48 10-10S17.53 2 12.01 2zM16.6 16.92c-.22.61-1.25 1.12-1.74 1.15-.46.03-1 .06-3.41-.95-2.88-1.21-4.73-4.14-4.88-4.33-.14-.2-1.17-1.55-1.17-2.95 0-1.4.72-2.09 1-2.38.26-.28.58-.35.77-.35.2 0 .4.01.57.01.18 0 .43-.07.67.51.25.59.84 2.06.91 2.21.07.15.12.36.03.57-.1.21-.15.34-.3.51-.14.17-.3.23-.42.36-.14.13-.28.28-.12.56.16.27.71 1.17 1.52 1.89 1.05.93 1.93 1.22 2.2 1.35.28.13.44.11.6-.07.17-.19.71-.83.9-1.12.19-.28.39-.24.65-.14.26.1.1.64.77 1.63 3.39.5.25.83.37.95.58.13.2.13 1.16-.09 1.77z"/></svg>
-                    Negociar no WhatsApp
-                </a>
             </div>
         </div>
     `;
@@ -190,14 +147,7 @@
         win: document.getElementById('chatWindow'), 
         msgs: document.getElementById('chatMessages'), 
         input: document.getElementById('chatInput'),
-        badge: document.getElementById('chatBadge'),
-        // Modal Elements
-        modal: document.getElementById('chatProductModal'),
-        modalImg: document.getElementById('cpmImg'),
-        modalTitle: document.getElementById('cpmTitle'),
-        modalPrice: document.getElementById('cpmPrice'),
-        modalBtn: document.getElementById('cpmActionBtn'),
-        modalClose: document.getElementById('cpmCloseBtn')
+        badge: document.getElementById('chatBadge')
     };
 
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
@@ -228,29 +178,6 @@
     function closeChat() { if(!state.isOpen) return; history.back(); }
     window.addEventListener('popstate', () => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
-
-    // --- LÓGICA DO MODAL DE PRODUTO ---
-    function openProductPreview(product) {
-        // Tenta usar a função do site hospedeiro primeiro
-        if (window.showProductDetail && typeof window.showProductDetail === 'function') {
-            if(window.innerWidth <= 768) updateChatUI(false); 
-            window.showProductDetail(product.id);
-            return;
-        }
-
-        // Fallback: Usa o modal nativo do chatbot
-        els.modalImg.src = product.image || 'https://placehold.co/300';
-        els.modalTitle.textContent = product.name || product.nome;
-        els.modalPrice.textContent = product.price || product.preco;
-        
-        const message = `Olá! Tenho interesse no produto: ${product.name || product.nome} (${product.price || product.preco})`;
-        els.modalBtn.href = `https://wa.me/5521995969378?text=${encodeURIComponent(message)}`;
-        
-        els.modal.classList.add('open');
-    }
-
-    els.modalClose.onclick = () => els.modal.classList.remove('open');
-    els.modal.onclick = (e) => { if(e.target === els.modal) els.modal.classList.remove('open'); };
 
     // --- 5. FÍSICA E EVENTOS ---
     if(els.bubble) {
@@ -320,13 +247,13 @@
                 const title = document.createElement('div'); title.className = 'chat-product-title'; title.textContent = p.name || p.nome;
                 const price = document.createElement('div'); price.className = 'chat-product-price'; price.textContent = p.price || p.preco;
                 const btn = document.createElement('button'); btn.className = 'chat-add-btn'; btn.textContent = 'VER DETALHES';
-                
-                // --- AÇÃO DE CLIQUE ATUALIZADA ---
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    openProductPreview(p);
+                    if (window.showProductDetail && p.id) {
+                        if(window.innerWidth <= 768) updateChatUI(false); 
+                        window.showProductDetail(p.id);
+                    } else { window.open(`https://wa.me/5521995969378?text=Interesse em: ${p.name}`); }
                 };
-                
                 card.append(img, title, price, btn); scroll.appendChild(card);
             });
             bubble.appendChild(scroll);
@@ -448,7 +375,7 @@
             
             if (userIntent === 'SERVICE') {
                 systemInstruction = `[SISTEMA: O usuário quer um SERVIÇO DE MANUTENÇÃO (Perfil: ${userProfile}). 
-                Seja breve (máximo 3 frases).
+                Sua resposta DEVE ter no MÁXIMO 50 palavras. 
                 Não dê preços exatos. Explique o serviço brevemente e finalize dizendo: "Use nosso Simulador abaixo para uma estimativa precisa."
                 Seja ${userProfile === 'ENTUSIASTA' ? 'técnico e direto' : 'didático e simples'}.]`;
             } else if (userIntent === 'SALES') {
@@ -481,7 +408,8 @@
                 
                 let responseText = data.response || "";
                 
-                // Removida a lógica de truncamento manual com "..."
+                // Corte de segurança extra caso a IA ignore o limite de palavras
+                if (responseText.length > 20 && !/[.!?;]$/.test(responseText.trim())) responseText += "...";
 
                 addMsg('bot', responseText, data.produtos_sugeridos, data.action_link, finalActions);
             } else { throw new Error("Success False"); }
