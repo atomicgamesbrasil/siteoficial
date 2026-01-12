@@ -1,7 +1,6 @@
 
-// === CHATBOT 3.9 (INTELIGÊNCIA HÍBRIDA + CALCULADORA) ===
-// Atualização: Categorização estrita de SERVIÇO vs VENDA.
-// Garante link da calculadora para serviços e ajusta tom de voz por perfil.
+// === CHATBOT 3.8 (CORREÇÃO DE CONTEXTO E TAMANHO) ===
+// Atualização: Injeção de Prompt para forçar reconhecimento de serviços e limitar tamanho da resposta.
 
 (function() {
     // --- 1. CONFIGURAÇÃO DE CONEXÃO ---
@@ -113,17 +112,11 @@
     }
     injectInterface();
 
-    // --- 3. CÉREBRO LOCAL (ATUALIZADO V3.9) ---
+    // --- 3. CÉREBRO LOCAL ---
     const BRAIN = {
-        // Classificação de Perfil (Tom de Voz)
         classification: {
-            leigo: ["computador lento", "travando", "não entendo", "vírus", "luz piscando", "barulho estranho", "coisa de computador", "não liga", "tela azul", "esquentando", "devagar"],
-            entusiasta: ["fps", "hz", "overclock", "gargalo", "driver", "bios", "nvme", "thermal throttling", "xmp", "chipset", "gpu", "cpu", "water cooler", "build"]
-        },
-        // Classificação de Intenção (Serviço vs Venda)
-        intents: {
-            service: ["conserto", "reparo", "arrumar", "quebrado", "pifou", "não liga", "tela azul", "formatar", "limpeza", "vírus", "manutenção", "trocar pasta", "upgrade", "instalar"],
-            sales: ["comprar", "preço", "quanto custa", "vende", "tem rtx", "processador", "monitor", "teclado", "mouse", "loja"]
+            leigo: ["computador lento", "travando", "não entendo", "vírus", "luz piscando", "barulho estranho", "coisa de computador", "não liga", "tela azul"],
+            entusiasta: ["fps", "hz", "overclock", "gargalo", "driver", "bios", "nvme", "thermal throttling", "xmp", "chipset", "gpu", "cpu", "water cooler"]
         },
         guardrails: {
             blocklist: ["crack", "ativador", "torrent", "baixar de graça", "pirata", "senha do banco", "cartão de crédito", "cvv", "conserta agora", "garante que resolve", "certeza absoluta"],
@@ -139,7 +132,11 @@
             { keys: ['lento', 'travando', 'melhorar', 'rápido', 'upgrade'], response: "💡 **Modo Offline:** Lentidão quase sempre se resolve trocando o HD antigo por um SSD e adicionando mais memória RAM. Fica até 10x mais rápido!" },
             { keys: ['gamer', 'jogo', 'fps', 'rodar', 'placa de video'], response: "💡 **Modo Offline:** Quer rodar tudo no ultra? Posso montar um orçamento de PC Gamer personalizado para você." },
             { keys: ['preço', 'valor', 'quanto', 'custa'], response: "💡 **Modo Offline:** Para valores exatos, preciso que o técnico avalie na bancada. Mas use nosso Simulador de Reparo abaixo para ter uma estimativa!" }
-        ]
+        ],
+        site_actions: {
+            services: { keys: ["conserto", "reparo", "arrumar", "quebrado", "simulador", "orçamento"], id: "services", label: "Abrir Simulador de Reparo" },
+            location: { keys: ["onde", "endereço", "local", "fica", "chegar", "perto"], id: "location", label: "Ver Mapa e Endereço" }
+        }
     };
 
     const els = { 
@@ -279,20 +276,18 @@
         if (save) { msgHistory.push({ role, content, prods, link, actions }); localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory)); }
     }
 
-    // --- 7. INTELIGÊNCIA HÍBRIDA (NOVO LÓGICA V3.9) ---
+    // --- 7. LÓGICA DE CONTINGÊNCIA (FALLBACK) ---
+    function getOfflineResponse(text) {
+        const lower = text.toLowerCase();
+        const match = BRAIN.offline_knowledge.find(entry => entry.keys.some(k => lower.includes(k)));
+        return match ? match.response : "Estou com uma pequena instabilidade na minha conexão com o servidor da loja. Mas não se preocupe! Nossa equipe humana está pronta no WhatsApp. Clique abaixo para falar com eles.";
+    }
 
     function classifyUser(text) {
         const t = text.toLowerCase();
         if (BRAIN.classification.entusiasta.some(k => t.includes(k))) return 'ENTUSIASTA';
         if (BRAIN.classification.leigo.some(k => t.includes(k))) return 'LEIGO';
         return 'INDEFINIDO';
-    }
-
-    function detectIntent(text) {
-        const t = text.toLowerCase();
-        if (BRAIN.intents.service.some(k => t.includes(k))) return 'SERVICE';
-        if (BRAIN.intents.sales.some(k => t.includes(k))) return 'SALES';
-        return 'OTHER';
     }
 
     function checkSecurity(text) {
@@ -305,10 +300,17 @@
         return null;
     }
 
-    function getOfflineResponse(text) {
+    function checkContextActions(text) {
         const lower = text.toLowerCase();
-        const match = BRAIN.offline_knowledge.find(entry => entry.keys.some(k => lower.includes(k)));
-        return match ? match.response : "Estou com uma pequena instabilidade na minha conexão com o servidor da loja. Mas não se preocupe! Nossa equipe humana está pronta no WhatsApp. Clique abaixo para falar com eles.";
+        let actions = [];
+        if (BRAIN.site_actions.services.keys.some(k => lower.includes(k))) {
+            const serviceSec = document.getElementById('services');
+            let dir = (serviceSec && serviceSec.getBoundingClientRect().top < 0) ? '👆' : '👇';
+            actions.push({ label: `${BRAIN.site_actions.services.label} ${dir}`, icon: 'ph-wrench', targetId: 'services' });
+        }
+        if (BRAIN.site_actions.location.keys.some(k => lower.includes(k))) 
+            actions.push({ label: BRAIN.site_actions.location.label, icon: 'ph-map-pin', targetId: 'location' });
+        return actions;
     }
 
     async function makeRequest(message, currentSessionId) {
@@ -341,60 +343,36 @@
              return;
         }
 
-        // 2. DETECÇÃO LOCAL (CÉREBRO V3.9)
         const userProfile = classifyUser(txt);
-        const userIntent = detectIntent(txt);
-        
-        console.log(`[Cérebro v3.9] Perfil: ${userProfile} | Intenção: ${userIntent}`);
+        console.log(`[Cérebro Local] Perfil: ${userProfile}`);
 
         els.input.value = ''; addMsg('user', txt); 
         const loadingDiv = document.createElement('div'); loadingDiv.id='typing'; loadingDiv.className='message bot';
         loadingDiv.innerHTML = `<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
         els.msgs.appendChild(loadingDiv); scrollToBottom();
 
-        // 3. PREPARAÇÃO DE AÇÕES LOCAIS
-        let localActions = [];
-
-        // LÓGICA DA CALCULADORA (OBRIGATÓRIA PARA SERVIÇOS)
-        if (userIntent === 'SERVICE') {
-            const serviceSec = document.getElementById('services');
-            let dir = (serviceSec && serviceSec.getBoundingClientRect().top < 0) ? '👆' : '👇';
-            // Adiciona o botão com destaque
-            localActions.push({ label: `🧮 ABRIR SIMULADOR DE ORÇAMENTO ${dir}`, icon: 'ph-calculator', targetId: 'services' });
-        } else {
-            // Se não for serviço explícito, verifica se pediu local
-            if (txt.toLowerCase().includes('onde') || txt.toLowerCase().includes('endereço')) {
-                localActions.push({ label: 'Ver Mapa e Endereço', icon: 'ph-map-pin', targetId: 'location' });
-            }
-        }
+        const localActions = checkContextActions(txt);
         
         try {
-            // 4. CONSTRUÇÃO DO PROMPT DINÂMICO
-            // Ajusta o contexto da IA baseada no Perfil e Intenção detectados localmente
-            let systemInstruction = "";
+            // === ATUALIZAÇÃO CRÍTICA ===
+            // Injeção de Prompt para corrigir alucinação (não fazemos manutenção) e corte de texto.
+            // Isso força o Backend a reconhecer os serviços e ser breve.
+            const systemContext = `
+            [Instrução de Sistema para a IA:
+             1. IDENTIDADE: Você é Thiago da Atomic Games. A loja REALIZA serviços de manutenção (formatação, limpeza, troca de peças) além de vendas. Nunca diga que não fazemos manutenção.
+             2. TAMANHO: Seja extremamente conciso. Responda em no máximo 40 palavras ou 3 frases curtas.
+             3. ESTILO: Evite introduções longas. Vá direto ao ponto técnico.]
             
-            if (userIntent === 'SERVICE') {
-                systemInstruction = `[SISTEMA: O usuário quer um SERVIÇO DE MANUTENÇÃO (Perfil: ${userProfile}). 
-                Sua resposta DEVE ter no MÁXIMO 50 palavras. 
-                Não dê preços exatos. Explique o serviço brevemente e finalize dizendo: "Use nosso Simulador abaixo para uma estimativa precisa."
-                Seja ${userProfile === 'ENTUSIASTA' ? 'técnico e direto' : 'didático e simples'}.]`;
-            } else if (userIntent === 'SALES') {
-                systemInstruction = `[SISTEMA: O usuário quer COMPRAR PRODUTO (Perfil: ${userProfile}).
-                Seja breve. Se tiver o produto na base, ofereça. Se não, peça para chamar no WhatsApp.]`;
-            } else {
-                systemInstruction = `[SISTEMA: Responda como Thiago da Atomic Games. Perfil do cliente: ${userProfile}. Seja conciso.]`;
-            }
+            Mensagem do usuário: ${txt}`;
 
-            const finalPayload = `${systemInstruction}\nMensagem do usuário: ${txt}`;
-
-            let res = await makeRequest(finalPayload, sessionId);
+            let res = await makeRequest(systemContext, sessionId);
             
-            // Retry automático para erro 500
+            // Se erro 500 (Limite API ou Sessão), tenta limpar sessão
             if (res.status === 500) {
                 console.warn("[Auto-Repair] Erro 500. Retentando limpo em 2s...");
                 sessionId = null; localStorage.removeItem('chat_sess_id');
                 await new Promise(r => setTimeout(r, 2000)); 
-                res = await makeRequest(finalPayload, null);
+                res = await makeRequest(systemContext, null);
             }
 
             if (!res.ok) throw new Error(`Status: ${res.status}`);
@@ -407,8 +385,7 @@
                 const finalActions = [...localActions, ...(data.actions || [])];
                 
                 let responseText = data.response || "";
-                
-                // Corte de segurança extra caso a IA ignore o limite de palavras
+                // Verifica corte de segurança caso a IA ainda fale demais, mas com a Injeção isso deve diminuir
                 if (responseText.length > 20 && !/[.!?;]$/.test(responseText.trim())) responseText += "...";
 
                 addMsg('bot', responseText, data.produtos_sugeridos, data.action_link, finalActions);
@@ -420,12 +397,6 @@
             
             // === MODO DE CONTINGÊNCIA ===
             const offlineResp = getOfflineResponse(txt);
-            
-            // Se caiu no offline e era serviço, garante o botão também
-            if (userIntent === 'SERVICE' && !localActions.some(a => a.targetId === 'services')) {
-                 localActions.push({ label: `🧮 ABRIR SIMULADOR DE ORÇAMENTO`, icon: 'ph-calculator', targetId: 'services' });
-            }
-
             localActions.push({ 
                 label: 'Falar com Humano no WhatsApp', 
                 icon: 'ph-whatsapp-logo', 
