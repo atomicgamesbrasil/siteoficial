@@ -1,11 +1,11 @@
 
-// === CHATBOT 3.7 (TIMEOUT ESTENDIDO) ===
-// Atualização: Timeout de 60s para suportar "Cold Start" do servidor Render e Delay no Retry.
+// === CHATBOT 3.8 (CORREÇÃO DE CONTEXTO E TAMANHO) ===
+// Atualização: Injeção de Prompt para forçar reconhecimento de serviços e limitar tamanho da resposta.
 
 (function() {
     // --- 1. CONFIGURAÇÃO DE CONEXÃO ---
     const API_URL = 'https://atomic-thiago-backend.onrender.com/chat';
-    const TIMEOUT_MS = 60000; // Aumentado para 60s (1 minuto) para aguardar o servidor acordar
+    const TIMEOUT_MS = 60000; 
 
     // --- 2. ESTILOS (Mantidos) ---
     const STYLES = `
@@ -126,7 +126,6 @@
                 generic: "🔒 **Segurança:** Identifiquei termos que violam nossas diretrizes de segurança. Por favor, reformule sua dúvida."
             }
         },
-        // RESPOSTAS DE CONTINGÊNCIA (QUANDO A API FALHAR)
         offline_knowledge: [
             { keys: ['formatar', 'formatacao', 'windows', 'sistema', 'tela azul'], response: "💡 **Modo Offline:** Para problemas de sistema ou vírus, nossa Formatação Completa é a solução ideal. Ela inclui backup e drivers." },
             { keys: ['limpeza', 'limpar', 'poeira', 'esquentando', 'barulho', 'quente'], response: "💡 **Modo Offline:** Computador esquentando ou barulhento geralmente precisa de uma Limpeza Preventiva com troca de pasta térmica." },
@@ -355,14 +354,25 @@
         const localActions = checkContextActions(txt);
         
         try {
-            let res = await makeRequest(txt, sessionId);
+            // === ATUALIZAÇÃO CRÍTICA ===
+            // Injeção de Prompt para corrigir alucinação (não fazemos manutenção) e corte de texto.
+            // Isso força o Backend a reconhecer os serviços e ser breve.
+            const systemContext = `
+            [Instrução de Sistema para a IA:
+             1. IDENTIDADE: Você é Thiago da Atomic Games. A loja REALIZA serviços de manutenção (formatação, limpeza, troca de peças) além de vendas. Nunca diga que não fazemos manutenção.
+             2. TAMANHO: Seja extremamente conciso. Responda em no máximo 40 palavras ou 3 frases curtas.
+             3. ESTILO: Evite introduções longas. Vá direto ao ponto técnico.]
+            
+            Mensagem do usuário: ${txt}`;
+
+            let res = await makeRequest(systemContext, sessionId);
             
             // Se erro 500 (Limite API ou Sessão), tenta limpar sessão
             if (res.status === 500) {
                 console.warn("[Auto-Repair] Erro 500. Retentando limpo em 2s...");
                 sessionId = null; localStorage.removeItem('chat_sess_id');
-                await new Promise(r => setTimeout(r, 2000)); // Pequeno delay
-                res = await makeRequest(txt, null);
+                await new Promise(r => setTimeout(r, 2000)); 
+                res = await makeRequest(systemContext, null);
             }
 
             if (!res.ok) throw new Error(`Status: ${res.status}`);
@@ -373,7 +383,11 @@
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
                 const finalActions = [...localActions, ...(data.actions || [])];
+                
                 let responseText = data.response || "";
+                // Verifica corte de segurança caso a IA ainda fale demais, mas com a Injeção isso deve diminuir
+                if (responseText.length > 20 && !/[.!?;]$/.test(responseText.trim())) responseText += "...";
+
                 addMsg('bot', responseText, data.produtos_sugeridos, data.action_link, finalActions);
             } else { throw new Error("Success False"); }
 
@@ -381,11 +395,8 @@
             console.warn("[FALHA DE REDE/COTA] Ativando Modo Offline", e);
             document.getElementById('typing')?.remove();
             
-            // === MODO DE CONTINGÊNCIA ATIVADO ===
-            // Usa resposta local baseada em palavras-chave
+            // === MODO DE CONTINGÊNCIA ===
             const offlineResp = getOfflineResponse(txt);
-            
-            // Adiciona botão de WhatsApp sempre no modo offline
             localActions.push({ 
                 label: 'Falar com Humano no WhatsApp', 
                 icon: 'ph-whatsapp-logo', 
