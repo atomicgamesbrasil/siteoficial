@@ -1,44 +1,17 @@
 
-// === CHATBOT 2.2 (BRAIN INJECTED: Knowledge, Rules, Guardrails) ===
+// === CHATBOT 2.4 (INTERFACE INTELIGENTE - CONECTADA A API) ===
 (function() {
     
-    // --- 0. CÉREBRO LOCAL (DADOS DOS ARQUIVOS JSON) ---
-    const BRAIN = {
-        // rules.json (Para detectar Persona)
-        rules: {
-            leigo: ["lento", "travando", "não entendo", "vírus", "luz piscando", "barulho", "estranho", "coisa de computador", "ruim", "ajuda"],
-            entusiasta: ["fps", "hz", "overclock", "gargalo", "driver", "bios", "nvme", "thermal", "throttling", "xmp", "chipset", "gpu", "cpu", "build"]
-        },
-        // guardrails.json (Segurança e Protocolos)
-        guardrails: {
-            forbidden: ["crack", "ativador", "torrent", "baixar de graça", "pirata", "senha do banco", "cartão de crédito", "cvv", "conserta agora", "garante", "certeza"],
-            responses: {
-                fallback_preco: "💰 **Sobre Valores:** Como assistente virtual, não tenho acesso a preços exatos sem avaliação física. O valor depende das peças e da complexidade. Traga para um diagnóstico!",
-                fallback_prazo: "⏱️ **Sobre Prazos:** Trabalhamos com estimativas. Serviços simples levam geralmente de 24h a 48h úteis, dependendo da fila de bancada.",
-                fallback_pirataria: "🚫 **Política de Segurança:** Trabalhamos exclusivamente com softwares originais e procedimentos oficiais. Não realizamos instalações de programas não licenciados.",
-                fallback_diagnostico: "🩺 **Diagnóstico:** Pelos sintomas, podem ser vários fatores. Dizer o que é sem testar as peças seria irresponsável. Recomendo trazer para nossa bancada."
-            }
-        },
-        // knowledge.json (Conteúdo Técnico Adaptativo)
-        knowledge: {
-            formatacao: {
-                keywords: ["formatar", "formatação", "windows", "resetar", "instalar sistema"],
-                leigo: "A formatação é como resetar o PC para o 'modo de fábrica'. Ele fica zerado, rápido e sem vírus. \n\n✅ Inclui: Windows original, drivers e pacote básico.\n⚠️ Atenção: O backup de arquivos é cobrado à parte.",
-                entusiasta: "Realizamos instalação limpa (Clean Install) via mídia oficial, configuração de partições UEFI/GPT, atualização de BIOS e drivers estáveis direto do fabricante."
-            },
-            limpeza: {
-                keywords: ["limpeza", "poeira", "esquentando", "aquecendo", "barulho", "ventoinha", "pasta térmica", "pasta termica"],
-                leigo: "A poeira age como um cobertor nas peças, fazendo elas esquentarem e o PC ficar lento. Nossa limpeza remove essa sujeira e trocamos a pasta térmica para o processador 'respirar' melhor.",
-                entusiasta: "Manutenção preventiva focada em fluxo de ar e redução térmica. Inclui cable management, remoção de poeira com ar comprimido e aplicação de pasta térmica de alta condutividade (ex: MasterGel/Arctic)."
-            },
-            upgrade: {
-                keywords: ["upgrade", "melhorar", "rápido", "ssd", "memória", "ram", "placa de vídeo"],
-                leigo: "Para deixar o PC mais rápido, geralmente recomendamos trocar o HD antigo por um SSD (que é 10x mais rápido) ou aumentar a memória RAM para abrir mais programas ao mesmo tempo.",
-                entusiasta: "Analisamos o equilíbrio do seu setup para evitar gargalos (bottleneck). Podemos sugerir SSDs NVMe para OS, expansão de RAM em Dual Channel ou upgrades de GPU conforme sua fonte suporte."
-            }
-        },
-        // intents.json (Mapeamento de Ações)
-        context_actions: {
+    // --- 0. CONFIGURAÇÃO LOCAL (INTERFACE) ---
+    // Apenas lógica visual e de segurança imediata. A inteligência conversacional vem da API.
+    const UI_HELPER = {
+        // Bloqueio preventivo de crimes para não sujar o histórico da IA
+        critical_blocklist: [
+            "crack", "ativador", "torrent", "baixar de graça", "pirata", 
+            "senha do banco", "cartão de crédito", "cvv", "conserta agora"
+        ],
+        // Mapeamento de botões que levam a lugares do site
+        site_actions: {
             services: { keys: ["conserto", "reparo", "arrumar", "quebrado", "simulador", "orçamento"], id: "services", label: "Abrir Simulador de Reparo" },
             location: { keys: ["onde", "endereço", "local", "fica", "chegar", "perto"], id: "location", label: "Ver Mapa e Endereço" }
         }
@@ -58,7 +31,7 @@
     let sessionId = localStorage.getItem('chat_sess_id');
     let msgHistory = []; 
 
-    // --- UI LOGIC (MANTIDA INTACTA) ---
+    // --- 1. UI LOGIC (VISUAL) ---
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
@@ -90,7 +63,7 @@
     window.addEventListener('popstate', (e) => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- DRAG PHYSICS (MANTIDA INTACTA) ---
+    // --- 2. DRAG PHYSICS (MANTIDA) ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         els.bubble.addEventListener('touchstart', (e) => {
@@ -129,7 +102,7 @@
         }
     }
 
-    // --- MESSAGING HELPER ---
+    // --- 3. HELPER DE MENSAGENS ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
@@ -145,6 +118,7 @@
         const bubble = document.createElement('div'); bubble.className = 'message-bubble';
         if(content) bubble.appendChild(parseText(content));
         
+        // Vitrine de Produtos (vinda da API)
         if(prods?.length) {
             const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
@@ -159,12 +133,14 @@
             bubble.appendChild(scroll);
         }
 
+        // Link de Ação Principal
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
            btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
            btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
         }
 
+        // Botões de Navegação (Contexto Local ou API)
         if (actions && actions.length > 0) {
             const actionContainer = document.createElement('div'); actionContainer.className = 'mt-3 flex flex-col gap-2';
             actions.forEach(act => {
@@ -191,91 +167,67 @@
         els.msgs.appendChild(div); scrollToBottom();
     }
 
-    // === PROCESSAMENTO INTELIGENTE (CÉREBRO) ===
-    function processBrain(text) {
+    // --- 4. CÉREBRO LOCAL (Apenas para refinar a UI) ---
+    // Detecta se precisa sugerir um botão de scroll ANTES da API responder
+    function getVisualContext(text) {
         const lower = text.toLowerCase();
         let actions = [];
         
-        // 1. Detectar Contexto para Botões
-        if (BRAIN.context_actions.services.keys.some(k => lower.includes(k))) {
+        if (UI_HELPER.site_actions.services.keys.some(k => lower.includes(k))) {
             const serviceSec = document.getElementById('services');
             let dir = serviceSec && serviceSec.getBoundingClientRect().top < 0 ? '👆' : '👇';
-            actions.push({ label: `${BRAIN.context_actions.services.label} ${dir}`, icon: 'ph-wrench', targetId: 'services' });
+            actions.push({ label: `${UI_HELPER.site_actions.services.label} ${dir}`, icon: 'ph-wrench', targetId: 'services' });
         }
-        if (BRAIN.context_actions.location.keys.some(k => lower.includes(k))) {
-            actions.push({ label: BRAIN.context_actions.location.label, icon: 'ph-map-pin', targetId: 'location' });
+        if (UI_HELPER.site_actions.location.keys.some(k => lower.includes(k))) {
+            actions.push({ label: UI_HELPER.site_actions.location.label, icon: 'ph-map-pin', targetId: 'location' });
         }
-
-        // 2. Guardrails (Segurança e Protocolos)
-        if (BRAIN.guardrails.forbidden.some(k => lower.includes(k))) {
-             return { type: 'block', text: BRAIN.guardrails.responses.fallback_pirataria, actions };
-        }
-        if (lower.includes('preço') || lower.includes('valor') || lower.includes('quanto custa')) {
-             return { type: 'safe_response', text: BRAIN.guardrails.responses.fallback_preco, actions };
-        }
-        if (lower.includes('prazo') || lower.includes('tempo') || lower.includes('demora')) {
-             return { type: 'safe_response', text: BRAIN.guardrails.responses.fallback_prazo, actions };
-        }
-
-        // 3. Detectar Nível de Usuário
-        const isEntusiasta = BRAIN.rules.entusiasta.some(k => lower.includes(k));
-        const userLevel = isEntusiasta ? 'entusiasta' : 'leigo';
-
-        // 4. Buscar Conhecimento Específico (Intent)
-        let knowledgeKey = null;
-        if (BRAIN.knowledge.formatacao.keywords.some(k => lower.includes(k))) knowledgeKey = 'formatacao';
-        else if (BRAIN.knowledge.limpeza.keywords.some(k => lower.includes(k))) knowledgeKey = 'limpeza';
-        else if (BRAIN.knowledge.upgrade.keywords.some(k => lower.includes(k))) knowledgeKey = 'upgrade';
-
-        if (knowledgeKey) {
-            return { 
-                type: 'knowledge', 
-                text: BRAIN.knowledge[knowledgeKey][userLevel], 
-                actions 
-            };
-        }
-
-        // 5. Sem match local -> Backend
-        return { type: 'backend', actions };
+        return actions;
     }
 
+    // --- 5. COMUNICAÇÃO COM O CÉREBRO (API GEMINI) ---
     async function send() {
         const txt = els.input.value.trim();
         if(!txt) return;
+
+        // GUARDIÃO CRÍTICO: Bloqueia ilegalidades antes de incomodar a IA
+        if (UI_HELPER.critical_blocklist.some(term => txt.toLowerCase().includes(term))) {
+             els.input.value = '';
+             addMsg('user', txt);
+             setTimeout(() => {
+                 addMsg('bot', '🔒 **Segurança:** Identifiquei termos que violam nossas diretrizes. Não realizamos procedimentos com softwares não oficiais.', [], null, [], true);
+             }, 600);
+             return;
+        }
 
         els.input.value = ''; 
         addMsg('user', txt); 
         addTyping();
 
-        // --- CÉREBRO ATUA AQUI ---
-        const decision = processBrain(txt);
+        // Detecta botões úteis locais
+        const localActions = getVisualContext(txt);
 
-        // Se o cérebro resolveu localmente (Guardrail ou Knowledge Base)
-        if (decision.type !== 'backend') {
-            setTimeout(() => {
-                document.getElementById('typing').remove();
-                addMsg('bot', decision.text, [], null, decision.actions);
-            }, 800); // Delay para naturalidade
-            return;
-        }
-
-        // Se não, vai pro Backend (Fallback para papo genérico)
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
+
         try {
+            // Envia para o Cérebro Real (API)
             const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
             const data = await res.json();
+            
             document.getElementById('typing').remove();
             
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                const finalActions = [...decision.actions, ...(data.actions || [])];
+                
+                // Combina a inteligência da IA com a utilidade local (botões)
+                const finalActions = [...localActions, ...(data.actions || [])];
+                
                 addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, finalActions);
             } else {
-                addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, decision.actions);
+                addMsg('bot', 'Desculpe, meu cérebro está um pouco sobrecarregado agora. Pode tentar de novo?', [], null, localActions);
             }
         } catch { 
             document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
-            addMsg('bot', 'Sem conexão com a internet.', [], null, decision.actions); 
+            addMsg('bot', 'Estou com dificuldade de conexão. Verifique sua internet.', [], null, localActions); 
         }
     }
 
@@ -293,11 +245,13 @@
         }
     } catch(e) { console.error("History load error", e); }
 
+    // Wake up API
     setTimeout(() => {
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
         fetch(api.replace('/chat', ''), { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
     }, 1500);
 
+    // --- 6. INTEGRAÇÃO EXTERNA (CALCULADORA) ---
     window.AtomicChat = {
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
