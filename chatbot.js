@@ -1,6 +1,6 @@
 
-// === CHATBOT 3.2 (BRAIN INTEGRATION: CLASSIFICATION & SECURITY + STABILITY FIX) ===
-// Inclui: Injeção de CSS/HTML + Lógica de Classificação Local + Payload Higienizado
+// === CHATBOT 3.3 (CÉREBRO LOCAL COM INJEÇÃO DE CONTEXTO) ===
+// Estratégia: Classifica localmente -> Injeta instrução no texto -> Servidor processa sem erro 500
 
 (function() {
     // --- 1. ESTILOS E ESTRUTURA ---
@@ -109,7 +109,8 @@
     }
     injectInterface();
 
-    // --- 2. CÉREBRO (BRAIN) ---
+    // --- 2. CÉREBRO LOCAL (DEFINIÇÕES DE REGRAS) ---
+    // Estas regras rodam direto no navegador para velocidade máxima.
     const BRAIN = {
         classification: {
             leigo: ["computador lento", "travando", "não entendo", "vírus", "luz piscando", "barulho estranho", "coisa de computador", "não liga", "tela azul"],
@@ -141,7 +142,7 @@
     let sessionId = localStorage.getItem('chat_sess_id');
     let msgHistory = []; 
 
-    // --- 3. UI CONTROLS ---
+    // --- 3. CONTROLES DE INTERFACE (UI) ---
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
@@ -166,7 +167,7 @@
     window.addEventListener('popstate', () => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- 4. DRAG PHYSICS ---
+    // --- 4. FÍSICA DE ARRASTAR (DRAG) ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         els.bubble.addEventListener('touchstart', (e) => {
@@ -204,7 +205,7 @@
         };
     }
 
-    // --- 5. MESSAGING & RENDER ---
+    // --- 5. RENDERIZAÇÃO DE MENSAGENS ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
@@ -217,6 +218,7 @@
 
     function addMsg(role, content, prods, link, actions = [], save = true) {
         let cleanContent = content;
+        // Pequena limpeza de saudação repetitiva do bot
         if (role === 'bot' && msgHistory.length > 0) {
              cleanContent = cleanContent.replace(/^(Olá|Oi|E aí|Opa)(!|,|\.)? (Eu )?(Sou|Aqui é) o Thiago.*?(\.|\!|\?|\n)/si, "").trim();
              if(cleanContent.length > 0) cleanContent = cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1);
@@ -266,7 +268,8 @@
         if (save) { msgHistory.push({ role, content, prods, link, actions }); localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory)); }
     }
 
-    // --- 6. INTELLIGENCE & API LOGIC ---
+    // --- 6. INTELIGÊNCIA LOCAL (O CÉREBRO) ---
+    
     function classifyUser(text) {
         const t = text.toLowerCase();
         if (BRAIN.classification.entusiasta.some(k => t.includes(k))) return 'ENTUSIASTA';
@@ -310,7 +313,8 @@
         const txt = els.input.value.trim();
         if(!txt) return;
 
-        // 1. SEGURANÇA (Rodando Localmente)
+        // 1. SEGURANÇA (RODA LOCALMENTE)
+        // Se houver violação, a mensagem nem sai do computador do usuário.
         const securityAlert = checkSecurity(txt);
         if (securityAlert) {
              els.input.value = ''; addMsg('user', txt);
@@ -318,9 +322,9 @@
              return;
         }
 
-        // 2. CLASSIFICAÇÃO (Rodando Localmente)
+        // 2. CLASSIFICAÇÃO (RODA LOCALMENTE)
         const userProfile = classifyUser(txt);
-        console.log(`[AtomicBrain] Classificado: ${userProfile}`);
+        console.log(`[Cérebro Local] Perfil Detectado: ${userProfile}`);
 
         els.input.value = ''; addMsg('user', txt); 
         const loadingDiv = document.createElement('div'); loadingDiv.id='typing'; loadingDiv.className='message bot';
@@ -330,16 +334,26 @@
         const localActions = checkContextActions(txt);
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
+        // 3. INJEÇÃO DE CONTEXTO (TRUQUE ANTI-ERRO 500)
+        // Como o servidor não aceita campos extras, embutimos o perfil no texto.
+        // O usuário NÃO vê isso, apenas o servidor.
+        let payloadMessage = txt;
+        if (userProfile !== 'INDEFINIDO') {
+            const instructions = userProfile === 'LEIGO' 
+                ? "(Instrução de Sistema: O usuário é LEIGO. Use analogias simples, evite jargões técnicos.)" 
+                : "(Instrução de Sistema: O usuário é ENTUSIASTA/TÉCNICO. Pode usar termos técnicos, seja direto e detalhista.)";
+            payloadMessage = `${instructions} ${txt}`;
+        }
+
         try {
-            // FIX CRÍTICO: Removido 'client_context' para evitar erro 500 no Backend
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s Timeout
+            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s Timeout para Render Cold Start
             
             const res = await fetch(api, { 
                 method: 'POST', 
                 headers: {'Content-Type':'application/json'}, 
                 body: JSON.stringify({ 
-                    message: txt, 
+                    message: payloadMessage, // Enviamos a mensagem modificada
                     session_id: sessionId
                 }),
                 signal: controller.signal
@@ -374,6 +388,7 @@
         else { setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nComo posso ajudar hoje?'), 1000); }
     } catch(e) {}
 
+    // Wake Up Ping
     setTimeout(() => {
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
         fetch(api.replace('/chat', ''), { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
