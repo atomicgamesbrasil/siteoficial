@@ -1,11 +1,40 @@
 // === CHATBOT 2.1 (FLUID, MAGNETIC & SITE-AWARE) ===
 (function() {
+    // ===== Helpers =====
+    function safeGet(id) { return document.getElementById(id) || null; }
+
+    function isSafeHttp(url) {
+        try { const u = new URL(url, location.href); return u.protocol === 'http:' || u.protocol === 'https:'; }
+        catch(e) { return false; }
+    }
+
+    function safeImageSrc(src) {
+        try { const u = new URL(src, location.href); if (u.protocol === 'http:'||u.protocol==='https:') return u.href; } catch(e) {}
+        return 'https://placehold.co/100';
+    }
+
+    function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+
+    async function postJsonWithTimeout(url, body, timeout = 10000) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        try {
+            const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body), signal: controller.signal });
+            clearTimeout(id);
+            if (!res.ok) return { ok:false, status: res.status, data: null };
+            let data;
+            try { data = await res.json(); } catch(e) { return { ok:false, status:res.status, error:'invalid-json' }; }
+            return { ok:true, status: res.status, data };
+        } catch(err) { clearTimeout(id); return { ok:false, error: err }; }
+    }
+
+    // Element Selection
     const els = { 
-        bubble: document.getElementById('chatBubble'), 
-        win: document.getElementById('chatWindow'), 
-        msgs: document.getElementById('chatMessages'), 
-        input: document.getElementById('chatInput'),
-        badge: document.getElementById('chatBadge')
+        bubble: safeGet('chatBubble'), 
+        win: safeGet('chatWindow'), 
+        msgs: safeGet('chatMessages'), 
+        input: safeGet('chatInput'), 
+        badge: safeGet('chatBadge')
     };
     
     // Check if chatbot elements exist (in case of partial page loads)
@@ -14,16 +43,97 @@
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
     let sessionId = localStorage.getItem('chat_sess_id');
     let msgHistory = []; // Local history storage
+    let sending = false; // Prevent duplicate requests
+
+    function saveHistory() {
+        const MAX = 200;
+        if (msgHistory.length > MAX) msgHistory = msgHistory.slice(-MAX);
+        localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
+    }
+
+    // ============================================================================
+    // [NOVA INTELIGÊNCIA] ATOMIC BRAIN - CAMADA DE INTERPRETAÇÃO SEMÂNTICA
+    // ============================================================================
+    const AtomicBrain = {
+        personas: {
+            enthusiast: {
+                id: 'entusiasta_competitivo',
+                keywords: ['overclock', 'vrm', 'latência', 'cas', 'gargalo', 'fps', 'benchmark', 'water cooler', 'rtx', 'dlss', 'hz', 'ms', 'temperatura', 'bottleneck'],
+                instruction: 'Detected_Enthusiast: Responda com tecnicalidade, direto ao ponto. Sem analogias simples. Fale de performance bruta.'
+            },
+            remote_worker: {
+                id: 'profissional_remoto',
+                keywords: ['teams', 'zoom', 'travando', 'lento', 'trabalho', 'reunião', 'estabilidade', 'ssd', 'office', 'planilha', 'excel', 'meet', 'home office'],
+                instruction: 'Detected_RemoteWorker: Foco em "Time is Money". Soluções para estabilidade/boot rápido. Sugira SSD como "ressuscitador".'
+            },
+            layman: {
+                id: 'comprador_leigo',
+                keywords: ['filho', 'criança', 'barato', 'não entendo', 'presente', 'roda tudo', 'básico', 'escola', 'estudar', 'jogar roblox', 'minecraft', 'ajuda'],
+                instruction: 'Detected_Layman: ATIVAR MOTOR DE ANALOGIAS. (Ex: CPU=Chef, RAM=Mesa). Seja educativo, protetor e evite jargões.'
+            }
+        },
+        guardrails: {
+            data_recovery: {
+                trigger: ['recuperar', 'arquivos', 'perdi', 'hd', 'formatou', 'salvar fotos'],
+                alert: 'LEGAL_WARNING: Nunca prometer 100% de recuperação de dados. Mencionar "Tentativa de recuperação".'
+            },
+            pricing: {
+                trigger: ['preço', 'valor', 'quanto', 'custa', 'orçamento'],
+                alert: 'PRICING_RULE: Informe que valores são estimativas sujeitas a avaliação técnica presencial.'
+            }
+        },
+        analyze: function(text) {
+            const lowerText = text.toLowerCase();
+            let detectedPersona = 'padrao_generico'; // Default
+            let systemNotes = [];
+            let highestScore = 0;
+
+            // 1. Classificação de Persona (Pontuação)
+            for (const [key, profile] of Object.entries(this.personas)) {
+                let score = 0;
+                profile.keywords.forEach(word => {
+                    if (lowerText.includes(word)) score++;
+                });
+                
+                if (score > highestScore) {
+                    highestScore = score;
+                    detectedPersona = profile.id;
+                    if (score >= 1) systemNotes = [profile.instruction]; 
+                }
+            }
+
+            // 2. Verificação de Guardrails
+            for (const [key, rule] of Object.entries(this.guardrails)) {
+                if (rule.trigger.some(t => lowerText.includes(t))) {
+                    systemNotes.push(rule.alert);
+                }
+            }
+
+            // 3. Intenção de "Triagem" para Calculadora
+            if (lowerText.match(/(lento|travando|ruim|desligando|esquentando|defeito|quebrado)/)) {
+                systemNotes.push('INTENT: TRIAGEM_TECNICA -> Sugerir Calculadora de Orçamento ao final.');
+            }
+
+            return {
+                persona: detectedPersona,
+                context_tags: systemNotes,
+                timestamp: new Date().toISOString()
+            };
+        }
+    };
 
     // --- UI LOGIC ---
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
-        els.badge.style.display = open ? 'none' : 'flex';
+        if (els.badge) els.badge.style.display = open ? 'none' : 'flex';
         document.body.classList.toggle('chat-open', open);
         
+        // A11y updates
+        if (els.bubble) els.bubble.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (els.msgs) els.msgs.setAttribute('aria-live','polite');
+
         if (open) {
-            // Morph effect for mobile
             if(window.innerWidth <= 480) {
                 const rect = els.bubble.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
@@ -35,13 +145,13 @@
             els.bubble.style.opacity = '0';
             els.bubble.style.pointerEvents = 'none';
             
-            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
+            if(window.innerWidth > 768 && els.input) setTimeout(() => els.input.focus(), 350);
             scrollToBottom();
         } else {
             els.bubble.style.transform = 'scale(1)';
             els.bubble.style.opacity = '1';
             els.bubble.style.pointerEvents = 'auto';
-            els.input.blur();
+            if(els.input) els.input.blur();
         }
     }
 
@@ -61,12 +171,13 @@
         if(state.isOpen) updateChatUI(false);
     });
 
-    function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
+    function scrollToBottom() { if(els.msgs) els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- DRAG PHYSICS ---
+    // --- DRAG PHYSICS (Touch + Mouse) ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         
+        // Touch Handlers
         els.bubble.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
             state.startX = t.clientX; state.startY = t.clientY;
@@ -77,7 +188,6 @@
             els.bubble.classList.add('no-transition');
             els.bubble.classList.remove('snapping');
             els.bubble.style.transform = 'scale(0.95)';
-            els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
             updatePos(rect.left, rect.top);
         }, { passive: true });
 
@@ -106,9 +216,64 @@
             }
             state.isDragging = false;
         });
-        
-        els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
-        document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
+
+        // Mouse Handlers (Desktop Drag)
+        els.bubble.addEventListener('mousedown', (e) => {
+            state.startX = e.clientX; state.startY = e.clientY;
+            const rect = els.bubble.getBoundingClientRect();
+            state.initialLeft = rect.left; state.initialTop = rect.top;
+            state.isDragging = false;
+            els.bubble.classList.add('no-transition');
+            // Prevent text selection during drag
+            e.preventDefault();
+        });
+
+        // Mousemove needs to be on document to handle fast movements outside bubble
+        document.addEventListener('mousemove', (e) => {
+            if (state.startX === undefined || state.startX === null) return;
+            // Only update if mouse is down (startX set)
+            const dx = e.clientX - state.startX;
+            const dy = e.clientY - state.startY;
+            if (Math.sqrt(dx*dx + dy*dy) > 5) state.isDragging = true;
+            if (state.isDragging) {
+                updatePos(state.initialLeft + dx, state.initialTop + dy);
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+             // Only act if we were interacting with the bubble
+            if (state.startX === undefined || state.startX === null) return;
+
+            els.bubble.classList.remove('no-transition');
+            if (!state.isDragging) {
+                 // Check if it was a click on the bubble
+                 const rect = els.bubble.getBoundingClientRect();
+                 if(e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                     els.bubble.style.transform = 'scale(1)'; 
+                     if(state.isOpen) closeChat(); else openChat();
+                 }
+            } else {
+                els.bubble.style.transform = 'scale(1)';
+                els.bubble.classList.add('snapping');
+                const rect = els.bubble.getBoundingClientRect();
+                const midX = window.innerWidth / 2;
+                const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
+                let snapY = rect.top;
+                if(snapY < 20) snapY = 20;
+                if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
+                updatePos(snapX, snapY);
+            }
+            state.isDragging = false;
+            state.startX = null; state.startY = null;
+        });
+
+        // Click handler (for keyboard or specific click logic not covered by mouseup)
+        els.bubble.addEventListener('click', (e) => { 
+            if(e.detail === 0) { if(state.isOpen) closeChat(); else openChat(); }
+        });
+
+        const closeBtn = document.getElementById('closeChatBtn');
+        if(closeBtn) closeBtn.onclick = (e) => { e.stopPropagation(); closeChat(); };
         
         // --- CHAT RESET LOGIC ---
         const resetBtn = document.getElementById('resetChatBtn');
@@ -158,7 +323,7 @@
                 
                 // Create Image
                 const img = document.createElement('img');
-                img.src = p.image || 'https://placehold.co/100';
+                img.src = safeImageSrc(p.image || p.imagem); // Hardened
                 img.loading = 'lazy';
                 
                 // Create Title
@@ -176,18 +341,17 @@
                 btn.className = 'chat-add-btn'; 
                 btn.textContent = 'VER DETALHES';
                 
-                // CORREÇÃO CRÍTICA DE UX MOBILE
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     const prodId = p.id; 
                     
                     if (window.showProductDetail && prodId) {
-                        // Se estiver no mobile, fecha o chat para mostrar o modal
                         if(window.innerWidth <= 768) {
                             updateChatUI(false); 
                         }
                         window.showProductDetail(prodId);
                     } else {
+                        // Safe fallback using minimal name
                         window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
                     }
                 };
@@ -202,10 +366,14 @@
         }
 
         // --- LINKS DE AÇÃO (Botão Verde Padrão) ---
-        if(link) {
-           const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
+        if(link && isSafeHttp(link)) {
+           const btn = document.createElement('a'); 
+           btn.href = link; 
+           btn.target = '_blank';
+           btn.rel = 'noopener noreferrer'; // Security patch
            btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
-           btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
+           btn.textContent = 'NEGOCIAR AGORA'; 
+           bubble.appendChild(btn);
         }
 
         // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
@@ -214,12 +382,14 @@
             actionContainer.className = 'mt-3 flex flex-col gap-2';
             actions.forEach(act => {
                 const actBtn = document.createElement('button');
+                // Sanitize icon class name briefly
+                const iconClass = (typeof act.icon === 'string' && act.icon.length < 64) ? act.icon.replace(/[^\w- ]/g,'') : 'ph-question';
                 actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
                 
                 const span = document.createElement('span');
                 span.textContent = act.label;
                 const icon = document.createElement('i');
-                icon.className = `ph-bold ${act.icon}`;
+                icon.className = `ph-bold ${iconClass}`;
                 
                 actBtn.appendChild(span);
                 actBtn.appendChild(icon);
@@ -232,8 +402,8 @@
                             if(window.innerWidth < 768) updateChatUI(false);
                             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
-                    } else if (act.url) {
-                        window.open(act.url, '_blank');
+                    } else if (act.url && isSafeHttp(act.url)) {
+                        window.open(act.url, '_blank', 'noopener noreferrer');
                     }
                 };
                 actionContainer.appendChild(actBtn);
@@ -244,8 +414,15 @@
         div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
 
         if (save) {
-            msgHistory.push({ role, content, prods, link, actions });
-            localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
+            // Save minimal info
+            msgHistory.push({ 
+                role, 
+                content, 
+                prods: prods?.map(p => ({ id: p.id, name: p.name || p.nome, price: p.price || p.preco, image: p.image || p.imagem })), 
+                link, 
+                actions: actions?.map(a => ({ label: a.label, icon: a.icon, url: a.url, targetId: a.targetId })) 
+            });
+            saveHistory();
         }
     }
 
@@ -287,6 +464,8 @@
     }
 
     async function send() {
+        if (sending) return;
+        
         const txt = els.input.value.trim();
         if(!txt) return;
         
@@ -294,15 +473,38 @@
         addMsg('user', txt); 
         addTyping();
         
+        sending = true;
+
+        // 1. Análise Semântica (Triagem)
+        const contextAnalysis = AtomicBrain.analyze(txt);
+        
+        // 2. Análise de UI Local (Links de rolagem)
         const localActions = checkSiteContext(txt);
+        
         const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
-            const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
-            const data = await res.json();
+            // INJEÇÃO DE CONTEXTO NO PAYLOAD
+            const payload = { 
+                message: txt, 
+                session_id: sessionId,
+                client_context: {
+                    persona: contextAnalysis.persona,
+                    context_tags: contextAnalysis.context_tags.slice(0, 5).map(t => t.slice(0, 200)), // Limit size
+                    timestamp: contextAnalysis.timestamp
+                }
+            };
+
+            const resp = await postJsonWithTimeout(api, payload, 10000);
             
-            document.getElementById('typing').remove();
+            removeTyping();
             
+            if(!resp.ok) {
+                 addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
+                 return;
+            }
+
+            const data = resp.data || {};
             if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
                 addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
@@ -310,30 +512,37 @@
                 addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
             }
         } catch { 
-            document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
+            removeTyping();
             addMsg('bot', 'Sem conexão com a internet.', [], null, localActions); 
+        } finally {
+            sending = false;
         }
     }
 
-    document.getElementById('sendBtn').onclick = send;
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.onclick = send;
     
-    els.input.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') send();
-        e.stopPropagation(); 
-    });
-    
-    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
-        els.input.addEventListener(evt, (e) => {
-            e.stopPropagation();
-            if (evt === 'mousedown') els.input.focus();
+    if (els.input) {
+        els.input.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') send();
+            e.stopPropagation(); 
         });
-    });
+        
+        ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
+            els.input.addEventListener(evt, (e) => {
+                e.stopPropagation();
+                if (evt === 'mousedown') els.input.focus();
+            });
+        });
+    }
 
     // LOAD HISTORY
     try {
         const savedHist = localStorage.getItem('atomic_chat_history');
         if (savedHist) {
             msgHistory = JSON.parse(savedHist);
+            // Limit loaded history
+            if (msgHistory.length > 200) msgHistory = msgHistory.slice(-200);
             msgHistory.forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false));
         } else {
             setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
@@ -348,54 +557,49 @@
 
     // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO FASE 5) ===
     window.AtomicChat = {
-        /**
-         * Recebe o Objeto de Contexto Único da Calculadora e inicia o atendimento.
-         * @param {Object} context - Objeto budgetContext gerado no main.js
-         */
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
 
-            // 1. Abre o Chat
             if (!state.isOpen) openChat();
 
-            // 2. Formata Valores (Helper simples)
-            const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            
-            // --- TRATAMENTO DE ORÇAMENTO PERSONALIZADO (OUTRO DEFEITO) ---
-            let finalServiceName = context.service.name;
-            let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
+            const customerName = context.customer?.name || 'Gamer';
+            const phone = context.customer?.phone || 'N/A';
+            const modelLabel = context.device?.modelLabel || 'Dispositivo';
+            const logisticsLabel = context.logistics?.label || 'Não informado';
+            const totalMin = context.financial?.totalMin ?? 0;
+            const totalMax = context.financial?.totalMax ?? 0;
 
-            // Se tiver descrição personalizada, concatena e muda preço para Sob Análise
-            if (context.service.customDescription) {
+            const fmt = (val) => isFinite(val) ? val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
+            
+            let finalServiceName = context.service?.name || 'Serviço';
+            let finalPriceStr = `${fmt(totalMin)} a ${fmt(totalMax)}`;
+
+            if (context.service?.customDescription) {
                 finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
                 finalPriceStr = "Sob Análise Técnica";
             }
-            // -------------------------------------------------------------
 
-            // 3. Constrói a Mensagem Contextual
-            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
-                        `Recebi sua estimativa para o **${context.device.modelLabel}**.\n\n` +
+            const msg = `Olá **${customerName}**! 👋\n` +
+                        `Recebi sua estimativa para o **${modelLabel}**.\n\n` +
                         `🔧 Serviço: ${finalServiceName}\n` +
                         `💰 Estimativa: **${finalPriceStr}**\n` +
-                        `📍 Logística: ${context.logistics.label}\n\n` +
+                        `📍 Logística: ${logisticsLabel}\n\n` +
                         `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
 
-            // 4. Gera Link do WhatsApp (Baseado no Contexto)
+            // Avoid storing PII in the generated link inside history if possible, but keeping logic consistent with old version for now
             const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
-                          `👤 *${context.customer.name}*\n` +
-                          `📱 ${context.customer.phone}\n` +
+                          `👤 *${customerName}*\n` +
+                          `📱 ${phone}\n` +
                           `--------------------------------\n` +
-                          `🎮 *Aparelho:* ${context.device.modelLabel}\n` +
+                          `🎮 *Aparelho:* ${modelLabel}\n` +
                           `🛠️ *Serviço:* ${finalServiceName}\n` +
-                          `📍 *Logística:* ${context.logistics.label}\n` +
+                          `📍 *Logística:* ${logisticsLabel}\n` +
                           `💰 *Estimativa:* ${finalPriceStr}\n` +
                           `--------------------------------\n` +
                           `*Obs:* Vim pelo Chat do Site.`;
             
             const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
 
-            // 5. Injeta a Mensagem no Chat com Ação
-            // Pequeno delay para parecer natural após o clique no botão calcular
             setTimeout(() => {
                 addMsg('bot', msg, [], null, [
                     { label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }
