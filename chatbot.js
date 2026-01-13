@@ -1,13 +1,12 @@
-// === CHATBOT 3.2 (CLIENT-SIDE BODY) ===
-// This code runs in the BROWSER. It has NO Brain, NO Keys.
-// It just displays what the backend sends.
+// === CHATBOT 3.4 (STABLE CLIENT) ===
+// Runs in the BROWSER. UI Logic only.
 
-(function() {
+document.addEventListener('DOMContentLoaded', () => {
+
     // --- CONFIGURATION ---
-    // Point this to your actual deployed backend URL
     const BACKEND_URL = 'https://atomic-thiago-backend.onrender.com/chat';
 
-    // --- DOM ELEMENTS (Must match index.html IDs) ---
+    // --- DOM ELEMENTS ---
     const els = { 
         bubble: document.getElementById('chat-bubble'), 
         win: document.getElementById('chat-container'), 
@@ -19,93 +18,149 @@
         form: document.getElementById('chat-form')
     };
     
-    // Safety check
-    if (!els.bubble || !els.win) return;
+    // Critical Safety Check
+    if (!els.bubble || !els.win) {
+        console.warn("Atomic Chat: UI elements not found. Script paused.");
+        return;
+    }
 
-    // --- STATE MANAGEMENT ---
+    // --- STATE ---
     let state = { isOpen: false, isDragging: false };
     let sessionId = localStorage.getItem('atomic_session_id') || 'sess_' + Date.now();
 
-    // --- UI: OPEN/CLOSE ---
+    // --- UI LOGIC ---
     function updateChatUI(open) {
         state.isOpen = open;
-        els.win.classList.toggle('open', open);
-        els.bubble.classList.toggle('open', open);
-        els.badge.style.display = open ? 'none' : 'flex';
+        
+        // CSS Classes
+        if (open) {
+            els.win.classList.add('open');
+            els.bubble.classList.add('open');
+            els.badge.style.display = 'none';
+        } else {
+            els.win.classList.remove('open');
+            els.bubble.classList.remove('open');
+            els.badge.style.display = 'flex';
+        }
         
         if (open) {
+            // Animation: Hide bubble, show window
+            Object.assign(els.bubble.style, { transform: 'scale(0)', opacity: '0', pointerEvents: 'none' });
+            
             // Mobile adjustments
             if(window.innerWidth <= 480) els.win.style.transformOrigin = "bottom right";
             
-            // Hide bubble, show window
-            els.bubble.style.transform = 'scale(0)'; 
-            els.bubble.style.opacity = '0';
-            els.bubble.style.pointerEvents = 'none';
-            
+            // Focus and scroll
             if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
             scrollToBottom();
         } else {
-            // Show bubble, hide window
-            els.bubble.style.transform = 'scale(1)';
-            els.bubble.style.opacity = '1';
-            els.bubble.style.pointerEvents = 'auto';
+            // Animation: Show bubble, hide window
+            Object.assign(els.bubble.style, { transform: 'scale(1)', opacity: '1', pointerEvents: 'auto' });
             els.input.blur();
         }
     }
 
-    function toggleChat() { state.isOpen ? closeChat() : openChat(); }
-    function openChat() { if(!state.isOpen) { history.pushState({chat: true}, '', '#chat'); updateChatUI(true); } }
-    function closeChat() { if(state.isOpen) history.back(); }
+    function openChat() { 
+        if(state.isOpen) return;
+        
+        // 1. OPEN UI FIRST (Critical fix: Visual feedback must happen before logic errors)
+        updateChatUI(true); 
+        
+        // 2. Try History API (Secondary)
+        try { history.pushState({chat: true}, '', '#chat'); } catch(e) { /* Ignore environment errors */ }
+    }
+    
+    function closeChat() { 
+        if(!state.isOpen) return;
+        
+        // 1. Try Back (if supported)
+        let handled = false;
+        try {
+            if(history.state && history.state.chat) {
+                history.back();
+                handled = true;
+            }
+        } catch(e) {}
+        
+        // 2. Force UI Close if history didn't handle it
+        if (!handled) updateChatUI(false);
+    }
 
+    function toggleChat() { state.isOpen ? closeChat() : openChat(); }
+
+    // Handle Browser Back Button
     window.addEventListener('popstate', () => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- UI: DRAG & DROP PHYSICS ---
+    // --- INTERACTION (DRAG VS CLICK) ---
+    // Simplified robust logic
     if(els.bubble) {
         let startX, startY, initialLeft, initialTop;
-        const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
-        
+        let hasMoved = false;
+
+        // TOUCH START
         els.bubble.addEventListener('touchstart', (e) => {
             const t = e.touches[0];
             startX = t.clientX; startY = t.clientY;
             const rect = els.bubble.getBoundingClientRect();
             initialLeft = rect.left; initialTop = rect.top;
-            state.isDragging = false;
-            els.bubble.style.transition = 'none';
-            updatePos(rect.left, rect.top);
+            hasMoved = false;
+            els.bubble.style.transition = 'none'; // Remove lag
         }, { passive: true });
 
+        // TOUCH MOVE
         els.bubble.addEventListener('touchmove', (e) => {
             const t = e.touches[0];
             const dx = t.clientX - startX;
             const dy = t.clientY - startY;
-            if (Math.sqrt(dx*dx + dy*dy) > 10) state.isDragging = true;
-            if (state.isDragging) { e.preventDefault(); updatePos(initialLeft + dx, initialTop + dy); }
+            
+            // Threshold for "drag" vs "trembling finger"
+            if (Math.sqrt(dx*dx + dy*dy) > 10) {
+                hasMoved = true;
+                e.preventDefault(); // Prevent scrolling while dragging bubble
+                els.bubble.style.left = `${initialLeft + dx}px`;
+                els.bubble.style.top = `${initialTop + dy}px`;
+            }
         }, { passive: false });
 
+        // TOUCH END
         els.bubble.addEventListener('touchend', (e) => {
             els.bubble.style.transition = 'all 0.3s ease';
-            if (!state.isDragging) {
-                e.preventDefault(); openChat(); 
-            } else {
-                // Snap logic
+            
+            if (hasMoved) {
+                // Snap to wall logic
                 const rect = els.bubble.getBoundingClientRect();
                 const snapX = (rect.left + rect.width/2) < window.innerWidth/2 ? 24 : window.innerWidth - rect.width - 24;
                 let snapY = Math.min(Math.max(rect.top, 24), window.innerHeight - 100);
-                updatePos(snapX, snapY);
+                els.bubble.style.left = `${snapX}px`;
+                els.bubble.style.top = `${snapY}px`;
+                
+                // Prevent the subsequent 'click' event from firing
+                e.preventDefault(); 
             }
-            state.isDragging = false;
+            // If NOT moved, we do nothing here. The browser will fire a 'click' event naturally.
         });
         
-        els.bubble.addEventListener('click', () => { if(!state.isDragging) toggleChat(); });
-        els.closeBtn.onclick = (e) => { e.stopPropagation(); closeChat(); };
+        // CLICK (Handles both Mouse and Touch Taps)
+        els.bubble.addEventListener('click', (e) => { 
+            // If it was a drag operation (handled in touchend), ignore this click
+            if(hasMoved) return; 
+            
+            e.stopPropagation();
+            toggleChat(); 
+        });
+        
+        // Close button
+        els.closeBtn.onclick = (e) => { 
+            e.stopPropagation(); 
+            closeChat(); 
+        };
     }
 
-    // --- RENDERER: MESSAGES & CARDS ---
+    // --- RENDERER ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
-        // Support bolding via **text** and newlines
         text.split('\n').forEach((line, i) => {
             if(i>0) frag.appendChild(document.createElement('br'));
             line.split('**').forEach((part, j) => {
@@ -120,43 +175,30 @@
         const div = document.createElement('div'); 
         div.className = `message ${role}`;
         
-        // 1. Avatar
         const avatar = document.createElement('div'); avatar.className = 'message-avatar';
         avatar.textContent = role === 'bot' ? '🎮' : '👤';
         
-        // 2. Bubble Container
         const contentDiv = document.createElement('div'); contentDiv.className = 'message-content';
         const bubble = document.createElement('div'); bubble.className = 'message-bubble';
         
-        // 3. Text Content
         if(content) bubble.appendChild(parseText(content));
         
-        // 4. Products Carousel (JSON from Backend)
+        // Products
         if(prods && prods.length > 0) {
             prods.forEach(p => {
                 const card = document.createElement('div'); card.className = 'product-card';
                 card.innerHTML = `
-                    <div class="product-info">
-                        <h4>${p.name}</h4>
-                        <span>${p.id}</span>
-                    </div>
-                    <div class="product-price">${p.price}</div>
-                `;
+                    <div class="product-info"><h4>${p.name}</h4><span>${p.id}</span></div>
+                    <div class="product-price">${p.price}</div>`;
                 card.onclick = (e) => {
                     e.stopPropagation();
-                    // If site has a modal function, use it. Otherwise, open WhatsApp.
-                    if(window.showProductDetail) {
-                        if(window.innerWidth <= 768) updateChatUI(false);
-                        window.showProductDetail(p.id);
-                    } else {
-                        window.open(`https://wa.me/5521995969378?text=Tenho interesse em: ${p.name}`);
-                    }
+                    window.open(`https://wa.me/5521995969378?text=Tenho interesse em: ${p.name}`);
                 };
                 bubble.appendChild(card);
             });
         }
 
-        // 5. Call to Action Button
+        // Action Link
         if(link) {
            const btn = document.createElement('a'); 
            btn.href = link; btn.target = '_blank';
@@ -165,19 +207,15 @@
            bubble.appendChild(btn);
         }
 
-        // 6. Local Site Actions (Scroll Buttons)
+        // Local Actions
         if(actions && actions.length > 0) {
             const actionContainer = document.createElement('div');
-            actionContainer.style.marginTop = '10px';
-            actionContainer.style.display = 'flex';
-            actionContainer.style.flexDirection = 'column';
-            actionContainer.style.gap = '8px';
+            Object.assign(actionContainer.style, { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' });
             
             actions.forEach(act => {
                 const btn = document.createElement('button');
                 btn.className = 'quick-action-btn'; 
-                btn.style.width = '100%';
-                btn.style.textAlign = 'left';
+                btn.style.width = '100%'; btn.style.textAlign = 'left';
                 btn.innerHTML = `${act.label} <i class="${act.icon || 'fas fa-arrow-right'}"></i>`;
                 btn.onclick = () => {
                     if(act.targetId) {
@@ -196,20 +234,19 @@
         contentDiv.appendChild(bubble);
         div.appendChild(role === 'user' ? contentDiv : avatar);
         div.appendChild(role === 'user' ? avatar : contentDiv);
-
         els.msgs.appendChild(div); 
         scrollToBottom();
         saveHistory({ role, content, prods, link, actions });
     }
 
-    // --- HISTORY ---
     function saveHistory(msg) {
-        let history = JSON.parse(localStorage.getItem('atomic_chat_history') || '[]');
-        history.push(msg);
-        localStorage.setItem('atomic_chat_history', JSON.stringify(history));
+        try {
+            let history = JSON.parse(localStorage.getItem('atomic_chat_history') || '[]');
+            history.push(msg);
+            localStorage.setItem('atomic_chat_history', JSON.stringify(history));
+        } catch(e) {}
     }
 
-    // --- NETWORK: SEND TO BACKEND ---
     function addTyping() {
         const div = document.createElement('div'); div.id='typing'; div.className='typing-indicator';
         div.innerHTML = `<div class="message-avatar">🎮</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
@@ -226,7 +263,6 @@
         addTyping();
         
         try {
-            // THE CRITICAL PART: Calling the secure backend
             const res = await fetch(BACKEND_URL, { 
                 method: 'POST', 
                 headers: {'Content-Type':'application/json'}, 
@@ -254,11 +290,10 @@
         }
     }
 
-    // --- INITIALIZATION ---
+    // --- INIT ---
     els.form.addEventListener('submit', sendMessage);
     els.sendBtn.addEventListener('click', sendMessage);
     
-    // Quick Actions from HTML
     document.querySelectorAll('.quick-action-btn').forEach(btn => {
         if(btn.dataset.msg) {
             btn.addEventListener('click', () => {
@@ -268,22 +303,20 @@
         }
     });
 
-    // Load History
     try {
         const savedHist = localStorage.getItem('atomic_chat_history');
-        if (savedHist) {
-            JSON.parse(savedHist).forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions));
-        } else {
-            setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso ajudar com Peças, PC Gamer ou Manutenção?'), 1000);
-        }
+        if (savedHist) JSON.parse(savedHist).forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions));
+        else setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso ajudar com Peças, PC Gamer ou Manutenção?'), 1000);
     } catch(e) {}
 
-    // Global Hook (for other parts of your site to open chat)
+    // Expose global hook securely
     window.AtomicChat = {
         openWithContext: function(message) {
-            if(!state.isOpen) openChat();
+            openChat();
             addMsg('bot', message, [], null, [{label: 'WhatsApp', url: 'https://wa.me/5521995969378', icon: 'fab fa-whatsapp'}]);
         }
     };
+    
+    console.log("Atomic Chatbot 3.4 Ready");
 
-})();
+});
