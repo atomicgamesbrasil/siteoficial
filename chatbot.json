@@ -1,0 +1,547 @@
+{
+  "meta": {
+    "project": "Atomic Games Chatbot",
+    "version": "2.1.0-full-spec",
+    "status": "frozen",
+    "author": "TechAlign System",
+    "date": "2024-05-23",
+    "note": "CONFIRMAÇÃO: Li integralmente os anexos (chatbot.js, main.js, styles.css). O projeto está congelado. Este arquivo é a ÚNICA fonte de verdade para a lógica do chatbot, substituindo hardcoded logic por regras declarativas.",
+    "description": "Especificação Mestra (Brain) para o Chatbot Thiago. Define regras de NLP, mapeamento de dados da calculadora e preservação estrita da UI existente."
+  },
+  "preserve_ui": {
+    "preserve_ui": true,
+    "ui_contract": {
+      "widget_selector": "#atomic-chat-widget",
+      "dom_elements_reference": {
+        "container": "#chatWindow",
+        "messages_area": "#chatMessages",
+        "input_field": "#chatInput",
+        "send_button": "#sendBtn",
+        "typing_indicator": "#typing",
+        "bubble_badge": "#chatBadge",
+        "toggle_button": "#chatBubble",
+        "close_button": "#closeChatBtn",
+        "reset_button": "#resetChatBtn"
+      },
+      "css_classes_contract": {
+        "description": "Classes CSS que o backend deve respeitar ao enviar payloads de formatação.",
+        "user_message_bubble": ".message.user .message-bubble",
+        "bot_message_bubble": ".message.bot .message-bubble",
+        "product_card_container": ".chat-products-scroll",
+        "product_card": ".chat-product-card",
+        "product_image": ".chat-product-card img",
+        "product_title": ".chat-product-title",
+        "product_price": ".chat-product-price",
+        "action_button_primary": ".chat-add-btn",
+        "context_action_container": ".mt-3.flex.flex-col.gap-2",
+        "context_action_button": ".bg-slate-100.hover\\:bg-yellow-400"
+      },
+      "assets_reference": {
+        "avatar_image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg",
+        "bot_name": "Thiago - Atomic"
+      }
+    }
+  },
+  "preserve_message_history": {
+    "rationale": "Garante que o tom de voz e as mensagens de sistema hardcoded no frontend atual sejam mantidas ou geradas dinamicamente com o mesmo texto.",
+    "original_messages": [
+      {
+        "id": "MSG_SYS_WELCOME",
+        "text": "E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?",
+        "context": "Primeira abertura do chat (localStorage vazio).",
+        "rendering": "Markdown enabled"
+      },
+      {
+        "id": "MSG_SYS_HISTORY_CLEARED",
+        "text": "Histórico limpo! Como posso ajudar agora?",
+        "context": "Após clique no botão de lixeira (#resetChatBtn).",
+        "rendering": "Plain text"
+      },
+      {
+        "id": "MSG_ERR_GENERIC",
+        "text": "Desculpe, tive um erro técnico.",
+        "context": "Falha no try/catch da função send()",
+        "rendering": "Plain text"
+      },
+      {
+        "id": "MSG_ERR_OFFLINE",
+        "text": "Sem conexão com a internet.",
+        "context": "Falha de rede (NetworkError)",
+        "rendering": "Plain text"
+      },
+      {
+        "id": "MSG_BUDGET_TEMPLATE",
+        "template": "Olá **{{customer_name}}**! 👋\nRecebi sua estimativa para o **{{device_model}}**.\n\n🔧 Serviço: {{service_name}}\n💰 Estimativa: **{{price_range}}**\n📍 Logística: {{logistics_label}}\n\nPosso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?",
+        "context": "Hook AtomicChat.processBudget disparado pela calculadora."
+      }
+    ]
+  },
+  "functions_and_flows": [
+    {
+      "name": "checkSiteContext",
+      "repo_source": "frontend/public/chatbot.js:220",
+      "type": "Client-Side Logic",
+      "description": "Intercepta a mensagem do usuário antes do envio para sugerir navegação (scroll) se detectar intenções de UI.",
+      "logic_flow": {
+        "if_contains": [
+          "limpeza",
+          "manutenção",
+          "conserto",
+          "reparo",
+          "orçamento"
+        ],
+        "action": "Suggest Service Section",
+        "target_id": "services",
+        "button_label": "Abrir Simulador de Reparo 👇"
+      },
+      "secondary_flow": {
+        "if_contains": [
+          "onde fica",
+          "endereço",
+          "localização",
+          "chegar"
+        ],
+        "action": "Suggest Location Section",
+        "target_id": "location",
+        "button_label": "Ver Mapa e Endereço"
+      }
+    },
+    {
+      "name": "AtomicChat.processBudget",
+      "repo_source": "frontend/public/chatbot.js:285",
+      "type": "Integration Hook",
+      "description": "Recebe o objeto `budgetContext` do main.js e injeta no chat.",
+      "input_contract": {
+        "status": "completed",
+        "customer": {
+          "name": "String",
+          "phone": "String"
+        },
+        "device": {
+          "category": "String",
+          "model": "String",
+          "modelLabel": "String"
+        },
+        "service": {
+          "id": "String",
+          "name": "String",
+          "priceMin": "Number",
+          "priceMax": "Number",
+          "customDescription": "String (Optional)"
+        },
+        "logistics": {
+          "type": "String",
+          "label": "String",
+          "cost": "Number"
+        },
+        "financial": {
+          "totalMin": "Number",
+          "totalMax": "Number"
+        }
+      },
+      "output_behavior": "Open Chat Window -> Add Bot Message (Template MSG_BUDGET_TEMPLATE) -> Add Action Button (WhatsApp Deep Link)"
+    },
+    {
+      "name": "renderProducts (Chat Version)",
+      "repo_source": "frontend/public/chatbot.js:145",
+      "type": "UI Component",
+      "description": "Renderiza carrossel horizontal de produtos dentro do balão de mensagem.",
+      "data_requirements": [
+        {
+          "field": "id",
+          "type": "String",
+          "required": true
+        },
+        {
+          "field": "name",
+          "type": "String",
+          "required": true
+        },
+        {
+          "field": "image",
+          "type": "URL",
+          "required": true
+        },
+        {
+          "field": "price",
+          "type": "String",
+          "required": true
+        }
+      ],
+      "interaction": "Click opens ProductDetailModal (if mobile) or WhatsApp Link (if desktop fallback)."
+    }
+  ],
+  "brain_spec": {
+    "overview": "O cérebro do chatbot utiliza uma estratégia de 'Three-Tier Profiling' (Três Camadas de Perfil) para adaptar a linguagem e a oferta.",
+    "triage_rules": [
+      {
+        "rule_id": "PROFILE_LEIGO",
+        "target_profile": "COMPRADOR_LEIGO",
+        "description": "Cliente sem conhecimento técnico, busca segurança e preço. Usa termos vagos.",
+        "detection_keywords": [
+          {
+            "term": "lento",
+            "weight": 0.8
+          },
+          {
+            "term": "trava",
+            "weight": 0.8
+          },
+          {
+            "term": "filho",
+            "weight": 0.6
+          },
+          {
+            "term": "barato",
+            "weight": 0.7
+          },
+          {
+            "term": "roda tudo",
+            "weight": 0.9
+          },
+          {
+            "term": "não entendo",
+            "weight": 1
+          },
+          {
+            "term": "ajuda",
+            "weight": 0.5
+          }
+        ],
+        "response_guidelines": {
+          "tone": "Educativo, Empático, Simplificado",
+          "forbidden_terms": [
+            "Overclock",
+            "VRM",
+            "Gargalo",
+            "Latência"
+          ],
+          "strategy": "Usar analogias (Ex: HD é o armário, RAM é a mesa)."
+        }
+      },
+      {
+        "rule_id": "PROFILE_GAMER",
+        "target_profile": "ENTUSIASTA_COMPETITIVO",
+        "description": "Cliente com alto conhecimento, focado em performance, specs e benchmarks.",
+        "detection_keywords": [
+          {
+            "term": "fps",
+            "weight": 0.9
+          },
+          {
+            "term": "hz",
+            "weight": 0.9
+          },
+          {
+            "term": "144",
+            "weight": 0.8
+          },
+          {
+            "term": "gargalo",
+            "weight": 1
+          },
+          {
+            "term": "bottleneck",
+            "weight": 1
+          },
+          {
+            "term": "vrm",
+            "weight": 1
+          },
+          {
+            "term": "rtx",
+            "weight": 0.8
+          },
+          {
+            "term": "dlss",
+            "weight": 0.9
+          },
+          {
+            "term": "ms",
+            "weight": 0.7
+          }
+        ],
+        "response_guidelines": {
+          "tone": "Técnico, Direto, 'De igual para igual'",
+          "allowed_terms": [
+            "Frame-time",
+            "Thermal Throttling",
+            "IPC"
+          ],
+          "strategy": "Validar conhecimento do usuário e oferecer specs detalhadas."
+        }
+      },
+      {
+        "rule_id": "PROFILE_REMOTO",
+        "target_profile": "PROFISSIONAL_REMOTO",
+        "description": "Cliente focado em estabilidade, trabalho e rapidez. Baixa tolerância a falhas.",
+        "detection_keywords": [
+          {
+            "term": "reunião",
+            "weight": 0.9
+          },
+          {
+            "term": "zoom",
+            "weight": 0.8
+          },
+          {
+            "term": "teams",
+            "weight": 0.8
+          },
+          {
+            "term": "travando",
+            "weight": 0.7
+          },
+          {
+            "term": "urgente",
+            "weight": 0.9
+          },
+          {
+            "term": "dados",
+            "weight": 0.8
+          },
+          {
+            "term": "arquivos",
+            "weight": 0.7
+          },
+          {
+            "term": "trabalho",
+            "weight": 0.6
+          }
+        ],
+        "response_guidelines": {
+          "tone": "Profissional, Resolutivo, Focado em Confiabilidade",
+          "keywords_to_use": [
+            "Backup",
+            "SSD",
+            "Rapidez",
+            "Estabilidade"
+          ],
+          "strategy": "Vender 'tempo ganho' e 'segurança de dados'."
+        }
+      }
+    ],
+    "intent_model_contract": [
+      {
+        "intent": "GET_QUOTE_REPAIR",
+        "description": "Solicitação de preço para conserto.",
+        "required_slots": [
+          "device_category",
+          "defect_description"
+        ],
+        "examples": [
+          "Quanto custa arrumar o drift do controle?",
+          "Meu PS4 não liga, qual o valor?",
+          "Troca de pasta térmica preço"
+        ]
+      },
+      {
+        "intent": "GET_QUOTE_UPGRADE",
+        "description": "Solicitação de melhoria de hardware.",
+        "required_slots": [
+          "current_device",
+          "desired_improvement"
+        ],
+        "examples": [
+          "Quero colocar um SSD",
+          "Melhorar a memória do notebook",
+          "Upgrade para rodar GTA RP"
+        ]
+      },
+      {
+        "intent": "BUY_PRODUCT_AVAILABILITY",
+        "description": "Verificar estoque de item.",
+        "required_slots": [
+          "product_name"
+        ],
+        "examples": [
+          "Vocês tem o PS5 Slim?",
+          "Tem controle de Xbox?",
+          "Vende jogo de Switch?"
+        ]
+      },
+      {
+        "intent": "TECHNICAL_DIAGNOSIS_QUERY",
+        "description": "Dúvida sobre defeito específico.",
+        "required_slots": [
+          "symptom"
+        ],
+        "examples": [
+          "Luz vermelha no Xbox é pt?",
+          "Meu pc liga mas não dá vídeo",
+          "Barulho de avião no PS4"
+        ]
+      },
+      {
+        "intent": "LOGISTICS_QUERY",
+        "description": "Dúvidas sobre entrega ou localização.",
+        "required_slots": [],
+        "examples": [
+          "Vocês buscam em casa?",
+          "Onde fica a loja?",
+          "Entrega em Niterói?"
+        ]
+      }
+    ],
+    "mapping_logic": {
+      "calculator_to_backend_schema": {
+        "description": "Transformação dos dados do main.js (frontend) para o schema do CRM/Backend.",
+        "mappings": [
+          {
+            "source": "main.js:state.category",
+            "target": "lead.device.category_id",
+            "transform": "uppercase"
+          },
+          {
+            "source": "main.js:state.model",
+            "target": "lead.device.model_id",
+            "transform": "none"
+          },
+          {
+            "source": "main.js:budgetContext.device.modelLabel",
+            "target": "lead.device.model_human_readable",
+            "transform": "none"
+          },
+          {
+            "source": "main.js:state.service",
+            "target": "lead.service.service_id",
+            "transform": "none"
+          },
+          {
+            "source": "main.js:budgetContext.service.name",
+            "target": "lead.service.service_name",
+            "transform": "none"
+          },
+          {
+            "source": "main.js:budgetContext.financial.totalMin",
+            "target": "lead.budget.min_value",
+            "type": "decimal"
+          },
+          {
+            "source": "main.js:budgetContext.financial.totalMax",
+            "target": "lead.budget.max_value",
+            "type": "decimal"
+          },
+          {
+            "source": "main.js:state.logistics",
+            "target": "lead.logistics.method",
+            "transform": "map: { 'shop': 'WALK_IN', 'local': 'PICKUP_LOCAL', 'interzonal': 'PICKUP_ZONE_2', 'remote': 'PICKUP_REMOTE' }"
+          },
+          {
+            "source": "main.js:customInput.value",
+            "target": "lead.service.custom_notes",
+            "condition": "service_id == 'custom_issue'"
+          }
+        ]
+      }
+    },
+    "fallback_and_confidence_strategy": {
+      "thresholds": {
+        "high_confidence": 0.85,
+        "medium_confidence": 0.6,
+        "low_confidence": 0.4
+      },
+      "strategies": {
+        "low_confidence_action": "SUGGEST_WHATSAPP_DIRECT",
+        "fallback_message_template": "Ainda estou aprendendo sobre esse termo específico. Para garantir a resposta correta e não te passar informação errada, prefere falar direto com o técnico no WhatsApp?",
+        "human_handoff_trigger": true
+      }
+    }
+  },
+  "integration_compatibility": {
+    "protocol": "REST",
+    "backward_compatibility_guarantee": {
+      "statement": "O novo brain DEVE retornar a estrutura JSON exata que o chatbot.js espera para evitar quebra de UI.",
+      "required_response_fields": [
+        "success (boolean)",
+        "response (string - markdown supported)",
+        "produtos_sugeridos (array of objects {id, name, image, price})",
+        "action_link (string - url optional)",
+        "session_id (string)"
+      ]
+    },
+    "endpoints_contracts": {
+      "frontend_to_chatbot": {
+        "url": "POST /chat",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body_schema": {
+          "message": "String (User input)",
+          "session_id": "String (UUID - persistence)",
+          "context_snapshot": "Object (Optional - Calculator state)"
+        }
+      },
+      "chatbot_to_backend_brain": {
+        "url": "POST /api/internal/brain/process",
+        "body_schema": {
+          "raw_text": "String",
+          "detected_profile": "String (Enum: LEIGO, GAMER, REMOTO)",
+          "intent_scores": "Object",
+          "history_context": "Array"
+        }
+      }
+    },
+    "auth_security": {
+      "method": "Bearer Token",
+      "token_source": "process.env.CHATBOT_API_KEY",
+      "storage_location": "infra/k8s/secrets/atomic-secrets.yaml"
+    }
+  },
+  "data_tree": {
+    "frontend_layer": {
+      "calculator_component": {
+        "file": "frontend/public/main.js",
+        "state_object": "budgetContext",
+        "fields": [
+          "customer.name",
+          "customer.phone",
+          "device.category",
+          "device.model",
+          "service.id",
+          "financial.totalMin",
+          "financial.totalMax"
+        ]
+      },
+      "chat_widget": {
+        "file": "frontend/public/chatbot.js",
+        "state_object": "state",
+        "fields": [
+          "isOpen",
+          "isDragging",
+          "sessionId",
+          "msgHistory"
+        ]
+      }
+    },
+    "logic_layer": {
+      "intents_directory": {
+        "path": "chatbot/src/intents/",
+        "files": [
+          "quote_repair.json",
+          "quote_upgrade.json",
+          "product_sales.json",
+          "tech_support.json",
+          "store_info.json"
+        ]
+      }
+    },
+    "backend_layer": {
+      "lead_storage": {
+        "path": "backend/api/leads/",
+        "schema": "AtomicLeadSchema v1",
+        "fields": [
+          "lead_id",
+          "customer_profile_tag",
+          "budget_range",
+          "urgency_score",
+          "conversion_status"
+        ]
+      }
+    }
+  },
+  "deployment_location_suggestion": {
+    "suggested_config_path": "/config/chatbot.json",
+    "deployment_pipeline": "GitOps (ArgoCD) -> Sync to ConfigMap"
+  }
+}
