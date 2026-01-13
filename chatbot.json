@@ -1,547 +1,499 @@
-{
-  "meta": {
-    "project": "Atomic Games Chatbot",
-    "version": "2.1.0-full-spec",
-    "status": "frozen",
-    "author": "TechAlign System",
-    "date": "2024-05-23",
-    "note": "CONFIRMAÇÃO: Li integralmente os anexos (chatbot.js, main.js, styles.css). O projeto está congelado. Este arquivo é a ÚNICA fonte de verdade para a lógica do chatbot, substituindo hardcoded logic por regras declarativas.",
-    "description": "Especificação Mestra (Brain) para o Chatbot Thiago. Define regras de NLP, mapeamento de dados da calculadora e preservação estrita da UI existente."
-  },
-  "preserve_ui": {
-    "preserve_ui": true,
-    "ui_contract": {
-      "widget_selector": "#atomic-chat-widget",
-      "dom_elements_reference": {
-        "container": "#chatWindow",
-        "messages_area": "#chatMessages",
-        "input_field": "#chatInput",
-        "send_button": "#sendBtn",
-        "typing_indicator": "#typing",
-        "bubble_badge": "#chatBadge",
-        "toggle_button": "#chatBubble",
-        "close_button": "#closeChatBtn",
-        "reset_button": "#resetChatBtn"
-      },
-      "css_classes_contract": {
-        "description": "Classes CSS que o backend deve respeitar ao enviar payloads de formatação.",
-        "user_message_bubble": ".message.user .message-bubble",
-        "bot_message_bubble": ".message.bot .message-bubble",
-        "product_card_container": ".chat-products-scroll",
-        "product_card": ".chat-product-card",
-        "product_image": ".chat-product-card img",
-        "product_title": ".chat-product-title",
-        "product_price": ".chat-product-price",
-        "action_button_primary": ".chat-add-btn",
-        "context_action_container": ".mt-3.flex.flex-col.gap-2",
-        "context_action_button": ".bg-slate-100.hover\\:bg-yellow-400"
-      },
-      "assets_reference": {
-        "avatar_image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg",
-        "bot_name": "Thiago - Atomic"
-      }
+// === CHATBOT 2.1 (FLUID, MAGNETIC & SITE-AWARE) ===
+(function() {
+    // --- SECURITY HELPERS (Adicionado para proteção) ---
+    function isSafeHttp(url) {
+        try { const u = new URL(url, location.href); return u.protocol === 'http:' || u.protocol === 'https:'; }
+        catch(e) { return false; }
     }
-  },
-  "preserve_message_history": {
-    "rationale": "Garante que o tom de voz e as mensagens de sistema hardcoded no frontend atual sejam mantidas ou geradas dinamicamente com o mesmo texto.",
-    "original_messages": [
-      {
-        "id": "MSG_SYS_WELCOME",
-        "text": "E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?",
-        "context": "Primeira abertura do chat (localStorage vazio).",
-        "rendering": "Markdown enabled"
-      },
-      {
-        "id": "MSG_SYS_HISTORY_CLEARED",
-        "text": "Histórico limpo! Como posso ajudar agora?",
-        "context": "Após clique no botão de lixeira (#resetChatBtn).",
-        "rendering": "Plain text"
-      },
-      {
-        "id": "MSG_ERR_GENERIC",
-        "text": "Desculpe, tive um erro técnico.",
-        "context": "Falha no try/catch da função send()",
-        "rendering": "Plain text"
-      },
-      {
-        "id": "MSG_ERR_OFFLINE",
-        "text": "Sem conexão com a internet.",
-        "context": "Falha de rede (NetworkError)",
-        "rendering": "Plain text"
-      },
-      {
-        "id": "MSG_BUDGET_TEMPLATE",
-        "template": "Olá **{{customer_name}}**! 👋\nRecebi sua estimativa para o **{{device_model}}**.\n\n🔧 Serviço: {{service_name}}\n💰 Estimativa: **{{price_range}}**\n📍 Logística: {{logistics_label}}\n\nPosso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?",
-        "context": "Hook AtomicChat.processBudget disparado pela calculadora."
-      }
-    ]
-  },
-  "functions_and_flows": [
-    {
-      "name": "checkSiteContext",
-      "repo_source": "frontend/public/chatbot.js:220",
-      "type": "Client-Side Logic",
-      "description": "Intercepta a mensagem do usuário antes do envio para sugerir navegação (scroll) se detectar intenções de UI.",
-      "logic_flow": {
-        "if_contains": [
-          "limpeza",
-          "manutenção",
-          "conserto",
-          "reparo",
-          "orçamento"
-        ],
-        "action": "Suggest Service Section",
-        "target_id": "services",
-        "button_label": "Abrir Simulador de Reparo 👇"
-      },
-      "secondary_flow": {
-        "if_contains": [
-          "onde fica",
-          "endereço",
-          "localização",
-          "chegar"
-        ],
-        "action": "Suggest Location Section",
-        "target_id": "location",
-        "button_label": "Ver Mapa e Endereço"
-      }
-    },
-    {
-      "name": "AtomicChat.processBudget",
-      "repo_source": "frontend/public/chatbot.js:285",
-      "type": "Integration Hook",
-      "description": "Recebe o objeto `budgetContext` do main.js e injeta no chat.",
-      "input_contract": {
-        "status": "completed",
-        "customer": {
-          "name": "String",
-          "phone": "String"
-        },
-        "device": {
-          "category": "String",
-          "model": "String",
-          "modelLabel": "String"
-        },
-        "service": {
-          "id": "String",
-          "name": "String",
-          "priceMin": "Number",
-          "priceMax": "Number",
-          "customDescription": "String (Optional)"
-        },
-        "logistics": {
-          "type": "String",
-          "label": "String",
-          "cost": "Number"
-        },
-        "financial": {
-          "totalMin": "Number",
-          "totalMax": "Number"
-        }
-      },
-      "output_behavior": "Open Chat Window -> Add Bot Message (Template MSG_BUDGET_TEMPLATE) -> Add Action Button (WhatsApp Deep Link)"
-    },
-    {
-      "name": "renderProducts (Chat Version)",
-      "repo_source": "frontend/public/chatbot.js:145",
-      "type": "UI Component",
-      "description": "Renderiza carrossel horizontal de produtos dentro do balão de mensagem.",
-      "data_requirements": [
-        {
-          "field": "id",
-          "type": "String",
-          "required": true
-        },
-        {
-          "field": "name",
-          "type": "String",
-          "required": true
-        },
-        {
-          "field": "image",
-          "type": "URL",
-          "required": true
-        },
-        {
-          "field": "price",
-          "type": "String",
-          "required": true
-        }
-      ],
-      "interaction": "Click opens ProductDetailModal (if mobile) or WhatsApp Link (if desktop fallback)."
+    function safeImageSrc(src) {
+        try { const u = new URL(src, location.href); if (u.protocol === 'http:'||u.protocol==='https:') return u.href; } catch(e) {}
+        return 'https://placehold.co/100'; // Fallback seguro
     }
-  ],
-  "brain_spec": {
-    "overview": "O cérebro do chatbot utiliza uma estratégia de 'Three-Tier Profiling' (Três Camadas de Perfil) para adaptar a linguagem e a oferta.",
-    "triage_rules": [
-      {
-        "rule_id": "PROFILE_LEIGO",
-        "target_profile": "COMPRADOR_LEIGO",
-        "description": "Cliente sem conhecimento técnico, busca segurança e preço. Usa termos vagos.",
-        "detection_keywords": [
-          {
-            "term": "lento",
-            "weight": 0.8
-          },
-          {
-            "term": "trava",
-            "weight": 0.8
-          },
-          {
-            "term": "filho",
-            "weight": 0.6
-          },
-          {
-            "term": "barato",
-            "weight": 0.7
-          },
-          {
-            "term": "roda tudo",
-            "weight": 0.9
-          },
-          {
-            "term": "não entendo",
-            "weight": 1
-          },
-          {
-            "term": "ajuda",
-            "weight": 0.5
-          }
-        ],
-        "response_guidelines": {
-          "tone": "Educativo, Empático, Simplificado",
-          "forbidden_terms": [
-            "Overclock",
-            "VRM",
-            "Gargalo",
-            "Latência"
-          ],
-          "strategy": "Usar analogias (Ex: HD é o armário, RAM é a mesa)."
+
+    const els = { 
+        bubble: document.getElementById('chatBubble'), 
+        win: document.getElementById('chatWindow'), 
+        msgs: document.getElementById('chatMessages'), 
+        input: document.getElementById('chatInput'),
+        badge: document.getElementById('chatBadge')
+    };
+    
+    // Check if chatbot elements exist (in case of partial page loads)
+    if (!els.bubble || !els.win) return;
+
+    let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
+    let sessionId = localStorage.getItem('chat_sess_id');
+    let msgHistory = []; // Local history storage
+
+    // --- UI LOGIC ---
+    function updateChatUI(open) {
+        state.isOpen = open;
+        els.win.classList.toggle('open', open);
+        els.badge.style.display = open ? 'none' : 'flex';
+        document.body.classList.toggle('chat-open', open);
+        
+        if (open) {
+            // Morph effect for mobile
+            if(window.innerWidth <= 480) {
+                const rect = els.bubble.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                els.win.style.transformOrigin = `${centerX}px ${centerY}px`;
+            }
+
+            els.bubble.style.transform = 'scale(0)'; 
+            els.bubble.style.opacity = '0';
+            els.bubble.style.pointerEvents = 'none';
+            
+            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
+            scrollToBottom();
+        } else {
+            els.bubble.style.transform = 'scale(1)';
+            els.bubble.style.opacity = '1';
+            els.bubble.style.pointerEvents = 'auto';
+            els.input.blur();
         }
-      },
-      {
-        "rule_id": "PROFILE_GAMER",
-        "target_profile": "ENTUSIASTA_COMPETITIVO",
-        "description": "Cliente com alto conhecimento, focado em performance, specs e benchmarks.",
-        "detection_keywords": [
-          {
-            "term": "fps",
-            "weight": 0.9
-          },
-          {
-            "term": "hz",
-            "weight": 0.9
-          },
-          {
-            "term": "144",
-            "weight": 0.8
-          },
-          {
-            "term": "gargalo",
-            "weight": 1
-          },
-          {
-            "term": "bottleneck",
-            "weight": 1
-          },
-          {
-            "term": "vrm",
-            "weight": 1
-          },
-          {
-            "term": "rtx",
-            "weight": 0.8
-          },
-          {
-            "term": "dlss",
-            "weight": 0.9
-          },
-          {
-            "term": "ms",
-            "weight": 0.7
-          }
-        ],
-        "response_guidelines": {
-          "tone": "Técnico, Direto, 'De igual para igual'",
-          "allowed_terms": [
-            "Frame-time",
-            "Thermal Throttling",
-            "IPC"
-          ],
-          "strategy": "Validar conhecimento do usuário e oferecer specs detalhadas."
-        }
-      },
-      {
-        "rule_id": "PROFILE_REMOTO",
-        "target_profile": "PROFISSIONAL_REMOTO",
-        "description": "Cliente focado em estabilidade, trabalho e rapidez. Baixa tolerância a falhas.",
-        "detection_keywords": [
-          {
-            "term": "reunião",
-            "weight": 0.9
-          },
-          {
-            "term": "zoom",
-            "weight": 0.8
-          },
-          {
-            "term": "teams",
-            "weight": 0.8
-          },
-          {
-            "term": "travando",
-            "weight": 0.7
-          },
-          {
-            "term": "urgente",
-            "weight": 0.9
-          },
-          {
-            "term": "dados",
-            "weight": 0.8
-          },
-          {
-            "term": "arquivos",
-            "weight": 0.7
-          },
-          {
-            "term": "trabalho",
-            "weight": 0.6
-          }
-        ],
-        "response_guidelines": {
-          "tone": "Profissional, Resolutivo, Focado em Confiabilidade",
-          "keywords_to_use": [
-            "Backup",
-            "SSD",
-            "Rapidez",
-            "Estabilidade"
-          ],
-          "strategy": "Vender 'tempo ganho' e 'segurança de dados'."
-        }
-      }
-    ],
-    "intent_model_contract": [
-      {
-        "intent": "GET_QUOTE_REPAIR",
-        "description": "Solicitação de preço para conserto.",
-        "required_slots": [
-          "device_category",
-          "defect_description"
-        ],
-        "examples": [
-          "Quanto custa arrumar o drift do controle?",
-          "Meu PS4 não liga, qual o valor?",
-          "Troca de pasta térmica preço"
-        ]
-      },
-      {
-        "intent": "GET_QUOTE_UPGRADE",
-        "description": "Solicitação de melhoria de hardware.",
-        "required_slots": [
-          "current_device",
-          "desired_improvement"
-        ],
-        "examples": [
-          "Quero colocar um SSD",
-          "Melhorar a memória do notebook",
-          "Upgrade para rodar GTA RP"
-        ]
-      },
-      {
-        "intent": "BUY_PRODUCT_AVAILABILITY",
-        "description": "Verificar estoque de item.",
-        "required_slots": [
-          "product_name"
-        ],
-        "examples": [
-          "Vocês tem o PS5 Slim?",
-          "Tem controle de Xbox?",
-          "Vende jogo de Switch?"
-        ]
-      },
-      {
-        "intent": "TECHNICAL_DIAGNOSIS_QUERY",
-        "description": "Dúvida sobre defeito específico.",
-        "required_slots": [
-          "symptom"
-        ],
-        "examples": [
-          "Luz vermelha no Xbox é pt?",
-          "Meu pc liga mas não dá vídeo",
-          "Barulho de avião no PS4"
-        ]
-      },
-      {
-        "intent": "LOGISTICS_QUERY",
-        "description": "Dúvidas sobre entrega ou localização.",
-        "required_slots": [],
-        "examples": [
-          "Vocês buscam em casa?",
-          "Onde fica a loja?",
-          "Entrega em Niterói?"
-        ]
-      }
-    ],
-    "mapping_logic": {
-      "calculator_to_backend_schema": {
-        "description": "Transformação dos dados do main.js (frontend) para o schema do CRM/Backend.",
-        "mappings": [
-          {
-            "source": "main.js:state.category",
-            "target": "lead.device.category_id",
-            "transform": "uppercase"
-          },
-          {
-            "source": "main.js:state.model",
-            "target": "lead.device.model_id",
-            "transform": "none"
-          },
-          {
-            "source": "main.js:budgetContext.device.modelLabel",
-            "target": "lead.device.model_human_readable",
-            "transform": "none"
-          },
-          {
-            "source": "main.js:state.service",
-            "target": "lead.service.service_id",
-            "transform": "none"
-          },
-          {
-            "source": "main.js:budgetContext.service.name",
-            "target": "lead.service.service_name",
-            "transform": "none"
-          },
-          {
-            "source": "main.js:budgetContext.financial.totalMin",
-            "target": "lead.budget.min_value",
-            "type": "decimal"
-          },
-          {
-            "source": "main.js:budgetContext.financial.totalMax",
-            "target": "lead.budget.max_value",
-            "type": "decimal"
-          },
-          {
-            "source": "main.js:state.logistics",
-            "target": "lead.logistics.method",
-            "transform": "map: { 'shop': 'WALK_IN', 'local': 'PICKUP_LOCAL', 'interzonal': 'PICKUP_ZONE_2', 'remote': 'PICKUP_REMOTE' }"
-          },
-          {
-            "source": "main.js:customInput.value",
-            "target": "lead.service.custom_notes",
-            "condition": "service_id == 'custom_issue'"
-          }
-        ]
-      }
-    },
-    "fallback_and_confidence_strategy": {
-      "thresholds": {
-        "high_confidence": 0.85,
-        "medium_confidence": 0.6,
-        "low_confidence": 0.4
-      },
-      "strategies": {
-        "low_confidence_action": "SUGGEST_WHATSAPP_DIRECT",
-        "fallback_message_template": "Ainda estou aprendendo sobre esse termo específico. Para garantir a resposta correta e não te passar informação errada, prefere falar direto com o técnico no WhatsApp?",
-        "human_handoff_trigger": true
-      }
     }
-  },
-  "integration_compatibility": {
-    "protocol": "REST",
-    "backward_compatibility_guarantee": {
-      "statement": "O novo brain DEVE retornar a estrutura JSON exata que o chatbot.js espera para evitar quebra de UI.",
-      "required_response_fields": [
-        "success (boolean)",
-        "response (string - markdown supported)",
-        "produtos_sugeridos (array of objects {id, name, image, price})",
-        "action_link (string - url optional)",
-        "session_id (string)"
-      ]
-    },
-    "endpoints_contracts": {
-      "frontend_to_chatbot": {
-        "url": "POST /chat",
-        "headers": {
-          "Content-Type": "application/json"
+
+    // --- HISTORY API ---
+    function openChat() {
+        if(state.isOpen) return;
+        history.pushState({chat: true}, '', '#chat'); 
+        updateChatUI(true);
+    }
+
+    function closeChat() {
+        if(!state.isOpen) return;
+        history.back(); 
+    }
+
+    window.addEventListener('popstate', (e) => {
+        if(state.isOpen) updateChatUI(false);
+    });
+
+    function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
+
+    // --- DRAG PHYSICS ---
+    if(els.bubble) {
+        const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
+        
+        els.bubble.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            state.startX = t.clientX; state.startY = t.clientY;
+            const rect = els.bubble.getBoundingClientRect();
+            state.initialLeft = rect.left; state.initialTop = rect.top;
+            state.isDragging = false;
+            
+            els.bubble.classList.add('no-transition');
+            els.bubble.classList.remove('snapping');
+            els.bubble.style.transform = 'scale(0.95)';
+            els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
+            updatePos(rect.left, rect.top);
+        }, { passive: true });
+
+        els.bubble.addEventListener('touchmove', (e) => {
+            const t = e.touches[0];
+            const dx = t.clientX - state.startX;
+            const dy = t.clientY - state.startY;
+            if (Math.sqrt(dx*dx + dy*dy) > 15) state.isDragging = true;
+            if (state.isDragging) { e.preventDefault(); updatePos(state.initialLeft + dx, state.initialTop + dy); }
+        }, { passive: false });
+
+        els.bubble.addEventListener('touchend', (e) => {
+            els.bubble.classList.remove('no-transition');
+            if (!state.isDragging) {
+                e.preventDefault(); els.bubble.style.transform = 'scale(1)'; openChat(); 
+            } else {
+                els.bubble.style.transform = 'scale(1)';
+                els.bubble.classList.add('snapping');
+                const rect = els.bubble.getBoundingClientRect();
+                const midX = window.innerWidth / 2;
+                const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
+                let snapY = rect.top;
+                if(snapY < 20) snapY = 20;
+                if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
+                updatePos(snapX, snapY);
+            }
+            state.isDragging = false;
+        });
+        
+        els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
+        document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
+        
+        // --- CHAT RESET LOGIC ---
+        const resetBtn = document.getElementById('resetChatBtn');
+        if(resetBtn) {
+            resetBtn.onclick = (e) => {
+                e.stopPropagation();
+                if(confirm('Tem certeza que deseja limpar o histórico da conversa?')) {
+                    localStorage.removeItem('atomic_chat_history');
+                    localStorage.removeItem('chat_sess_id');
+                    msgHistory = [];
+                    els.msgs.innerHTML = '';
+                    sessionId = null;
+                    
+                    setTimeout(() => {
+                        addMsg('bot', 'Histórico limpo! Como posso ajudar agora?', [], null, [], false);
+                    }, 200);
+                }
+            };
+        }
+    }
+
+    // --- MESSAGING LOGIC ---
+    function parseText(text) {
+        if(!text) return document.createTextNode("");
+        const frag = document.createDocumentFragment();
+        text.split('\n').forEach((line, i) => {
+            if(i>0) frag.appendChild(document.createElement('br'));
+            line.split('**').forEach((part, j) => {
+                j%2 ? frag.appendChild(Object.assign(document.createElement('b'),{textContent:part})) 
+                    : frag.appendChild(document.createTextNode(part));
+            });
+        });
+        return frag;
+    }
+
+    function addMsg(role, content, prods, link, actions = [], save = true) {
+        const div = document.createElement('div'); div.className = `message ${role}`;
+        const bubble = document.createElement('div'); bubble.className = 'message-bubble';
+        
+        if(content) bubble.appendChild(parseText(content));
+        
+        // --- PRODUTOS (VITRINE NO CHAT) - HARDENED ---
+        if(prods?.length) {
+            const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
+            prods.forEach(p => {
+                const card = document.createElement('div'); card.className = 'chat-product-card';
+                
+                // Create Image (Protegido por safeImageSrc)
+                const img = document.createElement('img');
+                img.src = safeImageSrc(p.image || p.imagem);
+                img.loading = 'lazy';
+                
+                // Create Title
+                const title = document.createElement('div');
+                title.className = 'chat-product-title';
+                title.textContent = p.name || p.nome;
+                
+                // Create Price
+                const price = document.createElement('div');
+                price.className = 'chat-product-price';
+                price.textContent = p.price || p.preco;
+                
+                // Create Button
+                const btn = document.createElement('button'); 
+                btn.className = 'chat-add-btn'; 
+                btn.textContent = 'VER DETALHES';
+                
+                // CORREÇÃO CRÍTICA DE UX MOBILE
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const prodId = p.id; 
+                    
+                    if (window.showProductDetail && prodId) {
+                        // Se estiver no mobile, fecha o chat para mostrar o modal
+                        if(window.innerWidth <= 768) {
+                            updateChatUI(false); 
+                        }
+                        window.showProductDetail(prodId);
+                    } else {
+                        window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
+                    }
+                };
+                
+                card.appendChild(img);
+                card.appendChild(title);
+                card.appendChild(price);
+                card.appendChild(btn);
+                scroll.appendChild(card);
+            });
+            bubble.appendChild(scroll);
+        }
+
+        // --- LINKS DE AÇÃO (Botão Verde Padrão) ---
+        if(link && isSafeHttp(link)) {
+           const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
+           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
+           btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
+        }
+
+        // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
+        if (actions && actions.length > 0) {
+            const actionContainer = document.createElement('div');
+            actionContainer.className = 'mt-3 flex flex-col gap-2';
+            actions.forEach(act => {
+                const actBtn = document.createElement('button');
+                actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
+                
+                const span = document.createElement('span');
+                span.textContent = act.label;
+                const icon = document.createElement('i');
+                // Pequena sanitização de classe
+                const iconClass = (act.icon && act.icon.match(/^ph-[a-z-]+$/)) ? act.icon : 'ph-question';
+                icon.className = `ph-bold ${iconClass}`;
+                
+                actBtn.appendChild(span);
+                actBtn.appendChild(icon);
+                
+                // Suporte a URL direta ou Target ID
+                actBtn.onclick = () => {
+                    if (act.targetId) {
+                        const target = document.getElementById(act.targetId);
+                        if(target) {
+                            if(window.innerWidth < 768) updateChatUI(false);
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    } else if (act.url && isSafeHttp(act.url)) {
+                        window.open(act.url, '_blank');
+                    }
+                };
+                actionContainer.appendChild(actBtn);
+            });
+            bubble.appendChild(actionContainer);
+        }
+
+        div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
+
+        if (save) {
+            msgHistory.push({ role, content, prods, link, actions });
+            localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
+        }
+    }
+
+    function addTyping() {
+        const div = document.createElement('div'); div.id='typing'; div.className='message bot';
+        div.innerHTML = `<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+        els.msgs.appendChild(div); scrollToBottom();
+    }
+
+    // ============================================================================
+    // [CÉREBRO NOVO] ATOMIC BRAIN - CAMADA DE INTERPRETAÇÃO SEMÂNTICA
+    // ============================================================================
+    const AtomicBrain = {
+        personas: {
+            enthusiast: {
+                id: 'entusiasta_competitivo',
+                keywords: ['overclock', 'vrm', 'latência', 'cas', 'gargalo', 'fps', 'benchmark', 'water cooler', 'rtx', 'dlss', 'hz', 'ms', 'temperatura', 'bottleneck'],
+                instruction: 'Detected_Enthusiast: Responda com tecnicalidade, direto ao ponto. Sem analogias simples. Fale de performance bruta.'
+            },
+            remote_worker: {
+                id: 'profissional_remoto',
+                keywords: ['teams', 'zoom', 'travando', 'lento', 'trabalho', 'reunião', 'estabilidade', 'ssd', 'office', 'planilha', 'excel', 'meet', 'home office'],
+                instruction: 'Detected_RemoteWorker: Foco em "Time is Money". Soluções para estabilidade/boot rápido. Sugira SSD como "ressuscitador".'
+            },
+            layman: {
+                id: 'comprador_leigo',
+                keywords: ['filho', 'criança', 'barato', 'não entendo', 'presente', 'roda tudo', 'básico', 'escola', 'estudar', 'jogar roblox', 'minecraft', 'ajuda'],
+                instruction: 'Detected_Layman: ATIVAR MOTOR DE ANALOGIAS. (Ex: CPU=Chef, RAM=Mesa). Seja educativo, protetor e evite jargões.'
+            }
         },
-        "body_schema": {
-          "message": "String (User input)",
-          "session_id": "String (UUID - persistence)",
-          "context_snapshot": "Object (Optional - Calculator state)"
+        guardrails: {
+            data_recovery: {
+                trigger: ['recuperar', 'arquivos', 'perdi', 'hd', 'formatou', 'salvar fotos'],
+                alert: 'LEGAL_WARNING: Nunca prometer 100% de recuperação de dados. Mencionar "Tentativa de recuperação".'
+            },
+            pricing: {
+                trigger: ['preço', 'valor', 'quanto', 'custa', 'orçamento'],
+                alert: 'PRICING_RULE: Informe que valores são estimativas sujeitas a avaliação técnica presencial.'
+            }
+        },
+        analyze: function(text) {
+            const lowerText = text.toLowerCase();
+            let detectedPersona = 'padrao_generico'; // Default
+            let systemNotes = [];
+            let highestScore = 0;
+
+            for (const [key, profile] of Object.entries(this.personas)) {
+                let score = 0;
+                profile.keywords.forEach(word => {
+                    if (lowerText.includes(word)) score++;
+                });
+                
+                if (score > highestScore) {
+                    highestScore = score;
+                    detectedPersona = profile.id;
+                    if (score >= 1) systemNotes = [profile.instruction]; 
+                }
+            }
+            for (const [key, rule] of Object.entries(this.guardrails)) {
+                if (rule.trigger.some(t => lowerText.includes(t))) {
+                    systemNotes.push(rule.alert);
+                }
+            }
+            if (lowerText.match(/(lento|travando|ruim|desligando|esquentando|defeito|quebrado)/)) {
+                systemNotes.push('INTENT: TRIAGEM_TECNICA -> Sugerir Calculadora de Orçamento ao final.');
+            }
+            return {
+                persona: detectedPersona,
+                context_tags: systemNotes,
+                timestamp: new Date().toISOString()
+            };
         }
-      },
-      "chatbot_to_backend_brain": {
-        "url": "POST /api/internal/brain/process",
-        "body_schema": {
-          "raw_text": "String",
-          "detected_profile": "String (Enum: LEIGO, GAMER, REMOTO)",
-          "intent_scores": "Object",
-          "history_context": "Array"
+    };
+
+    // --- CONTEXT AWARENESS (O Cérebro Local) ---
+    function checkSiteContext(text) {
+        const t = text.toLowerCase();
+        const actions = [];
+
+        if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo') || t.includes('orçamento') || t.includes('arrumar') || t.includes('quebrado')) {
+            const serviceSec = document.getElementById('services');
+            let dir = '👇';
+            if(serviceSec) {
+                const rect = serviceSec.getBoundingClientRect();
+                if(rect.top < 0) dir = '👆';
+            }
+            
+            actions.push({
+                label: `Abrir Simulador de Reparo ${dir}`,
+                icon: 'ph-wrench',
+                targetId: 'services'
+            });
         }
-      }
-    },
-    "auth_security": {
-      "method": "Bearer Token",
-      "token_source": "process.env.CHATBOT_API_KEY",
-      "storage_location": "infra/k8s/secrets/atomic-secrets.yaml"
+
+        if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização') || t.includes('chegar')) {
+            actions.push({
+                label: 'Ver Mapa e Endereço',
+                icon: 'ph-map-pin',
+                targetId: 'location'
+            });
+        }
+
+        return actions;
     }
-  },
-  "data_tree": {
-    "frontend_layer": {
-      "calculator_component": {
-        "file": "frontend/public/main.js",
-        "state_object": "budgetContext",
-        "fields": [
-          "customer.name",
-          "customer.phone",
-          "device.category",
-          "device.model",
-          "service.id",
-          "financial.totalMin",
-          "financial.totalMax"
-        ]
-      },
-      "chat_widget": {
-        "file": "frontend/public/chatbot.js",
-        "state_object": "state",
-        "fields": [
-          "isOpen",
-          "isDragging",
-          "sessionId",
-          "msgHistory"
-        ]
-      }
-    },
-    "logic_layer": {
-      "intents_directory": {
-        "path": "chatbot/src/intents/",
-        "files": [
-          "quote_repair.json",
-          "quote_upgrade.json",
-          "product_sales.json",
-          "tech_support.json",
-          "store_info.json"
-        ]
-      }
-    },
-    "backend_layer": {
-      "lead_storage": {
-        "path": "backend/api/leads/",
-        "schema": "AtomicLeadSchema v1",
-        "fields": [
-          "lead_id",
-          "customer_profile_tag",
-          "budget_range",
-          "urgency_score",
-          "conversion_status"
-        ]
-      }
+
+    async function send() {
+        const txt = els.input.value.trim();
+        if(!txt) return;
+        
+        els.input.value = ''; 
+        addMsg('user', txt); 
+        addTyping();
+        
+        // INTEGRAÇÃO: Análise Semântica
+        const contextAnalysis = AtomicBrain.analyze(txt);
+        const localActions = checkSiteContext(txt);
+        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
+
+        try {
+            // PAYLOAD ENRIQUECIDO COM O CÉREBRO
+            const payload = {
+                message: txt,
+                session_id: sessionId,
+                client_context: {
+                    persona: contextAnalysis.persona,
+                    context_tags: contextAnalysis.context_tags,
+                    timestamp: contextAnalysis.timestamp
+                }
+            };
+
+            const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            const data = await res.json();
+            
+            const typingEl = document.getElementById('typing');
+            if(typingEl) typingEl.remove();
+            
+            if(data.success) {
+                if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
+                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
+            } else {
+                addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
+            }
+        } catch { 
+            const typingEl = document.getElementById('typing');
+            if(typingEl) typingEl.remove();
+            addMsg('bot', 'Sem conexão com a internet.', [], null, localActions); 
+        }
     }
-  },
-  "deployment_location_suggestion": {
-    "suggested_config_path": "/config/chatbot.json",
-    "deployment_pipeline": "GitOps (ArgoCD) -> Sync to ConfigMap"
-  }
-}
+
+    document.getElementById('sendBtn').onclick = send;
+    
+    els.input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') send();
+        e.stopPropagation(); 
+    });
+    
+    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
+        els.input.addEventListener(evt, (e) => {
+            e.stopPropagation();
+            if (evt === 'mousedown') els.input.focus();
+        });
+    });
+
+    // LOAD HISTORY
+    try {
+        const savedHist = localStorage.getItem('atomic_chat_history');
+        if (savedHist) {
+            msgHistory = JSON.parse(savedHist);
+            msgHistory.forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false));
+        } else {
+            setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
+        }
+    } catch(e) { console.error("History load error", e); }
+
+    setTimeout(() => {
+        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
+        const baseUrl = api.replace('/chat', ''); 
+        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
+    }, 1500);
+
+    // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO FASE 5) ===
+    window.AtomicChat = {
+        /**
+         * Recebe o Objeto de Contexto Único da Calculadora e inicia o atendimento.
+         * @param {Object} context - Objeto budgetContext gerado no main.js
+         */
+        processBudget: function(context) {
+            if (!context || context.status !== 'completed') return;
+
+            // 1. Abre o Chat
+            if (!state.isOpen) openChat();
+
+            // 2. Formata Valores (Helper simples)
+            const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            // --- TRATAMENTO DE ORÇAMENTO PERSONALIZADO (OUTRO DEFEITO) ---
+            let finalServiceName = context.service.name;
+            let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
+
+            // Se tiver descrição personalizada, concatena e muda preço para Sob Análise
+            if (context.service.customDescription) {
+                finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
+                finalPriceStr = "Sob Análise Técnica";
+            }
+            // -------------------------------------------------------------
+
+            // 3. Constrói a Mensagem Contextual
+            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
+                        `Recebi sua estimativa para o **${context.device.modelLabel}**.\n\n` +
+                        `🔧 Serviço: ${finalServiceName}\n` +
+                        `💰 Estimativa: **${finalPriceStr}**\n` +
+                        `📍 Logística: ${context.logistics.label}\n\n` +
+                        `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
+
+            // 4. Gera Link do WhatsApp (Baseado no Contexto)
+            const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
+                          `👤 *${context.customer.name}*\n` +
+                          `📱 ${context.customer.phone}\n` +
+                          `--------------------------------\n` +
+                          `🎮 *Aparelho:* ${context.device.modelLabel}\n` +
+                          `🛠️ *Serviço:* ${finalServiceName}\n` +
+                          `📍 *Logística:* ${context.logistics.label}\n` +
+                          `💰 *Estimativa:* ${finalPriceStr}\n` +
+                          `--------------------------------\n` +
+                          `*Obs:* Vim pelo Chat do Site.`;
+            
+            const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
+
+            // 5. Injeta a Mensagem no Chat com Ação
+            // Pequeno delay para parecer natural após o clique no botão calcular
+            setTimeout(() => {
+                addMsg('bot', msg, [], null, [
+                    { label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }
+                ], true);
+            }, 500);
+        }
+    };
+
+})();
