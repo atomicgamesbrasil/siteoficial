@@ -1,13 +1,13 @@
-// === CHATBOT 3.5 (NUCLEAR FIX) ===
-// Runs in the BROWSER. UI Logic only.
+// === CHATBOT 3.6 (ORIGINAL PHYSICS RESTORED) ===
+// Baseado na v2.1 Original - Ajustado para IDs atuais
 
 (function() {
-    console.log("Atomic Chat: Initializing...");
+    console.log("Atomic Chat: Loading Original Logic...");
 
     // --- CONFIGURATION ---
     const BACKEND_URL = 'https://atomic-thiago-backend.onrender.com/chat';
 
-    // --- DOM ELEMENTS ---
+    // --- DOM ELEMENTS (Mapeado para o index.html atual) ---
     const els = { 
         bubble: document.getElementById('chat-bubble'), 
         win: document.getElementById('chat-container'), 
@@ -21,46 +21,54 @@
 
     // Safety check
     if (!els.bubble || !els.win) {
-        console.error("Atomic Chat: Critical elements not found in HTML.");
+        console.error("Atomic Chat: UI elements missing.");
         return;
     }
 
-    // --- STORAGE HELPER (Prevents crashes in incognito/iframe) ---
-    const SafeStorage = {
-        getItem: (key) => {
-            try { return localStorage.getItem(key); } catch(e) { return null; }
-        },
-        setItem: (key, val) => {
-            try { localStorage.setItem(key, val); } catch(e) { }
-        }
-    };
-
     // --- STATE ---
-    let state = { isOpen: false, isDragging: false, dragStartTime: 0 };
-    let sessionId = SafeStorage.getItem('atomic_session_id') || 'sess_' + Date.now();
+    // Usando a estrutura exata da v2.1
+    let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
+    
+    // Armazenamento seguro (Try/Catch para evitar erros locais)
+    const getStorage = (k) => { try { return localStorage.getItem(k); } catch(e) { return null; } };
+    const setStorage = (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} };
 
-    // --- CORE ACTIONS ---
-    function setChatState(open) {
+    let sessionId = getStorage('atomic_session_id') || 'sess_' + Date.now();
+
+    // --- UI LOGIC (Original v2.1) ---
+    function updateChatUI(open) {
         state.isOpen = open;
-        if (open) {
+        
+        // Toggle classes
+        if(open) {
             els.win.classList.add('open');
             els.bubble.classList.add('open');
             els.badge.style.display = 'none';
-            // Animation reset
-            els.bubble.style.transform = 'scale(0)';
-            els.bubble.style.opacity = '0';
-            els.bubble.style.pointerEvents = 'none';
-            
-            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
-            scrollToBottom();
-            
-            // History State (Safe)
-            try { history.pushState({chat: true}, '', '#chat'); } catch(e) {}
         } else {
             els.win.classList.remove('open');
             els.bubble.classList.remove('open');
-            els.badge.style.display = 'flex';
+            els.badge.style.display = 'flex'; // Exibe o badge se tiver msg
+        }
+        
+        if (open) {
+            // Morph effect for mobile (Original v2.1 logic)
+            if(window.innerWidth <= 480) {
+                const rect = els.bubble.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                els.win.style.transformOrigin = "bottom right"; // Simplificado para garantir funcionamento
+            }
+
+            // Animation: Hide bubble
+            els.bubble.style.transform = 'scale(0)'; 
+            els.bubble.style.opacity = '0';
+            els.bubble.style.pointerEvents = 'none';
             
+            // Focus logic
+            if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
+            scrollToBottom();
+        } else {
+            // Animation: Show bubble
             els.bubble.style.transform = 'scale(1)';
             els.bubble.style.opacity = '1';
             els.bubble.style.pointerEvents = 'auto';
@@ -68,81 +76,101 @@
         }
     }
 
-    function toggleChat() { setChatState(!state.isOpen); }
-    
-    // Browser Back Button Handler
-    window.addEventListener('popstate', () => { if(state.isOpen) setChatState(false); });
+    // --- ACTIONS ---
+    function openChat() {
+        if(state.isOpen) return;
+        // Tenta usar History API, se falhar (local), ignora e abre igual
+        try { history.pushState({chat: true}, '', '#chat'); } catch(e) {}
+        updateChatUI(true);
+    }
+
+    function closeChat() {
+        if(!state.isOpen) return;
+        // Tenta voltar no history, se falhar, fecha manual
+        try { 
+            if(history.state && history.state.chat) history.back(); 
+            else updateChatUI(false);
+        } catch(e) {
+            updateChatUI(false);
+        }
+    }
+
+    function toggleChat() { state.isOpen ? closeChat() : openChat(); }
+
+    window.addEventListener('popstate', () => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- DRAG & CLICK LOGIC (REWRITTEN) ---
+    // --- DRAG PHYSICS (Cópia exata da v2.1 "Magnetic") ---
     if(els.bubble) {
-        let startX, startY, initialLeft, initialTop;
+        const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         
-        // 1. TOUCH START
+        // Touch Start
         els.bubble.addEventListener('touchstart', (e) => {
-            state.isDragging = false;
-            state.dragStartTime = Date.now();
             const t = e.touches[0];
-            startX = t.clientX; startY = t.clientY;
-            
+            state.startX = t.clientX; state.startY = t.clientY;
             const rect = els.bubble.getBoundingClientRect();
-            initialLeft = rect.left; initialTop = rect.top;
+            state.initialLeft = rect.left; state.initialTop = rect.top;
+            state.isDragging = false;
             
-            els.bubble.style.transition = 'none'; // Instant movement
+            els.bubble.style.transition = 'none'; // Remove animação para arrastar instantâneo
         }, { passive: true });
 
-        // 2. TOUCH MOVE
+        // Touch Move
         els.bubble.addEventListener('touchmove', (e) => {
             const t = e.touches[0];
-            const dx = t.clientX - startX;
-            const dy = t.clientY - startY;
+            const dx = t.clientX - state.startX;
+            const dy = t.clientY - state.startY;
             
-            // If moved more than 10px, treat as drag
-            if (Math.sqrt(dx*dx + dy*dy) > 10) {
-                state.isDragging = true;
-                e.preventDefault(); // Stop page scrolling
-                els.bubble.style.left = `${initialLeft + dx}px`;
-                els.bubble.style.top = `${initialTop + dy}px`;
+            // Sensibilidade de arrasto (10px)
+            if (Math.sqrt(dx*dx + dy*dy) > 10) state.isDragging = true;
+            
+            if (state.isDragging) { 
+                e.preventDefault(); // Evita scroll da tela
+                updatePos(state.initialLeft + dx, state.initialTop + dy); 
             }
         }, { passive: false });
 
-        // 3. TOUCH END (Handles Tap vs Drag Drop)
+        // Touch End
         els.bubble.addEventListener('touchend', (e) => {
-            els.bubble.style.transition = 'all 0.3s ease'; // Restore animation
+            els.bubble.style.transition = 'all 0.3s ease'; // Retorna animação suave
             
-            if (state.isDragging) {
-                // Snap Logic
-                const rect = els.bubble.getBoundingClientRect();
-                const snapX = (rect.left + rect.width/2) < window.innerWidth/2 ? 24 : window.innerWidth - rect.width - 24;
-                let snapY = Math.min(Math.max(rect.top, 24), window.innerHeight - 100);
-                els.bubble.style.left = `${snapX}px`;
-                els.bubble.style.top = `${snapY}px`;
-                
-                // Prevent click firing after drag
-                e.preventDefault();
-                e.stopPropagation();
+            if (!state.isDragging) {
+                // FOI UM CLIQUE (Toque rápido sem arrastar)
+                e.preventDefault(); 
+                els.bubble.style.transform = 'scale(1)'; 
+                toggleChat(); // Abre/Fecha
             } else {
-                // IT WAS A TAP! (Not a drag)
-                // If the tap was quick (< 200ms), open immediately
-                if (Date.now() - state.dragStartTime < 300) {
-                    e.preventDefault(); // Prevent phantom mouse clicks
-                    toggleChat();
-                }
+                // FOI UM ARRASTO (Soltou a bolha)
+                els.bubble.style.transform = 'scale(1)';
+                
+                // Lógica de "Imã" para colar na parede (v2.1)
+                const rect = els.bubble.getBoundingClientRect();
+                const midX = window.innerWidth / 2;
+                const snapX = (rect.left + rect.width/2) < midX ? 24 : window.innerWidth - rect.width - 24;
+                let snapY = rect.top;
+                
+                // Limites verticais
+                if(snapY < 24) snapY = 24;
+                if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
+                
+                updatePos(snapX, snapY);
             }
             state.isDragging = false;
         });
-
-        // 4. MOUSE CLICK (Desktop Backup)
-        els.bubble.addEventListener('click', (e) => {
-            // If touch handled it, ignore mouse click
-            if (state.isDragging) return;
-            toggleChat();
+        
+        // Mouse Click (Desktop)
+        els.bubble.addEventListener('click', (e) => { 
+            if(!state.isDragging) toggleChat(); 
         });
 
-        els.closeBtn.onclick = (e) => { e.stopPropagation(); setChatState(false); };
+        // Close Button
+        els.closeBtn.onclick = (e) => { 
+            e.stopPropagation(); 
+            closeChat(); 
+        };
     }
 
-    // --- MESSAGING LOGIC ---
+    // --- MESSAGING ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
         const frag = document.createDocumentFragment();
@@ -160,7 +188,8 @@
         const div = document.createElement('div'); 
         div.className = `message ${role}`;
         
-        div.innerHTML = role === 'bot' 
+        // Avatar HTML
+        const avatarHtml = role === 'bot' 
             ? `<div class="message-avatar">🎮</div>` 
             : `<div class="message-avatar">👤</div>`;
         
@@ -169,13 +198,13 @@
         
         if(content) bubble.appendChild(parseText(content));
         
-        // Render Products
+        // Products
         if(prods && prods.length > 0) {
             prods.forEach(p => {
                 const card = document.createElement('div'); card.className = 'product-card';
                 card.innerHTML = `
-                    <div class="product-info"><h4>${p.name}</h4><span>${p.id}</span></div>
-                    <div class="product-price">${p.price}</div>`;
+                    <div class="product-info"><h4>${p.name || p.nome}</h4><span>${p.id}</span></div>
+                    <div class="product-price">${p.price || p.preco}</div>`;
                 card.onclick = (e) => {
                     e.stopPropagation();
                     window.open(`https://wa.me/5521995969378?text=Tenho interesse em: ${p.name}`);
@@ -184,7 +213,7 @@
             });
         }
 
-        // Render Link
+        // Link Action
         if(link) {
            const btn = document.createElement('a'); 
            btn.href = link; btn.target = '_blank';
@@ -193,20 +222,26 @@
            bubble.appendChild(btn);
         }
 
-        // Render Local Actions
+        // Context Actions
         if(actions && actions.length > 0) {
             const actionContainer = document.createElement('div');
             Object.assign(actionContainer.style, { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' });
+            
             actions.forEach(act => {
                 const btn = document.createElement('button');
                 btn.className = 'quick-action-btn'; 
                 btn.style.width = '100%'; btn.style.textAlign = 'left';
                 btn.innerHTML = `${act.label} <i class="${act.icon || 'fas fa-arrow-right'}"></i>`;
+                
                 btn.onclick = () => {
-                    const target = document.getElementById(act.targetId);
-                    if(target) {
-                        if(window.innerWidth < 768) setChatState(false);
-                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if(act.targetId) {
+                        const target = document.getElementById(act.targetId);
+                        if(target) {
+                            if(window.innerWidth < 768) updateChatUI(false); // Fecha chat no mobile
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    } else if (act.url) {
+                         window.open(act.url, '_blank');
                     }
                 };
                 actionContainer.appendChild(btn);
@@ -215,16 +250,23 @@
         }
 
         contentDiv.appendChild(bubble);
-        if(role === 'bot') div.appendChild(contentDiv);
-        else div.insertBefore(contentDiv, div.firstChild); // Swap for user
+        
+        // Order based on role
+        if(role === 'bot') {
+            div.innerHTML = avatarHtml;
+            div.appendChild(contentDiv);
+        } else {
+            div.appendChild(contentDiv);
+            div.insertAdjacentHTML('beforeend', avatarHtml);
+        }
         
         els.msgs.appendChild(div); 
         scrollToBottom();
         
-        // Save to History
-        const hist = JSON.parse(SafeStorage.getItem('atomic_chat_history') || '[]');
+        // Save history safely
+        const hist = JSON.parse(getStorage('atomic_chat_history') || '[]');
         hist.push({ role, content, prods, link, actions });
-        SafeStorage.setItem('atomic_chat_history', JSON.stringify(hist));
+        setStorage('atomic_chat_history', JSON.stringify(hist));
     }
 
     function addTyping() {
@@ -254,7 +296,7 @@
             
             if(data.session_id) {
                 sessionId = data.session_id;
-                SafeStorage.setItem('atomic_session_id', sessionId);
+                setStorage('atomic_session_id', sessionId);
             }
             
             if(data.success !== false) {
@@ -262,10 +304,11 @@
             } else {
                  addMsg('bot', 'Tive um problema técnico. Pode tentar de novo?');
             }
+
         } catch(e) { 
             console.error(e);
             document.getElementById('typing')?.remove();
-            addMsg('bot', '⚠️ Sem conexão com a base. Verifique sua internet.'); 
+            addMsg('bot', '⚠️ Sem conexão. Verifique a internet.'); 
         }
     }
 
@@ -273,6 +316,7 @@
     els.form.addEventListener('submit', sendMessage);
     els.sendBtn.addEventListener('click', sendMessage);
     
+    // Quick Actions
     document.querySelectorAll('.quick-action-btn').forEach(btn => {
         if(btn.dataset.msg) {
             btn.addEventListener('click', () => {
@@ -283,14 +327,22 @@
     });
 
     // Load History
-    const savedHist = SafeStorage.getItem('atomic_chat_history');
+    const savedHist = getStorage('atomic_chat_history');
     if (savedHist) {
-        JSON.parse(savedHist).forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions));
+        try { JSON.parse(savedHist).forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions)); } catch(e){}
     } else {
         setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso ajudar com Peças, PC Gamer ou Manutenção?'), 1000);
     }
 
-    window.AtomicChat = { open: () => setChatState(true) };
-    console.log("Atomic Chat: Ready to rock.");
+    // --- GLOBAL API (Recreated from v2.1) ---
+    window.AtomicChat = {
+        open: function() { openChat(); },
+        openWithContext: function(message) {
+            openChat();
+            addMsg('bot', message, [], null, [{label: 'WhatsApp', url: 'https://wa.me/5521995969378', icon: 'fab fa-whatsapp'}]);
+        }
+    };
+    
+    console.log("Atomic Chat: Logic Restored.");
 
 })();
