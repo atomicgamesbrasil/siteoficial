@@ -1,15 +1,12 @@
-// === CHATBOT 2.3 (SYSTEM INJECTION & REPAIR FORCE) ===
+// === CHATBOT 3.0 (PURE UI - BRAINLESS FRONTEND) ===
 (function() {
-    // --- SECURITY HELPERS ---
-    function isSafeHttp(url) {
-        try { const u = new URL(url, location.href); return u.protocol === 'http:' || u.protocol === 'https:'; }
-        catch(e) { return false; }
-    }
+    // --- UI HELPERS ---
     function safeImageSrc(src) {
         try { const u = new URL(src, location.href); if (u.protocol === 'http:'||u.protocol==='https:') return u.href; } catch(e) {}
-        return 'https://placehold.co/100'; // Fallback seguro
+        return 'https://placehold.co/100'; 
     }
 
+    // ELEMENTOS DOM
     const els = { 
         bubble: document.getElementById('chatBubble'), 
         win: document.getElementById('chatWindow'), 
@@ -18,14 +15,13 @@
         badge: document.getElementById('chatBadge')
     };
     
-    // Check if chatbot elements exist (in case of partial page loads)
     if (!els.bubble || !els.win) return;
 
+    // ESTADO
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
-    let sessionId = localStorage.getItem('chat_sess_id');
-    let msgHistory = []; // Local history storage
+    let sessionId = localStorage.getItem('chat_sess_id') || 'sess_' + Date.now();
 
-    // --- UI LOGIC ---
+    // --- LÓGICA DE UI (ABRIR/FECHAR) ---
     function updateChatUI(open) {
         state.isOpen = open;
         els.win.classList.toggle('open', open);
@@ -33,18 +29,14 @@
         document.body.classList.toggle('chat-open', open);
         
         if (open) {
-            // Morph effect for mobile
+            // Efeito Morph para Mobile
             if(window.innerWidth <= 480) {
                 const rect = els.bubble.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                els.win.style.transformOrigin = `${centerX}px ${centerY}px`;
+                els.win.style.transformOrigin = `${rect.left + rect.width/2}px ${rect.top + rect.height/2}px`;
             }
-
             els.bubble.style.transform = 'scale(0)'; 
             els.bubble.style.opacity = '0';
             els.bubble.style.pointerEvents = 'none';
-            
             if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
             scrollToBottom();
         } else {
@@ -55,25 +47,14 @@
         }
     }
 
-    // --- HISTORY API ---
-    function openChat() {
-        if(state.isOpen) return;
-        history.pushState({chat: true}, '', '#chat'); 
-        updateChatUI(true);
-    }
+    function toggleChat() { state.isOpen ? closeChat() : openChat(); }
+    function openChat() { if(!state.isOpen) { history.pushState({chat: true}, '', '#chat'); updateChatUI(true); } }
+    function closeChat() { if(state.isOpen) history.back(); }
 
-    function closeChat() {
-        if(!state.isOpen) return;
-        history.back(); 
-    }
-
-    window.addEventListener('popstate', (e) => {
-        if(state.isOpen) updateChatUI(false);
-    });
-
+    window.addEventListener('popstate', () => { if(state.isOpen) updateChatUI(false); });
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- DRAG PHYSICS ---
+    // --- FÍSICA DE ARRASTAR (DRAG & DROP) ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         
@@ -83,11 +64,7 @@
             const rect = els.bubble.getBoundingClientRect();
             state.initialLeft = rect.left; state.initialTop = rect.top;
             state.isDragging = false;
-            
             els.bubble.classList.add('no-transition');
-            els.bubble.classList.remove('snapping');
-            els.bubble.style.transform = 'scale(0.95)';
-            els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
             updatePos(rect.left, rect.top);
         }, { passive: true });
 
@@ -95,54 +72,32 @@
             const t = e.touches[0];
             const dx = t.clientX - state.startX;
             const dy = t.clientY - state.startY;
-            if (Math.sqrt(dx*dx + dy*dy) > 15) state.isDragging = true;
+            if (Math.sqrt(dx*dx + dy*dy) > 10) state.isDragging = true;
             if (state.isDragging) { e.preventDefault(); updatePos(state.initialLeft + dx, state.initialTop + dy); }
         }, { passive: false });
 
         els.bubble.addEventListener('touchend', (e) => {
             els.bubble.classList.remove('no-transition');
             if (!state.isDragging) {
-                e.preventDefault(); els.bubble.style.transform = 'scale(1)'; openChat(); 
+                e.preventDefault(); openChat(); 
             } else {
-                els.bubble.style.transform = 'scale(1)';
-                els.bubble.classList.add('snapping');
+                // Snap to edge logic
                 const rect = els.bubble.getBoundingClientRect();
-                const midX = window.innerWidth / 2;
-                const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
-                let snapY = rect.top;
-                if(snapY < 20) snapY = 20;
-                if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
+                const snapX = (rect.left + rect.width/2) < window.innerWidth/2 ? 20 : window.innerWidth - rect.width - 20;
+                let snapY = Math.min(Math.max(rect.top, 20), window.innerHeight - 100);
                 updatePos(snapX, snapY);
             }
             state.isDragging = false;
         });
         
-        els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
+        els.bubble.addEventListener('click', (e) => { if(!state.isDragging) toggleChat(); });
         document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
-        
-        // --- CHAT RESET LOGIC ---
-        const resetBtn = document.getElementById('resetChatBtn');
-        if(resetBtn) {
-            resetBtn.onclick = (e) => {
-                e.stopPropagation();
-                if(confirm('Tem certeza que deseja limpar o histórico da conversa?')) {
-                    localStorage.removeItem('atomic_chat_history');
-                    localStorage.removeItem('chat_sess_id');
-                    msgHistory = [];
-                    els.msgs.innerHTML = '';
-                    sessionId = null;
-                    
-                    setTimeout(() => {
-                        addMsg('bot', 'Histórico limpo! Como posso ajudar agora?', [], null, [], false);
-                    }, 200);
-                }
-            };
-        }
     }
 
-    // --- MESSAGING LOGIC ---
+    // --- RENDERIZAÇÃO DE MENSAGENS ---
     function parseText(text) {
         if(!text) return document.createTextNode("");
+        // Simples parser de Markdown (**negrito**)
         const frag = document.createDocumentFragment();
         text.split('\n').forEach((line, i) => {
             if(i>0) frag.appendChild(document.createElement('br'));
@@ -154,111 +109,82 @@
         return frag;
     }
 
-    function addMsg(role, content, prods, link, actions = [], save = true) {
+    function addMsg(role, content, prods = [], link = null, actions = []) {
         const div = document.createElement('div'); div.className = `message ${role}`;
         const bubble = document.createElement('div'); bubble.className = 'message-bubble';
         
         if(content) bubble.appendChild(parseText(content));
         
-        // --- PRODUTOS (VITRINE NO CHAT) - HARDENED ---
-        if(prods?.length) {
+        // Renderiza Vitrine de Produtos (se houver)
+        if(prods && prods.length > 0) {
             const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
                 const card = document.createElement('div'); card.className = 'chat-product-card';
-                
-                // Create Image
-                const img = document.createElement('img');
-                img.src = safeImageSrc(p.image || p.imagem);
-                img.loading = 'lazy';
-                
-                // Create Title
-                const title = document.createElement('div');
-                title.className = 'chat-product-title';
-                title.textContent = p.name || p.nome;
-                
-                // Create Price
-                const price = document.createElement('div');
-                price.className = 'chat-product-price';
-                price.textContent = p.price || p.preco;
-                
-                // Create Button
-                const btn = document.createElement('button'); 
-                btn.className = 'chat-add-btn'; 
-                btn.textContent = 'VER DETALHES';
-                
-                // CORREÇÃO CRÍTICA DE UX MOBILE
+                card.innerHTML = `
+                    <img src="${safeImageSrc(p.image)}" loading="lazy" />
+                    <div class="chat-product-title">${p.name}</div>
+                    <div class="chat-product-price">${p.price}</div>
+                    <button class="chat-add-btn">VER DETALHES</button>
+                `;
+                // Handler de clique no produto
+                const btn = card.querySelector('button');
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    const prodId = p.id; 
-                    
-                    if (window.showProductDetail && prodId) {
-                        // Se estiver no mobile, fecha o chat para mostrar o modal
-                        if(window.innerWidth <= 768) {
-                            updateChatUI(false); 
-                        }
-                        window.showProductDetail(prodId);
+                    if(window.showProductDetail) {
+                        if(window.innerWidth <= 768) updateChatUI(false);
+                        window.showProductDetail(p.id);
                     } else {
-                        window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
+                        window.open(`https://wa.me/5521995969378?text=Tenho interesse em: ${p.name}`);
                     }
                 };
-                
-                card.appendChild(img);
-                card.appendChild(title);
-                card.appendChild(price);
-                card.appendChild(btn);
                 scroll.appendChild(card);
             });
             bubble.appendChild(scroll);
         }
 
-        // --- LINKS DE AÇÃO (Botão Verde Padrão) ---
-        if(link && isSafeHttp(link)) {
-           const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
+        // Renderiza Botão de Ação Principal
+        if(link) {
+           const btn = document.createElement('a'); 
+           btn.href = link; btn.target = '_blank';
            btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
-           btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
+           btn.textContent = 'NEGOCIAR AGORA'; 
+           bubble.appendChild(btn);
         }
 
-        // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
-        if (actions && actions.length > 0) {
+        // Renderiza Ações de Contexto (Scroll/Navegação)
+        if(actions && actions.length > 0) {
             const actionContainer = document.createElement('div');
             actionContainer.className = 'mt-3 flex flex-col gap-2';
             actions.forEach(act => {
-                const actBtn = document.createElement('button');
-                actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
-                
-                const span = document.createElement('span');
-                span.textContent = act.label;
-                const icon = document.createElement('i');
-                const iconClass = (act.icon && act.icon.match(/^ph-[a-z-]+$/)) ? act.icon : 'ph-question';
-                icon.className = `ph-bold ${iconClass}`;
-                
-                actBtn.appendChild(span);
-                actBtn.appendChild(icon);
-                
-                // Suporte a URL direta ou Target ID
-                actBtn.onclick = () => {
-                    if (act.targetId) {
+                const btn = document.createElement('button');
+                btn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
+                btn.innerHTML = `<span>${act.label}</span><i class="ph-bold ${act.icon || 'ph-arrow-right'}"></i>`;
+                btn.onclick = () => {
+                    if(act.targetId) {
                         const target = document.getElementById(act.targetId);
                         if(target) {
                             if(window.innerWidth < 768) updateChatUI(false);
                             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
-                    } else if (act.url && isSafeHttp(act.url)) {
+                    } else if(act.url) {
                         window.open(act.url, '_blank');
                     }
                 };
-                actionContainer.appendChild(actBtn);
+                actionContainer.appendChild(btn);
             });
             bubble.appendChild(actionContainer);
         }
 
         div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
+        
+        // Salva histórico local
+        saveHistory({ role, content, prods, link, actions });
+    }
 
-        // FIX: Salvamento inline para evitar ReferenceError de função não definida
-        if (save) {
-            msgHistory.push({ role, content, prods, link, actions });
-            localStorage.setItem('atomic_chat_history', JSON.stringify(msgHistory));
-        }
+    function saveHistory(msg) {
+        let history = JSON.parse(localStorage.getItem('atomic_chat_history') || '[]');
+        history.push(msg);
+        localStorage.setItem('atomic_chat_history', JSON.stringify(history));
     }
 
     function addTyping() {
@@ -267,116 +193,8 @@
         els.msgs.appendChild(div); scrollToBottom();
     }
 
-    // ============================================================================
-    // [CÉREBRO] ATOMIC BRAIN - CAMADA DE INTERPRETAÇÃO SEMÂNTICA
-    // ============================================================================
-    const AtomicBrain = {
-        personas: {
-            enthusiast: {
-                id: 'entusiasta_competitivo',
-                keywords: ['overclock', 'vrm', 'latência', 'cas', 'gargalo', 'fps', 'benchmark', 'water cooler', 'rtx', 'dlss', 'hz', 'ms', 'temperatura', 'bottleneck'],
-                instruction: 'Detected_Enthusiast: Responda com tecnicalidade, direto ao ponto. Sem analogias simples. Fale de performance bruta.'
-            },
-            remote_worker: {
-                id: 'profissional_remoto',
-                keywords: ['teams', 'zoom', 'travando', 'lento', 'trabalho', 'reunião', 'estabilidade', 'ssd', 'office', 'planilha', 'excel', 'meet', 'home office'],
-                instruction: 'Detected_RemoteWorker: Foco em "Time is Money". Soluções para estabilidade/boot rápido. Sugira SSD como "ressuscitador".'
-            },
-            layman: {
-                id: 'comprador_leigo',
-                keywords: ['filho', 'criança', 'barato', 'não entendo', 'presente', 'roda tudo', 'básico', 'escola', 'estudar', 'jogar roblox', 'minecraft', 'ajuda'],
-                instruction: 'Detected_Layman: ATIVAR MOTOR DE ANALOGIAS. (Ex: CPU=Chef, RAM=Mesa). Seja educativo, protetor e evite jargões.'
-            }
-        },
-        guardrails: {
-            data_recovery: {
-                trigger: ['recuperar', 'arquivos', 'perdi', 'hd', 'formatou', 'salvar fotos'],
-                alert: 'LEGAL_WARNING: Nunca prometer 100% de recuperação de dados. Mencionar "Tentativa de recuperação".'
-            },
-            pricing: {
-                trigger: ['preço', 'valor', 'quanto', 'custa', 'orçamento'],
-                alert: 'PRICING_RULE: Informe que valores são estimativas sujeitas a avaliação técnica presencial.'
-            },
-            // REGRA NOVA: FORÇA A DISPONIBILIDADE DE SERVIÇOS
-            // Expanded triggers to catch symptoms reported by user (noise, freezing, shutting down)
-            service_availability: {
-                trigger: [
-                    'consertar', 'manutenção', 'reparo', 'arrumar', 'técnico', 'assistência', 
-                    'trocar peça', 'não liga', 'queimou', 'analise', 'diagnostico',
-                    'congelando', 'travando', 'desligando', 'barulho', 'aquecendo', 'tela azul'
-                ],
-                alert: 'SYSTEM_FORCE_OVERRIDE' // Used as flag in send()
-            }
-        },
-        analyze: function(text) {
-            const lowerText = text.toLowerCase();
-            let detectedPersona = 'padrao_generico'; // Default
-            let systemNotes = [];
-            let highestScore = 0;
-
-            for (const [key, profile] of Object.entries(this.personas)) {
-                let score = 0;
-                profile.keywords.forEach(word => {
-                    if (lowerText.includes(word)) score++;
-                });
-                
-                if (score > highestScore) {
-                    highestScore = score;
-                    detectedPersona = profile.id;
-                    if (score >= 1) systemNotes = [profile.instruction]; 
-                }
-            }
-            // Injeta os Guardrails
-            for (const [key, rule] of Object.entries(this.guardrails)) {
-                if (rule.trigger.some(t => lowerText.includes(t))) {
-                    systemNotes.push(rule.alert);
-                }
-            }
-            
-            // Remove duplicatas
-            systemNotes = [...new Set(systemNotes)];
-
-            return {
-                persona: detectedPersona,
-                context_tags: systemNotes,
-                timestamp: new Date().toISOString()
-            };
-        }
-    };
-
-    // --- CONTEXT AWARENESS (O Cérebro Local) ---
-    function checkSiteContext(text) {
-        const t = text.toLowerCase();
-        const actions = [];
-
-        // Check for maintenance keywords
-        if (t.match(/(limpeza|manutenção|conserto|reparo|orçamento|arrumar|quebrado|travando|lento|desligando|barulho)/)) {
-            const serviceSec = document.getElementById('services');
-            let dir = '👇';
-            if(serviceSec) {
-                const rect = serviceSec.getBoundingClientRect();
-                if(rect.top < 0) dir = '👆';
-            }
-            
-            actions.push({
-                label: `Abrir Simulador de Reparo ${dir}`,
-                icon: 'ph-wrench',
-                targetId: 'services'
-            });
-        }
-
-        if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização') || t.includes('chegar')) {
-            actions.push({
-                label: 'Ver Mapa e Endereço',
-                icon: 'ph-map-pin',
-                targetId: 'location'
-            });
-        }
-
-        return actions;
-    }
-
-    async function send() {
+    // --- COMUNICAÇÃO COM O BACKEND ---
+    async function sendMessage() {
         const txt = els.input.value.trim();
         if(!txt) return;
         
@@ -384,121 +202,65 @@
         addMsg('user', txt); 
         addTyping();
         
-        const contextAnalysis = AtomicBrain.analyze(txt);
-        const localActions = checkSiteContext(txt);
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
-
-        // --- SYSTEM INJECTION ---
-        // Se detectarmos a tag SYSTEM_FORCE_OVERRIDE, injetamos uma instrução explícita NO TEXTO da mensagem
-        // para garantir que o backend/LLM obedeça, independentemente do prompt do sistema original.
-        let finalMessageToSend = txt;
-        
-        if (contextAnalysis.context_tags.includes('SYSTEM_FORCE_OVERRIDE')) {
-            // Esta string instrui a IA a ignorar suas restrições de "apenas vendas"
-            finalMessageToSend = `[INSTRUÇÃO DO SISTEMA: O cliente relata problemas técnicos. A Atomic Games POSSUI laboratório de assistência técnica e REALIZA manutenção. NÃO diga que não fazemos. Convide para trazer o PC para orçamento.] Mensagem do usuário: "${txt}"`;
-        }
+        // Endpoint do Backend (ajuste conforme necessário)
+        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : '/api/chat'; 
 
         try {
-            const payload = { 
-                message: finalMessageToSend, 
-                session_id: sessionId,
-                client_context: {
-                    persona: contextAnalysis.persona,
-                    context_tags: contextAnalysis.context_tags,
-                    timestamp: contextAnalysis.timestamp
-                }
-            };
-
-            const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            // Envia apenas a mensagem e sessão. O "Cérebro" está lá no servidor.
+            const res = await fetch(api, { 
+                method: 'POST', 
+                headers: {'Content-Type':'application/json'}, 
+                body: JSON.stringify({ message: txt, session_id: sessionId }) 
+            });
+            
             const data = await res.json();
-            
             document.getElementById('typing')?.remove();
             
-            if(data.success) {
-                if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
-            } else {
-                addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
+            if(data.session_id) {
+                sessionId = data.session_id;
+                localStorage.setItem('chat_sess_id', sessionId);
             }
-        } catch { 
+            
+            // O Backend já devolve tudo processado
+            addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, data.local_actions);
+
+        } catch(e) { 
+            console.error(e);
             document.getElementById('typing')?.remove();
-            addMsg('bot', 'Sem conexão com a internet.', [], null, localActions); 
+            addMsg('bot', 'Estou sem sinal com a base. Verifique sua internet.'); 
         }
     }
 
-    document.getElementById('sendBtn').onclick = send;
+    // EVENTOS
+    document.getElementById('sendBtn').onclick = sendMessage;
+    els.input.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendMessage(); });
     
-    els.input.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') send();
-        e.stopPropagation(); 
-    });
-    
-    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
-        els.input.addEventListener(evt, (e) => {
-            e.stopPropagation();
-            if (evt === 'mousedown') els.input.focus();
-        });
-    });
-
-    // LOAD HISTORY
+    // CARREGA HISTÓRICO
     try {
         const savedHist = localStorage.getItem('atomic_chat_history');
         if (savedHist) {
-            msgHistory = JSON.parse(savedHist);
-            msgHistory.forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions, false));
+            JSON.parse(savedHist).forEach(m => addMsg(m.role, m.content, m.prods, m.link, m.actions));
         } else {
-            setTimeout(() => addMsg('bot', 'E aí! 👋 Sou o **Thiago**, especialista da Atomic Games.\nPosso te ajudar a montar um PC, escolher um console ou fazer um orçamento de manutenção?'), 1000);
+            setTimeout(() => addMsg('bot', 'Fala Gamer! 👋 Sou o **Thiago**, da Atomic Games.\nPosso ajudar com Peças, PC Gamer ou Manutenção?'), 1000);
         }
-    } catch(e) { console.error("History load error", e); }
+    } catch(e) {}
 
-    setTimeout(() => {
-        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
-        const baseUrl = api.replace('/chat', ''); 
-        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
-    }, 1500);
+    // RESET CHAT
+    const resetBtn = document.getElementById('resetChatBtn');
+    if(resetBtn) resetBtn.onclick = (e) => {
+        e.stopPropagation();
+        if(confirm('Limpar histórico?')) {
+            localStorage.removeItem('atomic_chat_history');
+            els.msgs.innerHTML = '';
+            setTimeout(() => addMsg('bot', 'Histórico limpo! Manda ver.'), 200);
+        }
+    };
 
-    // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO FASE 5) ===
+    // HOOK GLOBAL (Para o botão "Orçamento" do site chamar o chat)
     window.AtomicChat = {
-        processBudget: function(context) {
-            if (!context || context.status !== 'completed') return;
-
-            if (!state.isOpen) openChat();
-
-            const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            
-            let finalServiceName = context.service.name;
-            let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
-
-            if (context.service.customDescription) {
-                finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
-                finalPriceStr = "Sob Análise Técnica";
-            }
-
-            const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
-                        `Recebi sua estimativa para o **${context.device.modelLabel}**.\n\n` +
-                        `🔧 Serviço: ${finalServiceName}\n` +
-                        `💰 Estimativa: **${finalPriceStr}**\n` +
-                        `📍 Logística: ${context.logistics.label}\n\n` +
-                        `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
-
-            const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
-                          `👤 *${context.customer.name}*\n` +
-                          `📱 ${context.customer.phone}\n` +
-                          `--------------------------------\n` +
-                          `🎮 *Aparelho:* ${context.device.modelLabel}\n` +
-                          `🛠️ *Serviço:* ${finalServiceName}\n` +
-                          `📍 *Logística:* ${context.logistics.label}\n` +
-                          `💰 *Estimativa:* ${finalPriceStr}\n` +
-                          `--------------------------------\n` +
-                          `*Obs:* Vim pelo Chat do Site.`;
-            
-            const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
-
-            setTimeout(() => {
-                addMsg('bot', msg, [], null, [
-                    { label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }
-                ], true);
-            }, 500);
+        openWithContext: function(message) {
+            if(!state.isOpen) openChat();
+            addMsg('bot', message, [], null, [{label: 'Ir para WhatsApp', url: 'https://wa.me/5521995969378', icon: 'ph-whatsapp-logo'}]);
         }
     };
 
