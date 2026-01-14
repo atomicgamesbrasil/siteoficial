@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v3.8.0 (Aesthetic Polish) Initializing...');
+    console.log('Atomic Chatbot v4.0.0 (Atomic Gold Theme) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -10,23 +10,28 @@
         const styleId = 'atomic-chat-styles';
         if (document.getElementById(styleId)) return;
 
+        // PALETA ATOMIC:
+        // Amarelo Principal: #ffc107 (Amber)
+        // Fundo Dark: #09090b
+        // Fundo Card: #18181b
+        
         const css = `
             /* --- JANELA PRINCIPAL --- */
             #chatWindow, #atomic-chat-window, .chat-window {
-                background-color: #121214 !important; /* Dark Background */
+                background-color: #09090b !important; /* Ultra Dark */
                 border: 1px solid #333 !important;
-                box-shadow: 0 12px 40px rgba(0,0,0,0.7) !important;
-                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-                border-radius: 12px !important;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.8) !important;
+                font-family: 'Segoe UI', Roboto, sans-serif !important;
+                border-radius: 16px !important;
                 overflow: hidden !important;
             }
 
-            /* --- HEADER (Correção do Amarelo) --- */
+            /* --- HEADER (Dark com detalhe Amarelo Sutil) --- */
             .chat-header, #chatWindow header {
-                background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%) !important;
-                border-bottom: 2px solid #ff3e3e !important; /* Vermelho Atomic */
+                background: #18181b !important; /* Zinco Escuro */
+                border-bottom: 2px solid #ffc107 !important; /* Linha Amarela Atomic */
                 color: #ffffff !important;
-                padding: 15px !important;
+                padding: 16px 20px !important;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -36,109 +41,149 @@
                 font-weight: 700 !important;
                 letter-spacing: 0.5px !important;
                 margin: 0 !important;
-                text-transform: uppercase !important;
-                font-size: 16px !important;
+                font-size: 15px !important;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                text-transform: uppercase;
             }
-            .chat-header button, .chat-header i {
-                color: #e0e0e0 !important;
-                opacity: 0.8;
-                transition: opacity 0.2s;
+            /* Ícone ou Avatar no Header */
+            .chat-header h3::before {
+                content: '';
+                display: block;
+                width: 10px;
+                height: 10px;
+                background-color: #ffc107; /* Amarelo Status */
+                border-radius: 50%;
+                box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
             }
-            .chat-header button:hover { opacity: 1; color: #ff3e3e !important; }
+
+            .chat-header button {
+                color: #a1a1aa !important;
+                background: none !important;
+                border: none !important;
+                cursor: pointer;
+                transition: color 0.2s;
+            }
+            .chat-header button:hover { color: #ffc107 !important; }
 
             /* --- ÁREA DE MENSAGENS --- */
             #chatMessages, .chat-body {
-                background-color: #121214 !important;
-                scrollbar-width: thin;
-                scrollbar-color: #333 #121214;
+                background-color: #09090b !important;
+                padding: 20px !important;
             }
             
             /* --- BALÕES DE MENSAGEM --- */
             .atomic-msg-bubble {
-                padding: 12px 16px !important;
+                padding: 12px 18px !important;
                 font-size: 14px !important;
                 line-height: 1.5 !important;
                 max-width: 85% !important;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
             }
             
-            /* BOT (Thiago) */
+            /* BOT (Thiago) - Discreto */
             .atomic-msg-bubble.bot {
-                background-color: #2a2a2e !important; /* Cinza Escuro */
-                color: #e0e0e0 !important;
-                border: 1px solid #3d3d3d !important;
-                border-radius: 12px 12px 12px 2px !important;
+                background-color: #18181b !important; /* Zinco */
+                color: #e4e4e7 !important; /* Texto claro */
+                border: 1px solid #27272a !important;
+                border-radius: 16px 16px 16px 4px !important;
             }
 
-            /* USER (Cliente) */
+            /* USER (Cliente) - DESTAQUE AMARELO (Identidade da Loja) */
             .atomic-msg-bubble.user {
-                background-color: #ff3e3e !important; /* Vermelho Atomic */
-                color: #ffffff !important;
-                border-radius: 12px 12px 2px 12px !important;
-                font-weight: 500 !important;
+                background-color: #ffc107 !important; /* Amarelo Atomic */
+                color: #000000 !important; /* Texto Preto para Contraste */
+                border-radius: 16px 16px 4px 16px !important;
+                font-weight: 600 !important;
+                border: none !important;
             }
 
             /* --- INPUT AREA --- */
             .chat-footer, #chatWindow footer {
-                background-color: #1a1a1a !important;
-                border-top: 1px solid #333 !important;
-                padding: 10px !important;
+                background-color: #09090b !important;
+                border-top: 1px solid #27272a !important;
+                padding: 15px !important;
+                position: relative;
             }
             #chatInput, .chat-footer input {
-                background: #0f0f10 !important;
+                background: #18181b !important;
                 border: 1px solid #333 !important;
                 color: #fff !important;
-                border-radius: 20px !important;
-                padding: 10px 15px !important;
+                border-radius: 8px !important;
+                padding: 12px 15px !important;
+                font-size: 14px !important;
+                width: 100%;
+                box-sizing: border-box;
+                transition: border-color 0.2s;
             }
             #chatInput:focus {
-                border-color: #ff3e3e !important;
+                border-color: #ffc107 !important; /* Foco Amarelo */
                 outline: none !important;
             }
+            
+            /* Botão de Enviar */
             #sendBtn, .chat-send-btn {
+                position: absolute;
+                right: 25px;
+                top: 50%;
+                transform: translateY(-50%);
                 background: transparent !important;
-                color: #ff3e3e !important; /* Ícone Vermelho */
+                color: #ffc107 !important; /* Ícone Amarelo */
                 font-weight: bold !important;
+                border: none !important;
+                cursor: pointer;
             }
 
             /* --- CARDS DE PRODUTO --- */
             .chat-product-card {
                 background: #18181b !important;
                 border: 1px solid #333 !important;
-                border-left: 3px solid #ff3e3e !important;
-                border-radius: 6px !important;
-                margin-top: 8px !important;
-                padding: 10px !important;
+                border-radius: 8px !important;
+                margin-top: 10px !important;
+                padding: 12px !important;
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                border-left: 3px solid #ffc107 !important; /* Detalhe Amarelo */
             }
             .chat-product-title {
                 color: #fff !important;
-                font-weight: bold;
+                font-weight: 600;
                 font-size: 13px;
             }
             .chat-product-price {
-                color: #00ff88 !important; /* Verde Preço */
+                color: #ffc107 !important; /* Preço Amarelo */
                 font-weight: bold;
-                margin: 4px 0;
+                font-size: 14px;
             }
             .chat-add-btn, .atomic-action-btn {
-                background: #333 !important;
-                color: #fff !important;
-                border: none !important;
-                border-radius: 4px !important;
-                padding: 6px 12px !important;
+                background: transparent !important;
+                color: #ffc107 !important;
+                border: 1px solid #ffc107 !important;
+                border-radius: 6px !important;
+                padding: 8px 14px !important;
                 font-size: 12px !important;
                 cursor: pointer !important;
-                transition: background 0.2s;
-                margin-top: 5px;
+                transition: all 0.2s;
+                margin-top: 6px;
+                text-transform: uppercase;
+                font-weight: 700;
             }
             .chat-add-btn:hover, .atomic-action-btn:hover {
-                background: #ff3e3e !important;
+                background: #ffc107 !important;
+                color: #000 !important;
             }
 
             /* --- BUBBLE FLUTUANTE --- */
             #chatBubble, #atomic-chat-trigger {
-                background-color: #ff3e3e !important;
-                box-shadow: 0 4px 20px rgba(255, 62, 62, 0.4) !important;
+                background-color: #ffc107 !important; /* Amarelo Atomic */
+                box-shadow: 0 0 20px rgba(255, 193, 7, 0.4) !important;
+                color: #000 !important;
+            }
+            #chatBubble svg, #chatBubble i {
+                fill: #000 !important;
+                color: #000 !important;
             }
         `;
 
@@ -396,8 +441,9 @@
 
     function checkEmptyState() {
         if(els.msgs.children.length === 0) {
-            const msg = "Fala aí! Sou o Thiago da Atomic. Posso ajudar com Preços, Consertos ou Endereço?";
-            renderMessage('bot', msg, [], [{label:'Ver Endereço', type:'OPEN_MAP'}]);
+            // MENSAGEM CORRIGIDA: Sem botão de endereço e texto convidativo.
+            const msg = "Fala aí! Sou o Thiago da Atomic. Tô na área pra falar de Games, Consoles e PC. No que posso ajudar?";
+            renderMessage('bot', msg, [], []);
         }
     }
 
