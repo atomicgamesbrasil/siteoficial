@@ -1,14 +1,159 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v3.7.1 (Production Gold) Initializing...');
+    console.log('Atomic Chatbot v3.8.0 (Aesthetic Polish) Initializing...');
 
     // ==========================================================================
-    // 0. TEST ENVIRONMENT MOCKS
+    // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
+    // ==========================================================================
+    function injectAtomicStyles() {
+        const styleId = 'atomic-chat-styles';
+        if (document.getElementById(styleId)) return;
+
+        const css = `
+            /* --- JANELA PRINCIPAL --- */
+            #chatWindow, #atomic-chat-window, .chat-window {
+                background-color: #121214 !important; /* Dark Background */
+                border: 1px solid #333 !important;
+                box-shadow: 0 12px 40px rgba(0,0,0,0.7) !important;
+                font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+
+            /* --- HEADER (Correção do Amarelo) --- */
+            .chat-header, #chatWindow header {
+                background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%) !important;
+                border-bottom: 2px solid #ff3e3e !important; /* Vermelho Atomic */
+                color: #ffffff !important;
+                padding: 15px !important;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .chat-header h3, .chat-header h4, .chat-title {
+                color: #ffffff !important;
+                font-weight: 700 !important;
+                letter-spacing: 0.5px !important;
+                margin: 0 !important;
+                text-transform: uppercase !important;
+                font-size: 16px !important;
+            }
+            .chat-header button, .chat-header i {
+                color: #e0e0e0 !important;
+                opacity: 0.8;
+                transition: opacity 0.2s;
+            }
+            .chat-header button:hover { opacity: 1; color: #ff3e3e !important; }
+
+            /* --- ÁREA DE MENSAGENS --- */
+            #chatMessages, .chat-body {
+                background-color: #121214 !important;
+                scrollbar-width: thin;
+                scrollbar-color: #333 #121214;
+            }
+            
+            /* --- BALÕES DE MENSAGEM --- */
+            .atomic-msg-bubble {
+                padding: 12px 16px !important;
+                font-size: 14px !important;
+                line-height: 1.5 !important;
+                max-width: 85% !important;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            }
+            
+            /* BOT (Thiago) */
+            .atomic-msg-bubble.bot {
+                background-color: #2a2a2e !important; /* Cinza Escuro */
+                color: #e0e0e0 !important;
+                border: 1px solid #3d3d3d !important;
+                border-radius: 12px 12px 12px 2px !important;
+            }
+
+            /* USER (Cliente) */
+            .atomic-msg-bubble.user {
+                background-color: #ff3e3e !important; /* Vermelho Atomic */
+                color: #ffffff !important;
+                border-radius: 12px 12px 2px 12px !important;
+                font-weight: 500 !important;
+            }
+
+            /* --- INPUT AREA --- */
+            .chat-footer, #chatWindow footer {
+                background-color: #1a1a1a !important;
+                border-top: 1px solid #333 !important;
+                padding: 10px !important;
+            }
+            #chatInput, .chat-footer input {
+                background: #0f0f10 !important;
+                border: 1px solid #333 !important;
+                color: #fff !important;
+                border-radius: 20px !important;
+                padding: 10px 15px !important;
+            }
+            #chatInput:focus {
+                border-color: #ff3e3e !important;
+                outline: none !important;
+            }
+            #sendBtn, .chat-send-btn {
+                background: transparent !important;
+                color: #ff3e3e !important; /* Ícone Vermelho */
+                font-weight: bold !important;
+            }
+
+            /* --- CARDS DE PRODUTO --- */
+            .chat-product-card {
+                background: #18181b !important;
+                border: 1px solid #333 !important;
+                border-left: 3px solid #ff3e3e !important;
+                border-radius: 6px !important;
+                margin-top: 8px !important;
+                padding: 10px !important;
+            }
+            .chat-product-title {
+                color: #fff !important;
+                font-weight: bold;
+                font-size: 13px;
+            }
+            .chat-product-price {
+                color: #00ff88 !important; /* Verde Preço */
+                font-weight: bold;
+                margin: 4px 0;
+            }
+            .chat-add-btn, .atomic-action-btn {
+                background: #333 !important;
+                color: #fff !important;
+                border: none !important;
+                border-radius: 4px !important;
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+                cursor: pointer !important;
+                transition: background 0.2s;
+                margin-top: 5px;
+            }
+            .chat-add-btn:hover, .atomic-action-btn:hover {
+                background: #ff3e3e !important;
+            }
+
+            /* --- BUBBLE FLUTUANTE --- */
+            #chatBubble, #atomic-chat-trigger {
+                background-color: #ff3e3e !important;
+                box-shadow: 0 4px 20px rgba(255, 62, 62, 0.4) !important;
+            }
+        `;
+
+        const styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        styleEl.innerHTML = css;
+        document.head.appendChild(styleEl);
+    }
+
+    injectAtomicStyles();
+
+    // ==========================================================================
+    // 0.1 TEST ENVIRONMENT MOCKS
     // ==========================================================================
     function setupTestEnvironment() {
-        // Funções globais que o site original possui. 
-        // Se não existirem (ex: rodando isolado), criamos mocks para não quebrar o JS.
         if (typeof window.showProductDetail !== 'function') {
             window.showProductDetail = (id) => console.log(`[Atomic Mock] Open Product: ${id}`);
         }
@@ -32,7 +177,6 @@
         badge: getEl('chatBadge'), 
         sendBtn: getEl('sendBtn') || getEl('atomic-chat-send'),
         
-        // ROBUST HEADER SELECTOR: Tenta classe moderna, depois antiga, depois tag genérica
         header: document.querySelector('.chat-header') || document.querySelector('.header') || document.querySelector('#chatWindow header'),
         
         closeBtn: getEl('closeChatBtn'),
@@ -40,7 +184,6 @@
     };
 
     const CONFIG = {
-        // ENDPOINT DE PRODUÇÃO NO RENDER
         API_ENDPOINT: 'https://atomic-thiago-backend.onrender.com/api/chat-brain',
         TIMEOUT_MS: 60000,
         STORAGE_KEYS: {
@@ -50,7 +193,7 @@
     };
 
     if (!els.bubble || !els.win) {
-        console.error('AtomicChat: Critical elements missing (Window or Bubble). Widget disabled.');
+        console.error('AtomicChat: Critical elements missing. Widget disabled.');
         return;
     }
 
@@ -62,11 +205,9 @@
         const handleClose = (e) => { e.preventDefault(); e.stopPropagation(); closeChat(); };
         const handleReset = (e) => { e.preventDefault(); e.stopPropagation(); resetChat(); };
 
-        // Bind direto se ID existir
         if (els.closeBtn) els.closeBtn.addEventListener('click', handleClose);
         if (els.resetBtn) els.resetBtn.addEventListener('click', handleReset);
 
-        // Delegação no Header (Fallback para ícones dinâmicos)
         if (els.header) {
             els.header.addEventListener('click', (e) => {
                 const t = e.target;
@@ -96,7 +237,6 @@
             els.win.classList.add('open');
             els.win.style.display = 'flex';
             
-            // Ajuste Mobile: centralizar no bubble se necessário
             if(window.innerWidth <= 480) {
                 const rect = els.bubble.getBoundingClientRect();
                 els.win.style.transformOrigin = `${rect.left+rect.width/2}px ${rect.top+rect.height/2}px`;
@@ -154,7 +294,6 @@
         bubble.className = `atomic-msg-bubble ${role}`;
         bubble.innerHTML = text.replace(/\n/g, '<br>');
 
-        // Renderiza Produtos (Cards)
         if (prods && prods.length) {
             const prodCont = document.createElement('div');
             prods.forEach(p => {
@@ -171,7 +310,6 @@
             bubble.appendChild(prodCont);
         }
 
-        // Renderiza Ações (Botões)
         if (actions && actions.length) {
             const actCont = document.createElement('div');
             actCont.className = 'atomic-actions-row';
@@ -206,7 +344,6 @@
         renderMessage('user', txt);
         saveHistory('user', txt);
 
-        // Loading
         const loadingId = 'loading-' + Date.now();
         const loadRow = document.createElement('div');
         loadRow.id = loadingId;
@@ -215,7 +352,6 @@
         scrollToBottom();
 
         try {
-            // REQUISIÇÃO AO BACKEND
             const res = await fetch(CONFIG.API_ENDPOINT, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -227,7 +363,6 @@
             const data = await res.json();
             document.getElementById(loadingId)?.remove();
             
-            // Atualiza sessão se o backend mandar
             if (data.session_id) {
                 state.sessionId = data.session_id;
                 sessionStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, state.sessionId);
@@ -247,7 +382,6 @@
     if(els.sendBtn) els.sendBtn.onclick = handleSend;
     if(els.input) els.input.onkeydown = (e) => { if(e.key === 'Enter') handleSend(); };
 
-    // --- Persistência ---
     function saveHistory(role, text, prods, acts) {
         const h = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY) || '[]');
         h.push({role, text, prods, acts});
@@ -269,7 +403,6 @@
 
     if(!loadHistory()) checkEmptyState();
 
-    // --- Drag & Click Logic ---
     els.bubble.addEventListener('touchstart', e => {
         state.startX = e.touches[0].clientX; state.startY = e.touches[0].clientY; state.isDragging = false;
     }, {passive:true});
