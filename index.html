@@ -97,18 +97,21 @@
     
     <!-- Styles with Cache Busting v5 (RESTORED) -->
     <link rel="stylesheet" href="styles.css?v=2025.02.04-restore">
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "recharts": "https://esm.sh/recharts@^3.6.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+    <link rel="stylesheet" href="/index.css">
+
+    <!-- IMPORT MAP (CRITICAL FOR AI) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "react": "https://esm.sh/react@^19.2.3",
+        "recharts": "https://esm.sh/recharts@^3.6.0",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+        "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+      }
+    }
+    </script>
 </head>
 <body class="antialiased bg-base text-base transition-colors duration-500" id="top">
     
@@ -123,30 +126,8 @@
         <i class="ph-bold ph-arrow-up text-lg"></i>
     </button>
 
-    <!-- Chat Widget -->
-    <div id="atomic-chat-widget">
-        <div id="chatBubble" class="chat-bubble" role="button" aria-label="Abrir Chat" tabindex="0">
-            <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
-            <div id="chatBadge" class="chat-bubble-badge badge-pulse">1</div>
-        </div>
-        <div id="chatWindow" class="chat-window">
-            <header class="chat-header">
-                <div class="chat-header-info">
-                    <div class="chat-avatar-small"><img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Thiago"></div>
-                    <div class="chat-status"><h4>Thiago - Atomic</h4><span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online Agora</span></div>
-                </div>
-                <div class="flex gap-2">
-                    <button id="resetChatBtn" class="chat-close-btn text-white/80 hover:text-red-500 hover:bg-white/20" aria-label="Reiniciar Conversa" title="Reiniciar Conversa"><i class="ph-bold ph-trash text-lg"></i></button>
-                    <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
-                </div>
-            </header>
-            <div id="chatMessages" class="chat-messages"></div>
-            <footer class="chat-input-area">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
-                <button id="sendBtn" class="chat-send-btn" aria-label="Enviar"><i class="ph-fill ph-paper-plane-right"></i></button>
-            </footer>
-        </div>
-    </div>
+    <!-- Chat Widget: REMOVIDO PARA EVITAR DUPLICIDADE -->
+    <!-- O script chatbot.js irá criar a janela do chat automaticamente -->
 
     <!-- Product Detail Modal -->
     <div id="productDetailOverlay" class="modal-overlay" aria-hidden="true"></div>
@@ -686,6 +667,6 @@
     <!-- Scripts Logic Split with new cache busters -->
     <script src="main.js?v=2025.02.04-neutral" defer></script>
     <script src="chatbot.js?v=2025.02.04-neutral" defer></script>
-<script type="module" src="/index.tsx"></script>
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>
