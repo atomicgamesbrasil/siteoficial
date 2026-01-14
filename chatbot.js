@@ -1,23 +1,16 @@
-// === CHATBOT 3.7 (LEGACY LOGIC RESTORED) ===
-// Estrutura v2.1 exata, adaptada para os IDs do novo HTML.
-
+// === CHATBOT 2.1 (FLUID, MAGNETIC & SITE-AWARE) ===
 (function() {
-    // --- Mapeamento de IDs (HTML Novo -> Lógica Antiga) ---
     const els = { 
-        bubble: document.getElementById('chat-bubble'), 
-        win: document.getElementById('chat-container'), 
-        msgs: document.getElementById('chat-messages'), 
-        input: document.getElementById('chat-input'),
-        badge: document.getElementById('chat-badge'),
-        closeBtn: document.getElementById('chat-close'), // Botão X do topo
-        sendBtn: document.getElementById('chat-send'),
-        form: document.getElementById('chat-form')
+        bubble: document.getElementById('chatBubble'), 
+        win: document.getElementById('chatWindow'), 
+        msgs: document.getElementById('chatMessages'), 
+        input: document.getElementById('chatInput'),
+        badge: document.getElementById('chatBadge')
     };
     
     // Check if chatbot elements exist (in case of partial page loads)
     if (!els.bubble || !els.win) return;
 
-    // --- ESTADO (Idêntico v2.1) ---
     let state = { isOpen: false, isDragging: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 };
     let sessionId = localStorage.getItem('chat_sess_id');
     let msgHistory = []; // Local history storage
@@ -25,20 +18,17 @@
     // --- UI LOGIC ---
     function updateChatUI(open) {
         state.isOpen = open;
+        els.win.classList.toggle('open', open);
+        els.badge.style.display = open ? 'none' : 'flex';
+        document.body.classList.toggle('chat-open', open);
         
         if (open) {
-            els.win.classList.add('open');
-            els.bubble.classList.add('open');
-            if(els.badge) els.badge.style.display = 'none';
-            document.body.classList.add('chat-open');
-
-            // Morph effect for mobile (Lógica v2.1 mantida)
+            // Morph effect for mobile
             if(window.innerWidth <= 480) {
                 const rect = els.bubble.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
                 const centerY = rect.top + rect.height / 2;
-                // Ajuste para o CSS atual
-                els.win.style.transformOrigin = "bottom right"; 
+                els.win.style.transformOrigin = `${centerX}px ${centerY}px`;
             }
 
             els.bubble.style.transform = 'scale(0)'; 
@@ -48,11 +38,6 @@
             if(window.innerWidth > 768) setTimeout(() => els.input.focus(), 350);
             scrollToBottom();
         } else {
-            els.win.classList.remove('open');
-            els.bubble.classList.remove('open');
-            if(els.badge) els.badge.style.display = 'flex';
-            document.body.classList.remove('chat-open');
-
             els.bubble.style.transform = 'scale(1)';
             els.bubble.style.opacity = '1';
             els.bubble.style.pointerEvents = 'auto';
@@ -60,19 +45,16 @@
         }
     }
 
-    // --- HISTORY API (Idêntico v2.1 com proteção de erro) ---
+    // --- HISTORY API ---
     function openChat() {
         if(state.isOpen) return;
-        updateChatUI(true); // UI Primeiro para garantir abertura visual
-        try { history.pushState({chat: true}, '', '#chat'); } catch(e) {}
+        history.pushState({chat: true}, '', '#chat'); 
+        updateChatUI(true);
     }
 
     function closeChat() {
         if(!state.isOpen) return;
-        try {
-            if(history.state && history.state.chat) history.back();
-            else updateChatUI(false);
-        } catch(e) { updateChatUI(false); }
+        history.back(); 
     }
 
     window.addEventListener('popstate', (e) => {
@@ -81,7 +63,7 @@
 
     function scrollToBottom() { els.msgs.scrollTop = els.msgs.scrollHeight; }
 
-    // --- DRAG PHYSICS (Lógica v2.1 Exata) ---
+    // --- DRAG PHYSICS ---
     if(els.bubble) {
         const updatePos = (x, y) => { els.bubble.style.left = `${x}px`; els.bubble.style.top = `${y}px`; };
         
@@ -92,9 +74,11 @@
             state.initialLeft = rect.left; state.initialTop = rect.top;
             state.isDragging = false;
             
-            // Remove transição para arrastar suavemente
-            els.bubble.style.transition = 'none';
+            els.bubble.classList.add('no-transition');
+            els.bubble.classList.remove('snapping');
             els.bubble.style.transform = 'scale(0.95)';
+            els.bubble.style.bottom = 'auto'; els.bubble.style.right = 'auto'; 
+            updatePos(rect.left, rect.top);
         }, { passive: true });
 
         els.bubble.addEventListener('touchmove', (e) => {
@@ -102,41 +86,48 @@
             const dx = t.clientX - state.startX;
             const dy = t.clientY - state.startY;
             if (Math.sqrt(dx*dx + dy*dy) > 15) state.isDragging = true;
-            if (state.isDragging) { 
-                e.preventDefault(); 
-                updatePos(state.initialLeft + dx, state.initialTop + dy); 
-            }
+            if (state.isDragging) { e.preventDefault(); updatePos(state.initialLeft + dx, state.initialTop + dy); }
         }, { passive: false });
 
         els.bubble.addEventListener('touchend', (e) => {
-            els.bubble.style.transition = 'all 0.3s ease'; // Restaura animação
-            
+            els.bubble.classList.remove('no-transition');
             if (!state.isDragging) {
-                e.preventDefault(); 
-                els.bubble.style.transform = 'scale(1)'; 
-                if(state.isOpen) closeChat(); else openChat(); 
+                e.preventDefault(); els.bubble.style.transform = 'scale(1)'; openChat(); 
             } else {
                 els.bubble.style.transform = 'scale(1)';
-                // Snapping Logic (Imã)
+                els.bubble.classList.add('snapping');
                 const rect = els.bubble.getBoundingClientRect();
                 const midX = window.innerWidth / 2;
-                const snapX = (rect.left + rect.width/2) < midX ? 24 : window.innerWidth - rect.width - 24;
+                const snapX = (rect.left + rect.width/2) < midX ? 20 : window.innerWidth - rect.width - 20;
                 let snapY = rect.top;
-                if(snapY < 24) snapY = 24;
+                if(snapY < 20) snapY = 20;
                 if(snapY > window.innerHeight - 100) snapY = window.innerHeight - 100;
                 updatePos(snapX, snapY);
             }
             state.isDragging = false;
         });
         
-        // Click Desktop
-        els.bubble.addEventListener('click', (e) => { 
-            if(e.detail && !state.isDragging) { 
-                if(state.isOpen) closeChat(); else openChat(); 
-            } 
-        });
+        els.bubble.addEventListener('click', (e) => { if(e.detail && !state.isDragging) { if(state.isOpen) closeChat(); else openChat(); } });
+        document.getElementById('closeChatBtn').onclick = (e) => { e.stopPropagation(); closeChat(); };
         
-        els.closeBtn.onclick = (e) => { e.stopPropagation(); closeChat(); };
+        // --- CHAT RESET LOGIC ---
+        const resetBtn = document.getElementById('resetChatBtn');
+        if(resetBtn) {
+            resetBtn.onclick = (e) => {
+                e.stopPropagation();
+                if(confirm('Tem certeza que deseja limpar o histórico da conversa?')) {
+                    localStorage.removeItem('atomic_chat_history');
+                    localStorage.removeItem('chat_sess_id');
+                    msgHistory = [];
+                    els.msgs.innerHTML = '';
+                    sessionId = null;
+                    
+                    setTimeout(() => {
+                        addMsg('bot', 'Histórico limpo! Como posso ajudar agora?', [], null, [], false);
+                    }, 200);
+                }
+            };
+        }
     }
 
     // --- MESSAGING LOGIC ---
@@ -155,31 +146,38 @@
 
     function addMsg(role, content, prods, link, actions = [], save = true) {
         const div = document.createElement('div'); div.className = `message ${role}`;
-        
-        // Avatar HTML (Adaptado para layout novo)
-        const avatarHtml = role === 'bot' 
-            ? `<div class="message-avatar">🎮</div>` 
-            : `<div class="message-avatar">👤</div>`;
-
-        const contentDiv = document.createElement('div'); contentDiv.className = 'message-content';
         const bubble = document.createElement('div'); bubble.className = 'message-bubble';
         
         if(content) bubble.appendChild(parseText(content));
         
-        // --- PRODUTOS (LÓGICA CRÍTICA DE POP-UP RESTAURADA) ---
+        // --- PRODUTOS (VITRINE NO CHAT) - HARDENED ---
         if(prods?.length) {
-            // Usando classes do CSS atual mas lógica JS antiga
+            const scroll = document.createElement('div'); scroll.className = 'chat-products-scroll';
             prods.forEach(p => {
-                const card = document.createElement('div'); card.className = 'product-card';
-                card.style.cursor = 'pointer';
-
-                card.innerHTML = `
-                    <div class="product-info"><h4>${p.name || p.nome}</h4><span>ID: ${p.id}</span></div>
-                    <div class="product-price">${p.price || p.preco}</div>
-                `;
+                const card = document.createElement('div'); card.className = 'chat-product-card';
                 
-                // EVENTO DE CLIQUE: Tenta abrir modal do site, senão abre WhatsApp
-                card.onclick = (e) => {
+                // Create Image
+                const img = document.createElement('img');
+                img.src = p.image || 'https://placehold.co/100';
+                img.loading = 'lazy';
+                
+                // Create Title
+                const title = document.createElement('div');
+                title.className = 'chat-product-title';
+                title.textContent = p.name || p.nome;
+                
+                // Create Price
+                const price = document.createElement('div');
+                price.className = 'chat-product-price';
+                price.textContent = p.price || p.preco;
+                
+                // Create Button
+                const btn = document.createElement('button'); 
+                btn.className = 'chat-add-btn'; 
+                btn.textContent = 'VER DETALHES';
+                
+                // CORREÇÃO CRÍTICA DE UX MOBILE
+                btn.onclick = (e) => {
                     e.stopPropagation();
                     const prodId = p.id; 
                     
@@ -190,38 +188,43 @@
                         }
                         window.showProductDetail(prodId);
                     } else {
-                        // Fallback se não tiver a função no site
                         window.open(`https://wa.me/5521995969378?text=Interesse em: ${encodeURIComponent(p.name||p.nome)}`);
                     }
                 };
                 
-                bubble.appendChild(card);
+                card.appendChild(img);
+                card.appendChild(title);
+                card.appendChild(price);
+                card.appendChild(btn);
+                scroll.appendChild(card);
             });
+            bubble.appendChild(scroll);
         }
 
-        // --- LINKS DE AÇÃO ---
+        // --- LINKS DE AÇÃO (Botão Verde Padrão) ---
         if(link) {
            const btn = document.createElement('a'); btn.href=link; btn.target='_blank';
-           btn.className = 'action-button';
-           btn.innerHTML = 'NEGOCIAR AGORA <i class="fas fa-arrow-right"></i>';
-           bubble.appendChild(btn);
+           btn.className = 'block mt-2 text-center bg-green-500 text-white font-bold py-2 rounded-lg text-xs hover:bg-green-600 transition';
+           btn.textContent = 'NEGOCIAR AGORA'; bubble.appendChild(btn);
         }
 
-        // --- AÇÕES INTELIGENTES (Contexto do Site) ---
+        // --- AÇÕES INTELIGENTES (Botões de Contexto do Site) ---
         if (actions && actions.length > 0) {
             const actionContainer = document.createElement('div');
-            // Inline style para garantir funcionamento sem CSS extra
-            Object.assign(actionContainer.style, { marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' });
-            
+            actionContainer.className = 'mt-3 flex flex-col gap-2';
             actions.forEach(act => {
                 const actBtn = document.createElement('button');
-                actBtn.className = 'quick-action-btn'; // Reutilizando classe existente
-                actBtn.style.textAlign = 'left';
-                actBtn.style.width = '100%';
+                actBtn.className = 'flex items-center justify-between w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-yellow-400 hover:text-black transition-colors';
                 
-                actBtn.innerHTML = `${act.label} <i class="${act.icon || 'fas fa-arrow-right'}"></i>`;
+                const span = document.createElement('span');
+                span.textContent = act.label;
+                const icon = document.createElement('i');
+                icon.className = `ph-bold ${act.icon}`;
                 
-                // Lógica de Scroll ou URL
+                actBtn.appendChild(span);
+                actBtn.appendChild(icon);
+                
+                // Suporte a URL direta ou Target ID
                 actBtn.onclick = () => {
                     if (act.targetId) {
                         const target = document.getElementById(act.targetId);
@@ -238,18 +241,7 @@
             bubble.appendChild(actionContainer);
         }
 
-        contentDiv.appendChild(bubble);
-
-        // Montagem do balão
-        if(role === 'bot') {
-            div.innerHTML = avatarHtml;
-            div.appendChild(contentDiv);
-        } else {
-            div.appendChild(contentDiv);
-            div.insertAdjacentHTML('beforeend', avatarHtml);
-        }
-
-        els.msgs.appendChild(div); scrollToBottom();
+        div.appendChild(bubble); els.msgs.appendChild(div); scrollToBottom();
 
         if (save) {
             msgHistory.push({ role, content, prods, link, actions });
@@ -258,37 +250,43 @@
     }
 
     function addTyping() {
-        const div = document.createElement('div'); div.id='typing'; div.className='typing-indicator';
-        div.innerHTML = `<div class="message-avatar">🎮</div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+        const div = document.createElement('div'); div.id='typing'; div.className='message bot';
+        div.innerHTML = `<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
         els.msgs.appendChild(div); scrollToBottom();
     }
 
-    // --- CONTEXT AWARENESS (O Cérebro Local - RESTAURADO) ---
+    // --- CONTEXT AWARENESS (O Cérebro Local) ---
     function checkSiteContext(text) {
         const t = text.toLowerCase();
         const actions = [];
 
-        if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo') || t.includes('orçamento')) {
+        if (t.includes('limpeza') || t.includes('manutenção') || t.includes('conserto') || t.includes('reparo') || t.includes('orçamento') || t.includes('arrumar') || t.includes('quebrado')) {
+            const serviceSec = document.getElementById('services');
+            let dir = '👇';
+            if(serviceSec) {
+                const rect = serviceSec.getBoundingClientRect();
+                if(rect.top < 0) dir = '👆';
+            }
+            
             actions.push({
-                label: `Abrir Simulador de Reparo`,
-                icon: 'fas fa-wrench',
-                targetId: 'services' // ID do HTML
+                label: `Abrir Simulador de Reparo ${dir}`,
+                icon: 'ph-wrench',
+                targetId: 'services'
             });
         }
 
-        if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização')) {
+        if (t.includes('onde fica') || t.includes('endereço') || t.includes('localização') || t.includes('chegar')) {
             actions.push({
                 label: 'Ver Mapa e Endereço',
-                icon: 'fas fa-map-marker-alt',
-                targetId: 'location' // ID do HTML
+                icon: 'ph-map-pin',
+                targetId: 'location'
             });
         }
 
         return actions;
     }
 
-    async function send(e) {
-        if(e) e.preventDefault();
+    async function send() {
         const txt = els.input.value.trim();
         if(!txt) return;
         
@@ -297,38 +295,38 @@
         addTyping();
         
         const localActions = checkSiteContext(txt);
-        const api = 'https://atomic-thiago-backend.onrender.com/chat';
+        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
 
         try {
             const res = await fetch(api, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message: txt, session_id: sessionId }) });
             const data = await res.json();
             
-            document.getElementById('typing')?.remove();
+            document.getElementById('typing').remove();
             
-            if(data.success !== false) {
+            if(data.success) {
                 if(data.session_id) { sessionId = data.session_id; localStorage.setItem('chat_sess_id', sessionId); }
-                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, [...(data.local_actions || []), ...localActions]);
+                addMsg('bot', data.response, data.produtos_sugeridos, data.action_link, localActions);
             } else {
                 addMsg('bot', 'Desculpe, tive um erro técnico.', [], null, localActions);
             }
-        } catch(err) { 
-            console.error(err);
-            document.getElementById('typing')?.remove(); 
+        } catch { 
+            document.getElementById('typing') ? document.getElementById('typing').remove() : null; 
             addMsg('bot', 'Sem conexão com a internet.', [], null, localActions); 
         }
     }
 
-    els.form.addEventListener('submit', send);
-    els.sendBtn.addEventListener('click', send);
-
-    // Botões Rápidos (Quick Actions)
-    document.querySelectorAll('.quick-action-btn').forEach(btn => {
-        if(btn.dataset.msg) {
-            btn.addEventListener('click', () => {
-                els.input.value = btn.dataset.msg;
-                send();
-            });
-        }
+    document.getElementById('sendBtn').onclick = send;
+    
+    els.input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') send();
+        e.stopPropagation(); 
+    });
+    
+    ['mousedown', 'mouseup', 'click', 'touchstart', 'touchend'].forEach(evt => {
+        els.input.addEventListener(evt, (e) => {
+            e.stopPropagation();
+            if (evt === 'mousedown') els.input.focus();
+        });
     });
 
     // LOAD HISTORY
@@ -342,14 +340,17 @@
         }
     } catch(e) { console.error("History load error", e); }
 
+    setTimeout(() => {
+        const api = (typeof CONFIG !== 'undefined' && CONFIG.CHAT_API) ? CONFIG.CHAT_API : 'https://atomic-thiago-backend.onrender.com/chat';
+        const baseUrl = api.replace('/chat', ''); 
+        fetch(baseUrl, { method: 'HEAD', mode: 'no-cors' }).catch(() => {});
+    }, 1500);
 
-    // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO - RESTAURADO) ===
+    // === ATOMIC GLOBAL API (HOOK DE INTEGRAÇÃO FASE 5) ===
     window.AtomicChat = {
-        open: function() { openChat(); },
-        
         /**
          * Recebe o Objeto de Contexto Único da Calculadora e inicia o atendimento.
-         * Lógica essencial para integração com o site principal.
+         * @param {Object} context - Objeto budgetContext gerado no main.js
          */
         processBudget: function(context) {
             if (!context || context.status !== 'completed') return;
@@ -357,16 +358,19 @@
             // 1. Abre o Chat
             if (!state.isOpen) openChat();
 
-            // 2. Formata Valores
+            // 2. Formata Valores (Helper simples)
             const fmt = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             
+            // --- TRATAMENTO DE ORÇAMENTO PERSONALIZADO (OUTRO DEFEITO) ---
             let finalServiceName = context.service.name;
             let finalPriceStr = `${fmt(context.financial.totalMin)} a ${fmt(context.financial.totalMax)}`;
 
+            // Se tiver descrição personalizada, concatena e muda preço para Sob Análise
             if (context.service.customDescription) {
                 finalServiceName = `${context.service.name}: "${context.service.customDescription}"`;
                 finalPriceStr = "Sob Análise Técnica";
             }
+            // -------------------------------------------------------------
 
             // 3. Constrói a Mensagem Contextual
             const msg = `Olá **${context.customer.name || 'Gamer'}**! 👋\n` +
@@ -376,7 +380,7 @@
                         `📍 Logística: ${context.logistics.label}\n\n` +
                         `Posso confirmar o agendamento ou você tem alguma dúvida sobre o serviço?`;
 
-            // 4. Gera Link do WhatsApp
+            // 4. Gera Link do WhatsApp (Baseado no Contexto)
             const waMsg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
                           `👤 *${context.customer.name}*\n` +
                           `📱 ${context.customer.phone}\n` +
@@ -390,15 +394,14 @@
             
             const waLink = `https://wa.me/5521995969378?text=${encodeURIComponent(waMsg)}`;
 
-            // 5. Injeta a Mensagem
+            // 5. Injeta a Mensagem no Chat com Ação
+            // Pequeno delay para parecer natural após o clique no botão calcular
             setTimeout(() => {
                 addMsg('bot', msg, [], null, [
-                    { label: 'Agendar no WhatsApp', icon: 'fab fa-whatsapp', url: waLink }
+                    { label: 'Agendar no WhatsApp', icon: 'ph-whatsapp-logo', url: waLink }
                 ], true);
             }, 500);
         }
     };
-    
-    console.log("Atomic Chat: v3.7 (Restore Complete)");
 
 })();
