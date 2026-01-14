@@ -97,21 +97,17 @@
     
     <!-- Styles with Cache Busting v5 (RESTORED) -->
     <link rel="stylesheet" href="styles.css?v=2025.02.04-restore">
-    <link rel="stylesheet" href="/index.css">
-
-    <!-- IMPORT MAP (CRITICAL FOR AI) -->
-    <script type="importmap">
-    {
-      "imports": {
-        "react/": "https://esm.sh/react@^19.2.3/",
-        "react": "https://esm.sh/react@^19.2.3",
-        "recharts": "https://esm.sh/recharts@^3.6.0",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-        "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-        "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
-      }
-    }
-    </script>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+  }
+}
+</script>
 </head>
 <body class="antialiased bg-base text-base transition-colors duration-500" id="top">
     
@@ -126,8 +122,30 @@
         <i class="ph-bold ph-arrow-up text-lg"></i>
     </button>
 
-    <!-- Chat Widget: REMOVIDO PARA EVITAR DUPLICIDADE -->
-    <!-- O script chatbot.js irá criar a janela do chat automaticamente -->
+    <!-- Chat Widget -->
+    <div id="atomic-chat-widget">
+        <div id="chatBubble" class="chat-bubble" role="button" aria-label="Abrir Chat" tabindex="0">
+            <img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Chat" draggable="false">
+            <div id="chatBadge" class="chat-bubble-badge badge-pulse">1</div>
+        </div>
+        <div id="chatWindow" class="chat-window">
+            <header class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar-small"><img src="https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/thchatbot.jpg" alt="Thiago"></div>
+                    <div class="chat-status"><h4>Thiago - Atomic</h4><span><span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;"></span> Online Agora</span></div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="resetChatBtn" class="chat-close-btn text-white/80 hover:text-red-500 hover:bg-white/20" aria-label="Reiniciar Conversa" title="Reiniciar Conversa"><i class="ph-bold ph-trash text-lg"></i></button>
+                    <button id="closeChatBtn" class="chat-close-btn" aria-label="Fechar Chat"><i class="ph-bold ph-x text-lg"></i></button>
+                </div>
+            </header>
+            <div id="chatMessages" class="chat-messages"></div>
+            <footer class="chat-input-area">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
+                <button id="sendBtn" class="chat-send-btn" aria-label="Enviar"><i class="ph-fill ph-paper-plane-right"></i></button>
+            </footer>
+        </div>
+    </div>
 
     <!-- Product Detail Modal -->
     <div id="productDetailOverlay" class="modal-overlay" aria-hidden="true"></div>
@@ -194,9 +212,9 @@
 
                 <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-3 w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold shadow-md transition"><i class="ph-bold ph-whatsapp-logo text-2xl"></i> Fale Conosco</a>
                 <div class="flex justify-center gap-4 pt-4">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition" aria-label="Instagram"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition" aria-label="Facebook"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition" aria-label="TikTok"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
                 </div>
             </div>
         </div>
@@ -205,7 +223,7 @@
     <!-- Install Guide Modal -->
     <div id="installGuideModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-base w-11/12 max-w-sm bg-card-solid rounded-3xl shadow-2xl border border-base p-6 text-center relative">
-            <button id="closeGuideModal" class="absolute top-4 right-4 p-2 hover:bg-base rounded-full transition" aria-label="Fechar guia"><i class="ph-bold ph-x text-xl"></i></button>
+            <button id="closeGuideModal" class="absolute top-4 right-4 p-2 hover:bg-base rounded-full transition"><i class="ph-bold ph-x text-xl"></i></button>
             <div class="mb-4 flex justify-center">
                 <div class="w-16 h-16 rounded-full bg-base flex items-center justify-center">
                     <i id="guideMainIcon" class=""></i>
@@ -271,7 +289,7 @@
         </nav>
     </header>
 
-    <main id="main-content" role="main">
+    <main id="main-content">
         <!-- Hero Section -->
         <section class="hero-section" aria-labelledby="hero-title">
             <div class="container mx-auto px-4 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-center py-12 md:py-0 gap-8 md:gap-12">
@@ -654,10 +672,10 @@
                 <p class="font-bold text-2xl mb-2 brand-font">ATOMIC GAMES</p>
                 <p class="text-muted mb-8">Madureira - Rio de Janeiro</p>
                 <nav class="flex justify-center gap-4 mb-8" aria-label="Redes sociais">
-                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="Instagram"><i class="ph-fill ph-instagram-logo"></i></a>
-                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="Facebook"><i class="ph-fill ph-facebook-logo"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:text-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="TikTok"><i class="ph-fill ph-tiktok-logo"></i></a>
-                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg" aria-label="WhatsApp"><i class="ph-fill ph-whatsapp-logo"></i></a>
+                    <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-pink-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-instagram-logo"></i></a>
+                    <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-blue-600 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-facebook-logo"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-black dark:hover:text-white dark:hover:text-black transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-tiktok-logo"></i></a>
+                    <a href="https://wa.me/5521995969378" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-base flex items-center justify-center text-xl hover:bg-green-500 hover:text-white transition-all hover:-translate-y-1 hover:shadow-lg"><i class="ph-fill ph-whatsapp-logo"></i></a>
                 </nav>
                 <div class="border-t border-base pt-8"><p class="text-sm text-muted">&copy; <time datetime="2025">2025</time> Atomic Games. Todos os direitos reservados.</p></div>
             </div>
@@ -667,6 +685,5 @@
     <!-- Scripts Logic Split with new cache busters -->
     <script src="main.js?v=2025.02.04-neutral" defer></script>
     <script src="chatbot.js?v=2025.02.04-neutral" defer></script>
-    <script type="module" src="index.tsx"></script>
 </body>
 </html>
