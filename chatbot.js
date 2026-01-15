@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.5.0 (Target Fix: #services) Initializing...');
+    console.log('Atomic Chatbot v4.6.0 (Calculator Hook) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -235,6 +235,9 @@
         document.getElementById('btn-goto-calc').onclick = () => {
             document.getElementById('atomic-budget-modal').classList.remove('active');
             
+            // FECHA O CHAT PARA LIMPAR A VISÃO
+            closeChat();
+
             // BUSCA PELO ID CORRETO: '#services' (Conforme index.html)
             const el = document.getElementById('services');
 
@@ -250,7 +253,7 @@
                 targetHighlight.style.transition = "border 0.5s";
                 setTimeout(() => targetHighlight.style.border = "", 3000);
             } else {
-                // FALLBACK DE SEGURANÇA (Caso o ID mude no futuro)
+                // FALLBACK DE SEGURANÇA
                 if(confirm("Não localizei a calculadora nesta página. Deseja falar direto com o técnico no WhatsApp?")) {
                     window.open('https://wa.me/5521995969378?text=Vim%20pelo%20site%20e%20não%20achei%20a%20calculadora,%20gostaria%20de%20um%20orçamento!', '_blank');
                 }
@@ -295,12 +298,75 @@
 
     const CONFIG = {
         API_ENDPOINT: 'https://atomic-thiago-backend.onrender.com/api/chat-brain',
+        ORDER_ENDPOINT: 'https://atomic-thiago-backend.onrender.com/api/orders', // Nova rota
         TIMEOUT_MS: 60000,
         STORAGE_KEYS: {
             SESSION: 'atomic_sess_id_v2',
             HISTORY: 'atomic_chat_history_v2' 
         }
     };
+
+    // ==========================================================================
+    // 1.1 CALCULATOR HOOK INTERCEPTOR (NOVO)
+    // ==========================================================================
+    function setupCalculatorHook() {
+        const form = document.getElementById('serviceForm');
+        if (!form) return; // Se não tiver calculadora, ignora
+
+        // Remove listeners antigos para evitar duplicação em SPAs
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+
+        newForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede o envio padrão
+
+            // Captura os dados do DOM
+            const model = document.getElementById('calc-model')?.value || 'Não informado';
+            const service = document.getElementById('calc-service')?.value || 'Não informado';
+            const priceMin = document.getElementById('price-min')?.innerText || '?';
+            const priceMax = document.getElementById('price-max')?.innerText || '?';
+            const name = document.getElementById('calc-name')?.value || 'Cliente';
+            const logistics = document.querySelector('input[name="logistics"]:checked')?.value || 'shop';
+
+            const payload = { model, service, priceMin, priceMax, name, logistics };
+
+            // 1. Abre o Chatbot
+            updateChatUI(true);
+            
+            // 2. Mensagem de processamento
+            renderMessage('bot', `Só um instante, ${name}! Tô processando seu orçamento...`);
+
+            try {
+                // 3. Envia para o Backend (que vai "salvar" no painel)
+                const res = await fetch(CONFIG.ORDER_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                
+                // 4. Exibe a resposta final do bot com o botão de Zap
+                if(data.success) {
+                    renderMessage('bot', data.reply, [], data.actions);
+                } else {
+                    renderMessage('bot', "Opa, deu um erro ao gerar o link. Mas pode me chamar direto no Zap!");
+                }
+
+            } catch (err) {
+                console.error("Erro no Hook da Calculadora:", err);
+                renderMessage('bot', "Tive um problema de conexão, mas recebi seus dados. Vamos finalizar no WhatsApp?");
+            }
+        });
+        
+        console.log("🧮 Calculator Hook Activated!");
+    }
+
+    // Tenta ativar o hook ao carregar e também após interações (caso o DOM mude)
+    setTimeout(setupCalculatorHook, 2000);
+    // Observer para garantir que se a section aparecer depois, o hook pega
+    const observer = new MutationObserver(() => setupCalculatorHook());
+    if(document.body) observer.observe(document.body, { childList: true, subtree: true });
 
     if (!els.bubble || !els.win) {
         console.error('AtomicChat: Critical elements missing. Widget disabled.');
