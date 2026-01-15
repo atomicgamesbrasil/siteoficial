@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.3.0 (Map & Budget Modals) Initializing...');
+    console.log('Atomic Chatbot v4.5.0 (Target Fix: #services) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -234,24 +234,26 @@
         // Lógica do Botão "Abrir Calculadora"
         document.getElementById('btn-goto-calc').onclick = () => {
             document.getElementById('atomic-budget-modal').classList.remove('active');
-            // Tenta achar a calculadora na página
-            const targets = ['orcamento', 'budget', 'calculadora', 'assistencia', 'contact'];
-            let found = false;
-            for(const id of targets) {
-                const el = document.getElementById(id);
-                if(el) {
-                    el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                    // Efeito visual para destacar
-                    el.style.border = "2px solid #ffc107";
-                    el.style.transition = "border 0.5s";
-                    setTimeout(() => el.style.border = "", 2000);
-                    found = true;
-                    break;
+            
+            // BUSCA PELO ID CORRETO: '#services' (Conforme index.html)
+            const el = document.getElementById('services');
+
+            if(el) {
+                // Encontrou! Rola até lá
+                el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                
+                // Pisca a borda para destacar a seção inteira ou o form dentro dela
+                const form = document.getElementById('serviceForm');
+                const targetHighlight = form || el;
+                
+                targetHighlight.style.border = "2px solid #ffc107";
+                targetHighlight.style.transition = "border 0.5s";
+                setTimeout(() => targetHighlight.style.border = "", 3000);
+            } else {
+                // FALLBACK DE SEGURANÇA (Caso o ID mude no futuro)
+                if(confirm("Não localizei a calculadora nesta página. Deseja falar direto com o técnico no WhatsApp?")) {
+                    window.open('https://wa.me/5521995969378?text=Vim%20pelo%20site%20e%20não%20achei%20a%20calculadora,%20gostaria%20de%20um%20orçamento!', '_blank');
                 }
-            }
-            if(!found) {
-                alert("Ops! Não encontrei a calculadora nesta página. Redirecionando para o WhatsApp...");
-                window.open('https://wa.me/5521995969378?text=Queria%20acessar%20a%20calculadora%20mas%20não%20achei,%20pode%20me%20ajudar?', '_blank');
             }
         };
 
