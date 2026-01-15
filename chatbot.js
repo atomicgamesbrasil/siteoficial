@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.2.0 (Map Modal Integrated) Initializing...');
+    console.log('Atomic Chatbot v4.3.0 (Map & Budget Modals) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -124,43 +124,44 @@
                 background: #ffc107 !important; color: #000 !important;
             }
 
-            /* --- MODAL DE MAPA (NOVO) --- */
-            #atomic-map-modal {
+            /* --- MODAL (MAPA E ORÇAMENTO) --- */
+            .atomic-modal-overlay {
                 position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
                 background: rgba(0,0,0,0.85); z-index: 100000;
                 display: none; justify-content: center; align-items: center;
                 backdrop-filter: blur(5px);
             }
-            #atomic-map-modal.active { display: flex; }
+            .atomic-modal-overlay.active { display: flex; }
             
-            .atomic-map-content {
+            .atomic-modal-content {
                 background: #18181b; border: 1px solid #333; border-radius: 12px;
-                width: 90%; max-width: 600px; max-height: 90vh;
+                width: 90%; max-width: 500px;
                 display: flex; flex-direction: column; overflow: hidden;
                 box-shadow: 0 0 30px rgba(0,0,0,0.8);
             }
-            .atomic-map-header {
+            .atomic-modal-header {
                 padding: 15px 20px; border-bottom: 1px solid #333;
                 display: flex; justify-content: space-between; align-items: center;
                 background: #09090b;
             }
-            .atomic-map-header h4 { color: #fff; margin: 0; font-size: 16px; text-transform: uppercase; }
-            .atomic-map-close { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+            .atomic-modal-header h4 { color: #fff; margin: 0; font-size: 16px; text-transform: uppercase; }
+            .atomic-modal-close { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
             
-            .atomic-map-body { padding: 0; height: 350px; position: relative; }
-            .atomic-map-body iframe { width: 100%; height: 100%; border: 0; }
+            .atomic-modal-body { padding: 20px; color: #ccc; text-align: center; }
+            .atomic-modal-body iframe { width: 100%; height: 350px; border: 0; }
             
-            .atomic-map-footer {
+            .atomic-modal-footer {
                 padding: 15px; background: #09090b; border-top: 1px solid #333;
-                text-align: center;
+                text-align: center; display: flex; flex-direction: column; gap: 10px;
             }
-            .atomic-map-btn {
+            .atomic-modal-btn {
                 background: #ffc107; color: #000; padding: 12px 24px;
                 border: none; border-radius: 8px; font-weight: bold; text-transform: uppercase;
-                cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-                text-decoration: none; font-size: 14px;
+                cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+                text-decoration: none; font-size: 14px; width: 100%; box-sizing: border-box;
             }
-            .atomic-map-btn:hover { background: #e0a800; }
+            .atomic-modal-btn.secondary { background: transparent; border: 1px solid #ffc107; color: #ffc107; }
+            .atomic-modal-btn:hover { opacity: 0.9; }
 
             /* --- BUBBLE --- */
             #chatBubble, #atomic-chat-trigger {
@@ -177,48 +178,88 @@
     injectAtomicStyles();
 
     // ==========================================================================
-    // 0.1 MODAL GENERATOR (MAPA)
+    // 0.1 MODAL GENERATORS
     // ==========================================================================
+    
+    // MAPA MODAL
     function createMapModal() {
         if (document.getElementById('atomic-map-modal')) return;
-
-        const modalHtml = `
-            <div id="atomic-map-modal">
-                <div class="atomic-map-content">
-                    <div class="atomic-map-header">
+        const html = `
+            <div id="atomic-map-modal" class="atomic-modal-overlay">
+                <div class="atomic-modal-content" style="max-width:600px;">
+                    <div class="atomic-modal-header">
                         <h4>📍 Localização Atomic</h4>
-                        <button class="atomic-map-close" onclick="document.getElementById('atomic-map-modal').classList.remove('active')">&times;</button>
+                        <button class="atomic-modal-close" onclick="document.getElementById('atomic-map-modal').classList.remove('active')">&times;</button>
                     </div>
-                    <div class="atomic-map-body">
-                        <!-- Iframe do Google Maps Embed (Gratuito/Sem API Key restrita) -->
-                        <iframe 
-                            src="https://maps.google.com/maps?q=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81&t=&z=15&ie=UTF8&iwloc=&output=embed" 
-                            allowfullscreen>
-                        </iframe>
+                    <div class="atomic-modal-body" style="padding:0; height:350px;">
+                        <iframe src="https://maps.google.com/maps?q=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen></iframe>
                     </div>
-                    <div class="atomic-map-footer">
-                        <a href="https://www.google.com/maps/search/?api=1&query=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81" target="_blank" class="atomic-map-btn">
+                    <div class="atomic-modal-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81" target="_blank" class="atomic-modal-btn">
                             🚗 Traçar Rota (GPS)
                         </a>
                     </div>
                 </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+        document.getElementById('atomic-map-modal').addEventListener('click', (e) => { if(e.target.id === 'atomic-map-modal') e.target.classList.remove('active'); });
+    }
+
+    // ORÇAMENTO MODAL
+    function createBudgetModal() {
+        if (document.getElementById('atomic-budget-modal')) return;
+        const html = `
+            <div id="atomic-budget-modal" class="atomic-modal-overlay">
+                <div class="atomic-modal-content">
+                    <div class="atomic-modal-header">
+                        <h4>🧮 Simular Orçamento</h4>
+                        <button class="atomic-modal-close" onclick="document.getElementById('atomic-budget-modal').classList.remove('active')">&times;</button>
+                    </div>
+                    <div class="atomic-modal-body">
+                        <p>Para agilizar, escolha como prefere fazer seu orçamento:</p>
+                        <p style="font-size:12px; color:#999; margin-top:5px;">A Calculadora do site dá uma estimativa na hora!</p>
+                    </div>
+                    <div class="atomic-modal-footer">
+                        <button id="btn-goto-calc" class="atomic-modal-btn">
+                            🖥️ Abrir Calculadora do Site
+                        </button>
+                        <a href="https://wa.me/5521995969378?text=Olá,%20gostaria%20de%20fazer%20um%20orçamento%20de%20manutenção!" target="_blank" class="atomic-modal-btn secondary">
+                            💬 Falar com Técnico no Zap
+                        </a>
+                    </div>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
         
-        // Fechar ao clicar fora
-        document.getElementById('atomic-map-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'atomic-map-modal') e.target.classList.remove('active');
-        });
+        // Lógica do Botão "Abrir Calculadora"
+        document.getElementById('btn-goto-calc').onclick = () => {
+            document.getElementById('atomic-budget-modal').classList.remove('active');
+            // Tenta achar a calculadora na página
+            const targets = ['orcamento', 'budget', 'calculadora', 'assistencia', 'contact'];
+            let found = false;
+            for(const id of targets) {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    // Efeito visual para destacar
+                    el.style.border = "2px solid #ffc107";
+                    el.style.transition = "border 0.5s";
+                    setTimeout(() => el.style.border = "", 2000);
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                alert("Ops! Não encontrei a calculadora nesta página. Redirecionando para o WhatsApp...");
+                window.open('https://wa.me/5521995969378?text=Queria%20acessar%20a%20calculadora%20mas%20não%20achei,%20pode%20me%20ajudar?', '_blank');
+            }
+        };
+
+        document.getElementById('atomic-budget-modal').addEventListener('click', (e) => { if(e.target.id === 'atomic-budget-modal') e.target.classList.remove('active'); });
     }
 
-    // Inicializa o modal oculto
-    createMapModal();
-
-    function showMapModal() {
-        createMapModal(); // Garante que existe
-        document.getElementById('atomic-map-modal').classList.add('active');
-    }
+    function showMapModal() { createMapModal(); document.getElementById('atomic-map-modal').classList.add('active'); }
+    function showBudgetModal() { createBudgetModal(); document.getElementById('atomic-budget-modal').classList.add('active'); }
 
     // ==========================================================================
     // 0.2 TEST ENVIRONMENT MOCKS
@@ -391,22 +432,9 @@
                     if (act.type === 'OPEN_MAP') {
                         showMapModal();
                     } 
-                    // Ação 2: Calculadora / Orçamento
+                    // Ação 2: Calculadora / Orçamento (MODAL INTERNO)
                     else if (act.type === 'OPEN_BUDGET') {
-                        // Tenta encontrar uma seção de orçamento/calculadora na página
-                        const targets = ['orcamento', 'budget', 'calculadora', 'assistencia', 'contact'];
-                        let found = false;
-                        for(const id of targets) {
-                            const el = document.getElementById(id);
-                            if(el) {
-                                el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                                found = true;
-                                break;
-                            }
-                        }
-                        if(!found) {
-                            window.open('https://wa.me/5521995969378?text=Olá,%20gostaria%20de%20fazer%20um%20orçamento%20online!', '_blank');
-                        }
+                        showBudgetModal();
                     }
                     else if (act.type === 'OPEN_PRODUCT') window.showProductDetail(act.payload);
                     else if (act.url) window.open(act.url, '_blank');
