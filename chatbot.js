@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.6.1 (Stable Fix) Initializing...');
+    console.log('Atomic Chatbot v4.7.0 (Button Hijack) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -307,23 +307,32 @@
     };
 
     // ==========================================================================
-    // 1.1 CALCULATOR HOOK INTERCEPTOR (CORREÇÃO DE LOOP)
+    // 1.1 CALCULATOR HOOK INTERCEPTOR (BUTTON HIJACK MODE)
     // ==========================================================================
     function setupCalculatorHook() {
+        const btn = document.getElementById('btn-submit-calc');
         const form = document.getElementById('serviceForm');
         
-        // CORREÇÃO CRÍTICA: Se não achar o form OU se já tiver modificado ele, PARE.
-        // Isso impede o loop infinito e o travamento do PC.
-        if (!form || form.getAttribute('data-atomic-hooked') === 'true') return; 
+        // Verifica existência e se já foi modificado (flag data-atomic-hooked)
+        if (!btn || !form || btn.getAttribute('data-atomic-hooked') === 'true') return;
 
-        // Remove listeners antigos clonando o nó
-        const newForm = form.cloneNode(true);
+        // Clona o botão para eliminar TODOS os listeners nativos ou de outros scripts
+        const newBtn = btn.cloneNode(true);
         
-        // MARCA COMO MODIFICADO para a verificação acima funcionar na próxima vez
-        newForm.setAttribute('data-atomic-hooked', 'true');
+        // CRÍTICO: Muda o type para 'button' para impedir que o formulário seja submetido
+        // Isso mata qualquer tentativa de redirecionamento via 'submit' do form
+        newBtn.type = 'button';
+        newBtn.setAttribute('data-atomic-hooked', 'true');
 
-        newForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Impede o envio padrão
+        newBtn.onclick = async (e) => {
+            e.preventDefault(); 
+            e.stopPropagation();
+
+            // Validação manual (já que desligamos o submit nativo)
+            if (!form.checkValidity()) {
+                form.reportValidity(); // Mostra os balões de erro do navegador
+                return;
+            }
 
             // Captura os dados do DOM
             const model = document.getElementById('calc-model')?.value || 'Não informado';
@@ -335,14 +344,14 @@
 
             const payload = { model, service, priceMin, priceMax, name, logistics };
 
-            // 1. Abre o Chatbot
+            // 1. Abre o Chatbot e bloqueia interação
             updateChatUI(true);
             
             // 2. Mensagem de processamento
-            renderMessage('bot', `Só um instante, ${name}! Tô processando seu orçamento...`);
+            renderMessage('bot', `Só um instante, ${name}! Tô pegando os dados do seu orçamento...`);
 
             try {
-                // 3. Envia para o Backend (que vai "salvar" no painel)
+                // 3. Envia para o Backend
                 const res = await fetch(CONFIG.ORDER_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -362,12 +371,12 @@
                 console.error("Erro no Hook da Calculadora:", err);
                 renderMessage('bot', "Tive um problema de conexão, mas recebi seus dados. Vamos finalizar no WhatsApp?");
             }
-        });
+        };
         
-        // Substitui o formulário original pelo nosso modificado
-        form.parentNode.replaceChild(newForm, form);
+        // Substitui o botão original pelo nosso "sequestrado"
+        btn.parentNode.replaceChild(newBtn, btn);
         
-        console.log("🧮 Calculator Hook Activated (Safe Mode)!");
+        console.log("🧮 Calculator Hook Activated (Button Hijack Mode)!");
     }
 
     // Tenta ativar o hook ao carregar
@@ -375,7 +384,6 @@
     
     // Observer para garantir que se a section aparecer depois (SPA), o hook pega
     const observer = new MutationObserver((mutations) => {
-        // Tenta rodar o hook, mas a trava de segurança lá dentro impede o loop
         setupCalculatorHook();
     });
     
