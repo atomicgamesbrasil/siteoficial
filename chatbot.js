@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.1.0 (Atomic Gold + Fixes) Initializing...');
+    console.log('Atomic Chatbot v4.2.0 (Map Modal Integrated) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -24,174 +24,147 @@
                 font-family: 'Segoe UI', Roboto, sans-serif !important;
                 border-radius: 16px !important;
                 overflow: hidden !important;
+                z-index: 9999 !important;
             }
 
-            /* --- HEADER (Dark com detalhe Amarelo Sutil) --- */
+            /* --- HEADER --- */
             .chat-header, #chatWindow header {
-                background: #18181b !important; /* Zinco Escuro */
-                border-bottom: 2px solid #ffc107 !important; /* Linha Amarela Atomic */
+                background: #18181b !important;
+                border-bottom: 2px solid #ffc107 !important;
                 color: #ffffff !important;
                 padding: 16px 20px !important;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
             }
-            .chat-header h3, .chat-header h4, .chat-title {
+            .chat-header h3, .chat-title {
                 color: #ffffff !important;
                 font-weight: 700 !important;
-                letter-spacing: 0.5px !important;
-                margin: 0 !important;
                 font-size: 15px !important;
                 display: flex;
                 align-items: center;
                 gap: 10px;
                 text-transform: uppercase;
+                margin: 0 !important;
             }
-            /* Ícone ou Avatar no Header */
             .chat-header h3::before {
-                content: '';
-                display: block;
-                width: 10px;
-                height: 10px;
-                background-color: #ffc107; /* Amarelo Status */
-                border-radius: 50%;
+                content: ''; display: block; width: 10px; height: 10px;
+                background-color: #ffc107; border-radius: 50%;
                 box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
             }
-
             .chat-header button {
-                color: #a1a1aa !important;
-                background: none !important;
-                border: none !important;
-                cursor: pointer;
-                transition: color 0.2s;
+                color: #a1a1aa !important; background: none !important; border: none !important;
+                cursor: pointer; transition: color 0.2s;
             }
             .chat-header button:hover { color: #ffc107 !important; }
 
-            /* --- ÁREA DE MENSAGENS --- */
+            /* --- MENSAGENS --- */
             #chatMessages, .chat-body {
                 background-color: #09090b !important;
                 padding: 20px !important;
-                overflow-x: hidden !important; /* Previne scroll horizontal */
+                overflow-x: hidden !important;
             }
-            
-            /* --- BALÕES DE MENSAGEM --- */
             .atomic-msg-bubble {
                 padding: 12px 18px !important;
                 font-size: 14px !important;
                 line-height: 1.5 !important;
                 max-width: 85% !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-                
-                /* CORREÇÃO DE QUEBRA DE LINHA */
                 white-space: pre-wrap !important;
                 word-wrap: break-word !important;
-                word-break: break-word !important;
                 overflow-wrap: break-word !important;
             }
-            
-            /* BOT (Thiago) - Discreto */
             .atomic-msg-bubble.bot {
-                background-color: #18181b !important; /* Zinco */
-                color: #e4e4e7 !important; /* Texto claro */
+                background-color: #18181b !important; color: #e4e4e7 !important;
                 border: 1px solid #27272a !important;
                 border-radius: 16px 16px 16px 4px !important;
             }
-
-            /* USER (Cliente) - DESTAQUE AMARELO (Identidade da Loja) */
             .atomic-msg-bubble.user {
-                background-color: #ffc107 !important; /* Amarelo Atomic */
-                color: #000000 !important; /* Texto Preto para Contraste */
+                background-color: #ffc107 !important; color: #000000 !important;
                 border-radius: 16px 16px 4px 16px !important;
                 font-weight: 600 !important;
                 border: none !important;
             }
 
-            /* --- INPUT AREA --- */
-            .chat-footer, #chatWindow footer {
-                background-color: #09090b !important;
-                border-top: 1px solid #27272a !important;
-                padding: 15px !important;
-                position: relative;
+            /* --- FOOTER --- */
+            .chat-footer {
+                background-color: #09090b !important; border-top: 1px solid #27272a !important;
+                padding: 15px !important; position: relative;
             }
-            #chatInput, .chat-footer input {
-                background: #18181b !important;
-                border: 1px solid #333 !important;
-                color: #fff !important;
-                border-radius: 8px !important;
-                padding: 12px 15px !important;
-                font-size: 14px !important;
-                width: 100%;
-                box-sizing: border-box;
-                transition: border-color 0.2s;
+            #chatInput {
+                background: #18181b !important; border: 1px solid #333 !important;
+                color: #fff !important; border-radius: 8px !important;
+                padding: 12px 15px !important; font-size: 14px !important;
+                width: 100%; box-sizing: border-box;
             }
-            #chatInput:focus {
-                border-color: #ffc107 !important; /* Foco Amarelo */
-                outline: none !important;
-            }
-            
-            /* Botão de Enviar */
-            #sendBtn, .chat-send-btn {
-                position: absolute;
-                right: 25px;
-                top: 50%;
-                transform: translateY(-50%);
-                background: transparent !important;
-                color: #ffc107 !important; /* Ícone Amarelo */
-                font-weight: bold !important;
-                border: none !important;
-                cursor: pointer;
+            #chatInput:focus { border-color: #ffc107 !important; outline: none !important; }
+            #sendBtn {
+                position: absolute; right: 25px; top: 50%; transform: translateY(-50%);
+                background: transparent !important; color: #ffc107 !important;
+                font-weight: bold !important; border: none !important; cursor: pointer;
             }
 
-            /* --- CARDS DE PRODUTO --- */
+            /* --- PRODUTOS E BOTÕES --- */
             .chat-product-card {
-                background: #18181b !important;
-                border: 1px solid #333 !important;
-                border-radius: 8px !important;
-                margin-top: 10px !important;
-                padding: 12px !important;
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-                border-left: 3px solid #ffc107 !important; /* Detalhe Amarelo */
+                background: #18181b !important; border: 1px solid #333 !important;
+                border-radius: 8px !important; margin-top: 10px !important; padding: 12px !important;
+                border-left: 3px solid #ffc107 !important;
             }
-            .chat-product-title {
-                color: #fff !important;
-                font-weight: 600;
-                font-size: 13px;
-                word-wrap: break-word !important;
-            }
-            .chat-product-price {
-                color: #ffc107 !important; /* Preço Amarelo */
-                font-weight: bold;
-                font-size: 14px;
-            }
+            .chat-product-title { color: #fff !important; font-weight: 600; font-size: 13px; }
+            .chat-product-price { color: #ffc107 !important; font-weight: bold; font-size: 14px; }
+            
             .chat-add-btn, .atomic-action-btn {
-                background: transparent !important;
-                color: #ffc107 !important;
-                border: 1px solid #ffc107 !important;
-                border-radius: 6px !important;
-                padding: 8px 14px !important;
-                font-size: 12px !important;
-                cursor: pointer !important;
+                background: transparent !important; color: #ffc107 !important;
+                border: 1px solid #ffc107 !important; border-radius: 6px !important;
+                padding: 8px 14px !important; font-size: 12px !important; cursor: pointer !important;
+                margin-top: 6px; text-transform: uppercase; font-weight: 700;
                 transition: all 0.2s;
-                margin-top: 6px;
-                text-transform: uppercase;
-                font-weight: 700;
             }
             .chat-add-btn:hover, .atomic-action-btn:hover {
-                background: #ffc107 !important;
-                color: #000 !important;
+                background: #ffc107 !important; color: #000 !important;
             }
 
-            /* --- BUBBLE FLUTUANTE --- */
-            #chatBubble, #atomic-chat-trigger {
-                background-color: #ffc107 !important; /* Amarelo Atomic */
-                box-shadow: 0 0 20px rgba(255, 193, 7, 0.4) !important;
-                color: #000 !important;
+            /* --- MODAL DE MAPA (NOVO) --- */
+            #atomic-map-modal {
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                background: rgba(0,0,0,0.85); z-index: 100000;
+                display: none; justify-content: center; align-items: center;
+                backdrop-filter: blur(5px);
             }
-            #chatBubble svg, #chatBubble i {
-                fill: #000 !important;
-                color: #000 !important;
+            #atomic-map-modal.active { display: flex; }
+            
+            .atomic-map-content {
+                background: #18181b; border: 1px solid #333; border-radius: 12px;
+                width: 90%; max-width: 600px; max-height: 90vh;
+                display: flex; flex-direction: column; overflow: hidden;
+                box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            }
+            .atomic-map-header {
+                padding: 15px 20px; border-bottom: 1px solid #333;
+                display: flex; justify-content: space-between; align-items: center;
+                background: #09090b;
+            }
+            .atomic-map-header h4 { color: #fff; margin: 0; font-size: 16px; text-transform: uppercase; }
+            .atomic-map-close { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+            
+            .atomic-map-body { padding: 0; height: 350px; position: relative; }
+            .atomic-map-body iframe { width: 100%; height: 100%; border: 0; }
+            
+            .atomic-map-footer {
+                padding: 15px; background: #09090b; border-top: 1px solid #333;
+                text-align: center;
+            }
+            .atomic-map-btn {
+                background: #ffc107; color: #000; padding: 12px 24px;
+                border: none; border-radius: 8px; font-weight: bold; text-transform: uppercase;
+                cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+                text-decoration: none; font-size: 14px;
+            }
+            .atomic-map-btn:hover { background: #e0a800; }
+
+            /* --- BUBBLE --- */
+            #chatBubble, #atomic-chat-trigger {
+                background-color: #ffc107 !important; box-shadow: 0 0 20px rgba(255, 193, 7, 0.4) !important;
             }
         `;
 
@@ -204,15 +177,55 @@
     injectAtomicStyles();
 
     // ==========================================================================
-    // 0.1 TEST ENVIRONMENT MOCKS
+    // 0.1 MODAL GENERATOR (MAPA)
+    // ==========================================================================
+    function createMapModal() {
+        if (document.getElementById('atomic-map-modal')) return;
+
+        const modalHtml = `
+            <div id="atomic-map-modal">
+                <div class="atomic-map-content">
+                    <div class="atomic-map-header">
+                        <h4>📍 Localização Atomic</h4>
+                        <button class="atomic-map-close" onclick="document.getElementById('atomic-map-modal').classList.remove('active')">&times;</button>
+                    </div>
+                    <div class="atomic-map-body">
+                        <!-- Iframe do Google Maps Embed (Gratuito/Sem API Key restrita) -->
+                        <iframe 
+                            src="https://maps.google.com/maps?q=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="atomic-map-footer">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81" target="_blank" class="atomic-map-btn">
+                            🚗 Traçar Rota (GPS)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Fechar ao clicar fora
+        document.getElementById('atomic-map-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'atomic-map-modal') e.target.classList.remove('active');
+        });
+    }
+
+    // Inicializa o modal oculto
+    createMapModal();
+
+    function showMapModal() {
+        createMapModal(); // Garante que existe
+        document.getElementById('atomic-map-modal').classList.add('active');
+    }
+
+    // ==========================================================================
+    // 0.2 TEST ENVIRONMENT MOCKS
     // ==========================================================================
     function setupTestEnvironment() {
         if (typeof window.showProductDetail !== 'function') {
             window.showProductDetail = (id) => console.log(`[Atomic Mock] Open Product: ${id}`);
-        }
-        // Mock inteligente para rota: se não existir, loga
-        if (typeof window.openRoutePopup !== 'function') {
-           // Não sobrescreve se já existir
         }
     }
     setupTestEnvironment();
@@ -374,15 +387,9 @@
                 
                 // LÓGICA DE AÇÃO ROBUSTA (MAPA E CALCULADORA)
                 btn.onclick = () => {
-                    // Ação 1: Abrir Mapa
+                    // Ação 1: Abrir Mapa (MODAL INTERNO)
                     if (act.type === 'OPEN_MAP') {
-                        // Tenta a função nativa do site
-                        if (typeof window.openRoutePopup === 'function') {
-                            window.openRoutePopup();
-                        } else {
-                            // Fallback: Abre Google Maps direto
-                            window.open('https://www.google.com/maps/search/?api=1&query=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81', '_blank');
-                        }
+                        showMapModal();
                     } 
                     // Ação 2: Calculadora / Orçamento
                     else if (act.type === 'OPEN_BUDGET') {
@@ -397,7 +404,6 @@
                                 break;
                             }
                         }
-                        // Se não achar nada, sugere abrir WhatsApp já pedindo orçamento
                         if(!found) {
                             window.open('https://wa.me/5521995969378?text=Olá,%20gostaria%20de%20fazer%20um%20orçamento%20online!', '_blank');
                         }
