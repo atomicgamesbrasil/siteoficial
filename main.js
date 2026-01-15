@@ -107,19 +107,6 @@ function prepareBudgetForPanel(payload) {
     console.log("Value:", `${payload.data.financial.min_value} - ${payload.data.financial.max_value}`);
     console.log("Full Payload:", payload);
     console.groupEnd();
-    
-    // 5. Envio (COMENTADO - Ativar quando backend estiver ouvindo)
-    /*
-    fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'X-Atomic-Schema': payload.schema_version 
-        },
-        body: serializedData,
-        keepalive: true
-    }).catch(err => console.error("[Atomic Data Layer] Sync Failed", err));
-    */
 }
 
 // ============================================================================
@@ -370,6 +357,8 @@ const LOGISTICS_COST = {
 let allProducts = [...initialProducts];
 let cart = [];
 let currentFilter = 'all';
+let currentPage = 1;
+const itemsPerPage = 10;
 let debounceTimer;
 let els = {}; // Cached DOM elements
 
@@ -617,14 +606,31 @@ function renderProducts(filter, term = "", forceAll = false) {
         (!term || p.name.toLowerCase().includes(lowerTerm) || (p.desc && p.desc.toLowerCase().includes(lowerTerm)))
     );
 
-    const limit = (window.innerWidth < 768) ? 6 : 10;
-    const toShow = forceAll || term ? filtered : filtered.slice(0, limit);
+    // --- PAGINATION LOGIC START ---
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
     
-    els.loadMore.classList.toggle('hidden', forceAll || term || filtered.length <= limit);
+    // Safety check for current page
+    if (currentPage > totalPages) currentPage = 1;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    
+    // Slice array for current page
+    const toShow = filtered.slice(start, end);
+    
+    // Hide old "Load More" completely
+    if (els.loadMore) els.loadMore.classList.add('hidden');
+    
     els.noResults.classList.toggle('hidden', filtered.length > 0);
     els.productGrid.innerHTML = '';
     
-    if (!filtered.length) return;
+    if (!filtered.length) {
+        // Clear pagination if no results
+        const pagContainer = document.getElementById('paginationContainer');
+        if(pagContainer) pagContainer.innerHTML = '';
+        return;
+    }
 
     const frag = document.createDocumentFragment();
     toShow.forEach((p, i) => {
@@ -679,6 +685,78 @@ function renderProducts(filter, term = "", forceAll = false) {
         frag.appendChild(card);
     });
     els.productGrid.appendChild(frag);
+
+    // Render Pagination Controls
+    renderPaginationControls(totalPages);
+}
+
+function renderPaginationControls(totalPages) {
+    let container = document.getElementById('paginationContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'paginationContainer';
+        container.className = 'flex flex-wrap justify-center items-center gap-2 mt-12 reveal';
+        // Insert after grid, before hidden load more
+        els.productGrid.parentNode.insertBefore(container, els.loadMore); 
+    }
+    container.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const createBtn = (label, page, active, disabled) => {
+        const btn = document.createElement('button');
+        btn.className = `w-10 h-10 rounded-xl font-bold transition-all flex items-center justify-center shadow-sm 
+            ${active 
+                ? 'bg-yellow-400 text-black scale-110 shadow-md ring-2 ring-yellow-400/50' 
+                : 'bg-card border-2 border-base text-muted hover:border-yellow-500 hover:text-yellow-600 hover:bg-base'
+            } 
+            ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`;
+        
+        btn.innerHTML = label;
+        btn.disabled = disabled;
+        
+        if (!disabled && !active) {
+            btn.onclick = () => {
+                currentPage = page;
+                renderProducts(currentFilter, els.searchInput.value);
+                // Scroll to top of store smoothly
+                const storeSection = document.getElementById('store');
+                if(storeSection) {
+                    const yOffset = -100; // Navbar offset
+                    const y = storeSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }
+            };
+        }
+        return btn;
+    };
+
+    // Prev
+    container.appendChild(createBtn('<i class="ph-bold ph-caret-left"></i>', currentPage - 1, false, currentPage === 1));
+
+    // Page Numbers logic
+    const getRange = (current, total) => {
+        if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+        const pages = new Set([1, total, current, current - 1, current + 1]);
+        return Array.from(pages).filter(p => p > 0 && p <= total).sort((a,b) => a - b);
+    };
+
+    const pages = getRange(currentPage, totalPages);
+    let last = 0;
+    
+    pages.forEach(p => {
+        if (p - last > 1) {
+            const span = document.createElement('span');
+            span.className = 'text-muted font-bold px-1';
+            span.innerText = '...';
+            container.appendChild(span);
+        }
+        container.appendChild(createBtn(p, p, p === currentPage, false));
+        last = p;
+    });
+
+    // Next
+    container.appendChild(createBtn('<i class="ph-bold ph-caret-right"></i>', currentPage + 1, false, currentPage === totalPages));
 }
 
 function updateCartUI() {
@@ -1311,8 +1389,99 @@ function initCalculator() {
     });
 }
 
+// --- TEMA E ESTILIZAÇÃO DA CALCULADORA ---
+function injectThemeFixes() {
+    const css = `
+        /* SURGICAL THEME TRANSITION FIX */
+        body, .bg-card, .bg-base, .bento-card, input, select, textarea, button, .product-card {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease !important;
+        }
+
+        /* --- CALCULATOR LIGHT MODE FACELIFT --- */
+        
+        /* 1. Container: White background with DARK shadow */
+        html:not(.dark) .bento-card {
+            background-color: #ffffff !important;
+            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.1) !important; /* Dark shadow for depth */
+            border: 1px solid #e4e4e7 !important;
+        }
+
+        /* 2. Selection Cards (Buttons): Light Gray instead of Dark */
+        /* Targets the category cards inside the calculator */
+        html:not(.dark) #serviceForm label div[class*="bg-"] { 
+            background-color: #f3f4f6 !important; /* Light Gray */
+            color: #1f2937 !important; /* Dark Text */
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        }
+        
+        /* Hover State for Cards */
+        html:not(.dark) #serviceForm label:hover div[class*="bg-"] {
+            background-color: #e5e7eb !important;
+            border-color: #d1d5db !important;
+        }
+
+        /* Selected State for Cards */
+        html:not(.dark) #serviceForm label:has(input:checked) div[class*="bg-"] {
+            background-color: #fffbeb !important; /* Amber Light */
+            border-color: #f59e0b !important; /* Amber Border */
+            color: #000000 !important;
+            box-shadow: 0 0 0 2px #f59e0b !important;
+        }
+
+        /* Icons inside Cards */
+        html:not(.dark) #serviceForm label i,
+        html:not(.dark) #serviceForm label svg {
+            color: #d97706 !important; /* Amber Icon for contrast */
+        }
+
+        /* 3. Inputs: White background, clear borders */
+        html:not(.dark) #serviceForm select,
+        html:not(.dark) #serviceForm input[type="text"],
+        html:not(.dark) #serviceForm input[type="tel"],
+        html:not(.dark) #serviceForm textarea {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+            border: 1px solid #d1d5db !important;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05) !important;
+        }
+        
+        /* 4. Labels & Text */
+        html:not(.dark) #serviceForm label {
+            color: #374151 !important; /* Gray 700 */
+        }
+        
+        html:not(.dark) #serviceForm h3, 
+        html:not(.dark) #serviceForm h4 {
+            color: #111827 !important; /* Gray 900 */
+        }
+
+        /* 5. Result Area */
+        html:not(.dark) #result-area {
+            background-color: #f9fafb !important;
+            border: 1px dashed #d1d5db !important;
+        }
+        
+        html:not(.dark) #result-area span {
+            color: #111827 !important;
+        }
+        
+        /* 6. Muted Text */
+        html:not(.dark) .text-muted {
+            color: #6b7280 !important;
+        }
+    `;
+    const style = document.createElement('style');
+    style.id = 'atomic-theme-fix-main';
+    style.innerHTML = css;
+    document.head.appendChild(style);
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Injeta correção de tema imediatamente
+    injectThemeFixes();
+    
     trackAtomicEvent('visit');
 
     if ('serviceWorker' in navigator) {
@@ -1406,9 +1575,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnLoadMore')?.addEventListener('click', () => renderProducts(currentFilter, els.searchInput.value, true));
     document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', e => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active');
-        currentFilter = e.currentTarget.dataset.category; renderProducts(currentFilter, els.searchInput.value);
+        currentFilter = e.currentTarget.dataset.category; 
+        currentPage = 1; // Reset page on filter
+        renderProducts(currentFilter, els.searchInput.value);
     }));
-    els.searchInput?.addEventListener('input', e => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => renderProducts(currentFilter, e.target.value), 300); });
+    els.searchInput?.addEventListener('input', e => { 
+        clearTimeout(debounceTimer); 
+        debounceTimer = setTimeout(() => {
+            currentPage = 1; // Reset page on search
+            renderProducts(currentFilter, e.target.value);
+        }, 300); 
+    });
     
     document.getElementById('themeToggle')?.addEventListener('click', () => {
         const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
