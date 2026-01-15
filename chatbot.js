@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.6.0 (Calculator Hook) Initializing...');
+    console.log('Atomic Chatbot v4.6.1 (Stable Fix) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -298,7 +298,7 @@
 
     const CONFIG = {
         API_ENDPOINT: 'https://atomic-thiago-backend.onrender.com/api/chat-brain',
-        ORDER_ENDPOINT: 'https://atomic-thiago-backend.onrender.com/api/orders', // Nova rota
+        ORDER_ENDPOINT: 'https://atomic-thiago-backend.onrender.com/api/orders',
         TIMEOUT_MS: 60000,
         STORAGE_KEYS: {
             SESSION: 'atomic_sess_id_v2',
@@ -307,15 +307,20 @@
     };
 
     // ==========================================================================
-    // 1.1 CALCULATOR HOOK INTERCEPTOR (NOVO)
+    // 1.1 CALCULATOR HOOK INTERCEPTOR (CORREÇÃO DE LOOP)
     // ==========================================================================
     function setupCalculatorHook() {
         const form = document.getElementById('serviceForm');
-        if (!form) return; // Se não tiver calculadora, ignora
+        
+        // CORREÇÃO CRÍTICA: Se não achar o form OU se já tiver modificado ele, PARE.
+        // Isso impede o loop infinito e o travamento do PC.
+        if (!form || form.getAttribute('data-atomic-hooked') === 'true') return; 
 
-        // Remove listeners antigos para evitar duplicação em SPAs
+        // Remove listeners antigos clonando o nó
         const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
+        
+        // MARCA COMO MODIFICADO para a verificação acima funcionar na próxima vez
+        newForm.setAttribute('data-atomic-hooked', 'true');
 
         newForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // Impede o envio padrão
@@ -359,13 +364,21 @@
             }
         });
         
-        console.log("🧮 Calculator Hook Activated!");
+        // Substitui o formulário original pelo nosso modificado
+        form.parentNode.replaceChild(newForm, form);
+        
+        console.log("🧮 Calculator Hook Activated (Safe Mode)!");
     }
 
-    // Tenta ativar o hook ao carregar e também após interações (caso o DOM mude)
+    // Tenta ativar o hook ao carregar
     setTimeout(setupCalculatorHook, 2000);
-    // Observer para garantir que se a section aparecer depois, o hook pega
-    const observer = new MutationObserver(() => setupCalculatorHook());
+    
+    // Observer para garantir que se a section aparecer depois (SPA), o hook pega
+    const observer = new MutationObserver((mutations) => {
+        // Tenta rodar o hook, mas a trava de segurança lá dentro impede o loop
+        setupCalculatorHook();
+    });
+    
     if(document.body) observer.observe(document.body, { childList: true, subtree: true });
 
     if (!els.bubble || !els.win) {
