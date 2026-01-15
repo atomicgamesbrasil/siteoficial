@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.1 (Chameleon & Enterprise Calc) Initializing...');
+    console.log('Atomic Chatbot v5.4 (Choice Modal & CSS Fix) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
@@ -225,15 +225,12 @@
     };
 
     // ==========================================================================
-    // 0. ATOMIC THEME INJECTION (CSS OVERRIDE) - AGORA COM DARK/LIGHT MODE
+    // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
     // ==========================================================================
     function injectAtomicStyles() {
         const styleId = 'atomic-chat-styles';
         if (document.getElementById(styleId)) return;
 
-        // DEFINIÇÃO DE VARIÁVEIS CSS (THEMING)
-        // O :root define o modo CLARO por padrão.
-        // A classe html.dark sobrescreve para o modo ESCURO.
         const css = `
             :root {
                 --at-bg: #ffffff;
@@ -395,7 +392,7 @@
                 animation: atomicSlideUp 0.3s ease;
             }
 
-            /* --- CALCULATOR SPECIFIC --- */
+            /* --- CALCULATOR & BUDGET CHOICE --- */
             .atomic-calc-header {
                 background: var(--at-header-bg); padding: 15px 20px; border-bottom: 2px solid var(--at-accent);
                 display: flex; justify-content: space-between; align-items: center;
@@ -437,7 +434,11 @@
                 font-weight: 800; text-transform: uppercase; font-size: 14px;
                 cursor: pointer; transition: transform 0.2s;
             }
+            .atomic-calc-btn.secondary {
+                background: transparent; border: 2px solid var(--at-accent); color: var(--at-accent);
+            }
             .atomic-calc-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--at-accent); }
+            .atomic-calc-btn.secondary:hover { background: var(--at-accent); color: var(--at-accent-text); }
             .atomic-calc-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
             /* --- BUBBLE --- */
@@ -450,7 +451,8 @@
             @keyframes atomicFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes atomicSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             
-            .hidden { display: none !important; }
+            /* -- RENOMEADO PARA EVITAR CONFLITO COM O SITE -- */
+            .at-hidden { display: none !important; }
         `;
 
         const styleEl = document.createElement('style');
@@ -483,6 +485,48 @@
         document.body.insertAdjacentHTML('beforeend', html);
     }
 
+    // MODAL DE ESCOLHA (NOVO RECURSO RESTAURADO)
+    function createBudgetChoiceModal() {
+        if (document.getElementById('atomic-choice-modal')) return;
+        
+        const html = `
+            <div id="atomic-choice-modal" class="atomic-modal-overlay">
+                <div class="atomic-modal-content">
+                    <div class="atomic-calc-header">
+                        <h2>🤔 Como prefere?</h2>
+                        <button class="atomic-calc-close" onclick="document.getElementById('atomic-choice-modal').classList.remove('active')">&times;</button>
+                    </div>
+                    <div class="atomic-calc-body" style="display: flex; flex-direction: column; gap: 15px; text-align: center;">
+                        <p>Você pode falar direto com nosso técnico ou simular o valor na hora.</p>
+                        
+                        <button id="btn-choice-calc" class="atomic-calc-btn">
+                            🧮 Usar Calculadora Rápida
+                        </button>
+                        
+                        <button id="btn-choice-zap" class="atomic-calc-btn secondary">
+                            💬 Falar com o Técnico no Zap
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+
+        // Lógica do Choice Modal
+        document.getElementById('btn-choice-calc').onclick = () => {
+            document.getElementById('atomic-choice-modal').classList.remove('active');
+            showCalculatorModal(); // Abre a calculadora completa
+        };
+
+        document.getElementById('btn-choice-zap').onclick = () => {
+            document.getElementById('atomic-choice-modal').classList.remove('active');
+            window.open('https://wa.me/5521995969378?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20com%20um%20t%C3%A9cnico%20sobre%20meu%20aparelho!', '_blank');
+        };
+        
+        document.getElementById('atomic-choice-modal').addEventListener('click', (e) => { 
+            if(e.target.id === 'atomic-choice-modal') e.target.classList.remove('active'); 
+        });
+    }
+
     // CALCULADORA INTEGRADA (ENTERPRISE EDITION)
     function createCalculatorModal() {
         if (document.getElementById('atomic-calc-modal')) return;
@@ -511,7 +555,7 @@
                         </div>
 
                         <!-- ETAPA 2: MODELO (Depende da Categoria) -->
-                        <div class="atomic-field-group hidden" id="at-group-model">
+                        <div class="atomic-field-group at-hidden" id="at-group-model">
                             <label>Modelo</label>
                             <select id="at-calc-model" class="atomic-select">
                                 <option value="" disabled selected>Selecione...</option>
@@ -519,7 +563,7 @@
                         </div>
 
                         <!-- ETAPA 3: SERVIÇO (Depende do Modelo) -->
-                        <div class="atomic-field-group hidden" id="at-group-service">
+                        <div class="atomic-field-group at-hidden" id="at-group-service">
                             <label>Defeito / Serviço</label>
                             <select id="at-calc-service" class="atomic-select">
                                 <option value="" disabled selected>Selecione...</option>
@@ -527,12 +571,12 @@
                         </div>
 
                         <!-- CAMPO EXTRA: DESCRIÇÃO (Se for 'custom_issue') -->
-                        <div class="atomic-field-group hidden" id="at-group-desc">
+                        <div class="atomic-field-group at-hidden" id="at-group-desc">
                             <label>Descreva o Problema</label>
                             <textarea id="at-calc-desc" class="atomic-textarea" placeholder="Ex: Caiu no chão e não liga mais..."></textarea>
                         </div>
 
-                        <div class="atomic-price-display hidden" id="at-price-box">
+                        <div class="atomic-price-display at-hidden" id="at-price-box">
                             <div class="atomic-price-label">Estimativa de Preço</div>
                             <div class="atomic-price-value" id="at-calc-result">R$ 0,00</div>
                             <div class="atomic-note" id="at-calc-note"></div>
@@ -601,10 +645,10 @@
             // Reset Downstream
             els.model.innerHTML = '<option value="" disabled selected>Selecione...</option>';
             els.service.innerHTML = '<option value="" disabled selected>Selecione...</option>';
-            els.groupModel.classList.add('hidden');
-            els.groupService.classList.add('hidden');
-            els.groupDesc.classList.add('hidden');
-            els.priceBox.classList.add('hidden');
+            els.groupModel.classList.add('at-hidden');
+            els.groupService.classList.add('at-hidden');
+            els.groupDesc.classList.add('at-hidden');
+            els.priceBox.classList.add('at-hidden');
             els.submit.disabled = true;
             els.submit.innerText = "Selecione o Modelo";
 
@@ -616,7 +660,7 @@
                     opt.text = models[mKey].name;
                     els.model.appendChild(opt);
                 });
-                els.groupModel.classList.remove('hidden');
+                els.groupModel.classList.remove('at-hidden');
             }
         });
 
@@ -627,9 +671,9 @@
 
             // Reset Downstream
             els.service.innerHTML = '<option value="" disabled selected>Selecione...</option>';
-            els.groupService.classList.add('hidden');
-            els.groupDesc.classList.add('hidden');
-            els.priceBox.classList.add('hidden');
+            els.groupService.classList.add('at-hidden');
+            els.groupDesc.classList.add('at-hidden');
+            els.priceBox.classList.add('at-hidden');
             els.submit.disabled = true;
             els.submit.innerText = "Selecione o Serviço";
 
@@ -641,7 +685,7 @@
                     opt.text = services[sKey].name;
                     els.service.appendChild(opt);
                 });
-                els.groupService.classList.remove('hidden');
+                els.groupService.classList.remove('at-hidden');
             }
         });
 
@@ -664,12 +708,12 @@
             const svcData = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].services[sKey];
 
             if (sKey === 'custom_issue') {
-                els.groupDesc.classList.remove('hidden');
-                els.priceBox.classList.add('hidden'); // Oculta preço em 'Outro Defeito'
+                els.groupDesc.classList.remove('at-hidden');
+                els.priceBox.classList.add('at-hidden'); // Oculta preço em 'Outro Defeito'
                 els.submit.innerText = "Solicitar Análise";
             } else {
-                els.groupDesc.classList.add('hidden');
-                els.priceBox.classList.remove('hidden');
+                els.groupDesc.classList.add('at-hidden');
+                els.priceBox.classList.remove('at-hidden');
                 
                 const min = svcData.min + logCost;
                 const max = svcData.max + logCost;
@@ -744,6 +788,15 @@
     }
 
     function showMapModal() { createMapModal(); document.getElementById('atomic-map-modal').classList.add('active'); }
+    
+    // Função MODIFICADA: Agora abre a ESCOLHA, não a calculadora direto
+    function showBudgetChoiceModal() {
+        createBudgetChoiceModal();
+        createCalculatorModal(); // Pre-load
+        document.getElementById('atomic-choice-modal').classList.add('active');
+    }
+
+    // Função interna para quando o usuário escolhe "Calculadora" no menu
     function showCalculatorModal() { 
         createCalculatorModal(); 
         document.getElementById('atomic-calc-modal').classList.add('active'); 
@@ -921,9 +974,9 @@
                     if (act.type === 'OPEN_MAP') {
                         showMapModal();
                     } 
-                    // Ação 2: Calculadora (AGORA MODAL DEDICADO)
+                    // Ação 2: Calculadora -> AGORA ABRE A ESCOLHA PRIMEIRO
                     else if (act.type === 'OPEN_BUDGET') {
-                        showCalculatorModal();
+                        showBudgetChoiceModal();
                     }
                     else if (act.type === 'OPEN_PRODUCT') window.showProductDetail(act.payload);
                     else if (act.url) window.open(act.url, '_blank');
