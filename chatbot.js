@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.7.0 (Button Hijack) Initializing...');
+    console.log('Atomic Chatbot v5.0 (Integrated Modal) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -14,13 +14,14 @@
         // Amarelo Principal: #ffc107 (Amber)
         // Fundo Dark: #09090b
         // Fundo Card: #18181b
+        // Texto: #e4e4e7
         
         const css = `
             /* --- JANELA PRINCIPAL --- */
             #chatWindow, #atomic-chat-window, .chat-window {
-                background-color: #09090b !important; /* Ultra Dark */
+                background-color: #09090b !important;
                 border: 1px solid #333 !important;
-                box-shadow: 0 20px 50px rgba(0,0,0,0.8) !important;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.9) !important;
                 font-family: 'Segoe UI', Roboto, sans-serif !important;
                 border-radius: 16px !important;
                 overflow: hidden !important;
@@ -37,15 +38,10 @@
                 align-items: center;
                 justify-content: space-between;
             }
-            .chat-header h3, .chat-title {
-                color: #ffffff !important;
-                font-weight: 700 !important;
-                font-size: 15px !important;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                text-transform: uppercase;
-                margin: 0 !important;
+            .chat-header h3 {
+                color: #ffffff !important; font-weight: 700 !important;
+                font-size: 15px !important; margin: 0 !important;
+                display: flex; align-items: center; gap: 10px; text-transform: uppercase;
             }
             .chat-header h3::before {
                 content: ''; display: block; width: 10px; height: 10px;
@@ -54,7 +50,7 @@
             }
             .chat-header button {
                 color: #a1a1aa !important; background: none !important; border: none !important;
-                cursor: pointer; transition: color 0.2s;
+                cursor: pointer; transition: color 0.2s; font-size: 18px;
             }
             .chat-header button:hover { color: #ffc107 !important; }
 
@@ -104,14 +100,14 @@
                 font-weight: bold !important; border: none !important; cursor: pointer;
             }
 
-            /* --- PRODUTOS E BOTÕES --- */
+            /* --- AÇÕES & PRODUTOS --- */
             .chat-product-card {
                 background: #18181b !important; border: 1px solid #333 !important;
                 border-radius: 8px !important; margin-top: 10px !important; padding: 12px !important;
                 border-left: 3px solid #ffc107 !important;
             }
-            .chat-product-title { color: #fff !important; font-weight: 600; font-size: 13px; }
-            .chat-product-price { color: #ffc107 !important; font-weight: bold; font-size: 14px; }
+            .chat-product-title { color: #fff; font-weight: 600; font-size: 13px; }
+            .chat-product-price { color: #ffc107; font-weight: bold; font-size: 14px; }
             
             .chat-add-btn, .atomic-action-btn {
                 background: transparent !important; color: #ffc107 !important;
@@ -124,49 +120,72 @@
                 background: #ffc107 !important; color: #000 !important;
             }
 
-            /* --- MODAL (MAPA E ORÇAMENTO) --- */
+            /* --- MODAL GLOBAL (BASE) --- */
             .atomic-modal-overlay {
                 position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                background: rgba(0,0,0,0.85); z-index: 100000;
+                background: rgba(0,0,0,0.9); z-index: 100000;
                 display: none; justify-content: center; align-items: center;
-                backdrop-filter: blur(5px);
+                backdrop-filter: blur(8px);
+                animation: atomicFadeIn 0.3s ease;
             }
             .atomic-modal-overlay.active { display: flex; }
             
             .atomic-modal-content {
-                background: #18181b; border: 1px solid #333; border-radius: 12px;
-                width: 90%; max-width: 500px;
+                background: #09090b; border: 1px solid #333; border-radius: 12px;
+                width: 90%; max-width: 450px;
                 display: flex; flex-direction: column; overflow: hidden;
-                box-shadow: 0 0 30px rgba(0,0,0,0.8);
+                box-shadow: 0 0 40px rgba(255, 193, 7, 0.15);
+                animation: atomicSlideUp 0.3s ease;
             }
-            .atomic-modal-header {
-                padding: 15px 20px; border-bottom: 1px solid #333;
+
+            /* --- CALCULATOR SPECIFIC --- */
+            .atomic-calc-header {
+                background: #18181b; padding: 15px 20px; border-bottom: 2px solid #ffc107;
                 display: flex; justify-content: space-between; align-items: center;
-                background: #09090b;
             }
-            .atomic-modal-header h4 { color: #fff; margin: 0; font-size: 16px; text-transform: uppercase; }
-            .atomic-modal-close { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+            .atomic-calc-header h2 { color: #fff; font-size: 16px; margin: 0; text-transform: uppercase; display: flex; gap: 8px; align-items: center; }
+            .atomic-calc-close { color: #666; font-size: 24px; background: none; border: none; cursor: pointer; }
+            .atomic-calc-close:hover { color: #fff; }
+
+            .atomic-calc-body { padding: 20px; color: #e4e4e7; }
             
-            .atomic-modal-body { padding: 20px; color: #ccc; text-align: center; }
-            .atomic-modal-body iframe { width: 100%; height: 350px; border: 0; }
+            .atomic-field-group { margin-bottom: 15px; text-align: left; }
+            .atomic-field-group label { display: block; font-size: 12px; color: #a1a1aa; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
             
-            .atomic-modal-footer {
-                padding: 15px; background: #09090b; border-top: 1px solid #333;
-                text-align: center; display: flex; flex-direction: column; gap: 10px;
+            .atomic-input, .atomic-select {
+                width: 100%; padding: 12px; border-radius: 8px;
+                background: #18181b; border: 1px solid #333;
+                color: #fff; font-family: inherit; font-size: 14px;
+                box-sizing: border-box; outline: none; transition: border 0.3s;
             }
-            .atomic-modal-btn {
-                background: #ffc107; color: #000; padding: 12px 24px;
-                border: none; border-radius: 8px; font-weight: bold; text-transform: uppercase;
-                cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
-                text-decoration: none; font-size: 14px; width: 100%; box-sizing: border-box;
+            .atomic-input:focus, .atomic-select:focus { border-color: #ffc107; }
+
+            .atomic-price-display {
+                background: #18181b; padding: 15px; border-radius: 8px;
+                text-align: center; margin: 20px 0; border: 1px dashed #444;
             }
-            .atomic-modal-btn.secondary { background: transparent; border: 1px solid #ffc107; color: #ffc107; }
-            .atomic-modal-btn:hover { opacity: 0.9; }
+            .atomic-price-label { font-size: 12px; color: #888; text-transform: uppercase; }
+            .atomic-price-value { font-size: 24px; color: #ffc107; font-weight: 800; margin-top: 5px; }
+
+            .atomic-radio-group { display: flex; gap: 15px; margin-top: 5px; }
+            .atomic-radio-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+            .atomic-radio-label input { accent-color: #ffc107; }
+
+            .atomic-calc-btn {
+                width: 100%; background: #ffc107; color: #000;
+                padding: 14px; border: none; border-radius: 8px;
+                font-weight: 800; text-transform: uppercase; font-size: 14px;
+                cursor: pointer; transition: transform 0.2s;
+            }
+            .atomic-calc-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(255, 193, 7, 0.4); }
 
             /* --- BUBBLE --- */
             #chatBubble, #atomic-chat-trigger {
                 background-color: #ffc107 !important; box-shadow: 0 0 20px rgba(255, 193, 7, 0.4) !important;
             }
+
+            @keyframes atomicFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes atomicSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         `;
 
         const styleEl = document.createElement('style');
@@ -181,90 +200,190 @@
     // 0.1 MODAL GENERATORS
     // ==========================================================================
     
-    // MAPA MODAL
+    // MAPA MODAL (Mantido simples)
     function createMapModal() {
         if (document.getElementById('atomic-map-modal')) return;
         const html = `
             <div id="atomic-map-modal" class="atomic-modal-overlay">
                 <div class="atomic-modal-content" style="max-width:600px;">
-                    <div class="atomic-modal-header">
-                        <h4>📍 Localização Atomic</h4>
-                        <button class="atomic-modal-close" onclick="document.getElementById('atomic-map-modal').classList.remove('active')">&times;</button>
+                    <div class="atomic-calc-header">
+                        <h2>📍 Localização Atomic</h2>
+                        <button class="atomic-calc-close" onclick="document.getElementById('atomic-map-modal').classList.remove('active')">&times;</button>
                     </div>
-                    <div class="atomic-modal-body" style="padding:0; height:350px;">
-                        <iframe src="https://maps.google.com/maps?q=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen></iframe>
-                    </div>
-                    <div class="atomic-modal-footer">
-                        <a href="https://www.google.com/maps/search/?api=1&query=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81" target="_blank" class="atomic-modal-btn">
-                            🚗 Traçar Rota (GPS)
-                        </a>
+                    <div style="height:350px;">
+                        <iframe src="https://maps.google.com/maps?q=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81&t=&z=15&ie=UTF8&iwloc=&output=embed" style="width:100%; height:100%; border:0;" allowfullscreen></iframe>
                     </div>
                 </div>
             </div>`;
         document.body.insertAdjacentHTML('beforeend', html);
-        document.getElementById('atomic-map-modal').addEventListener('click', (e) => { if(e.target.id === 'atomic-map-modal') e.target.classList.remove('active'); });
     }
 
-    // ORÇAMENTO MODAL
-    function createBudgetModal() {
-        if (document.getElementById('atomic-budget-modal')) return;
+    // CALCULADORA INTEGRADA (O "CORAÇÃO" DA SOLUÇÃO)
+    function createCalculatorModal() {
+        if (document.getElementById('atomic-calc-modal')) return;
+
         const html = `
-            <div id="atomic-budget-modal" class="atomic-modal-overlay">
+            <div id="atomic-calc-modal" class="atomic-modal-overlay">
                 <div class="atomic-modal-content">
-                    <div class="atomic-modal-header">
-                        <h4>🧮 Simular Orçamento</h4>
-                        <button class="atomic-modal-close" onclick="document.getElementById('atomic-budget-modal').classList.remove('active')">&times;</button>
+                    <div class="atomic-calc-header">
+                        <h2>🧮 Calculadora Rápida</h2>
+                        <button class="atomic-calc-close" id="btn-close-calc">&times;</button>
                     </div>
-                    <div class="atomic-modal-body">
-                        <p>Para agilizar, escolha como prefere fazer seu orçamento:</p>
-                        <p style="font-size:12px; color:#999; margin-top:5px;">A Calculadora do site dá uma estimativa na hora!</p>
-                    </div>
-                    <div class="atomic-modal-footer">
-                        <button id="btn-goto-calc" class="atomic-modal-btn">
-                            🖥️ Abrir Calculadora do Site
+                    <div class="atomic-calc-body">
+                        
+                        <div class="atomic-field-group">
+                            <label>Seu Nome</label>
+                            <input type="text" id="at-calc-name" class="atomic-input" placeholder="Como te chamamos?">
+                        </div>
+
+                        <div class="atomic-field-group">
+                            <label>Aparelho</label>
+                            <select id="at-calc-model" class="atomic-select">
+                                <option value="ps5">PlayStation 5</option>
+                                <option value="ps4">PlayStation 4</option>
+                                <option value="xboxss">Xbox Series S/X</option>
+                                <option value="xboxone">Xbox One</option>
+                                <option value="nswitch">Nintendo Switch</option>
+                                <option value="control">Controle (DualSense/Xbox)</option>
+                            </select>
+                        </div>
+
+                        <div class="atomic-field-group">
+                            <label>Problema / Serviço</label>
+                            <select id="at-calc-service" class="atomic-select">
+                                <option value="clean">Limpeza Completa + Pasta Térmica</option>
+                                <option value="drift">Analógico puxando (Drift)</option>
+                                <option value="hdmi">Troca de HDMI / Não dá vídeo</option>
+                                <option value="power">Não Liga / Desliga Sozinho</option>
+                                <option value="other">Outro Defeito</option>
+                            </select>
+                        </div>
+
+                        <div class="atomic-price-display">
+                            <div class="atomic-price-label">Estimativa de Preço</div>
+                            <div class="atomic-price-value" id="at-calc-result">R$ 150,00</div>
+                        </div>
+
+                        <div class="atomic-field-group">
+                            <label>Logística</label>
+                            <div class="atomic-radio-group">
+                                <label class="atomic-radio-label">
+                                    <input type="radio" name="at_logistics" value="Levarei na Loja" checked>
+                                    Levo na Loja
+                                </label>
+                                <label class="atomic-radio-label">
+                                    <input type="radio" name="at_logistics" value="Motoboy">
+                                    Buscar de Motoboy
+                                </label>
+                            </div>
+                        </div>
+
+                        <button id="at-btn-finish" class="atomic-calc-btn">
+                            ✅ Finalizar e Agendar
                         </button>
-                        <a href="https://wa.me/5521995969378?text=Olá,%20gostaria%20de%20fazer%20um%20orçamento%20de%20manutenção!" target="_blank" class="atomic-modal-btn secondary">
-                            💬 Falar com Técnico no Zap
-                        </a>
+
                     </div>
                 </div>
             </div>`;
-        document.body.insertAdjacentHTML('beforeend', html);
         
-        // Lógica do Botão "Abrir Calculadora"
-        document.getElementById('btn-goto-calc').onclick = () => {
-            document.getElementById('atomic-budget-modal').classList.remove('active');
-            
-            // FECHA O CHAT PARA LIMPAR A VISÃO
-            closeChat();
+        document.body.insertAdjacentHTML('beforeend', html);
 
-            // BUSCA PELO ID CORRETO: '#services' (Conforme index.html)
-            const el = document.getElementById('services');
-
-            if(el) {
-                // Encontrou! Rola até lá
-                el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                
-                // Pisca a borda para destacar a seção inteira ou o form dentro dela
-                const form = document.getElementById('serviceForm');
-                const targetHighlight = form || el;
-                
-                targetHighlight.style.border = "2px solid #ffc107";
-                targetHighlight.style.transition = "border 0.5s";
-                setTimeout(() => targetHighlight.style.border = "", 3000);
-            } else {
-                // FALLBACK DE SEGURANÇA
-                if(confirm("Não localizei a calculadora nesta página. Deseja falar direto com o técnico no WhatsApp?")) {
-                    window.open('https://wa.me/5521995969378?text=Vim%20pelo%20site%20e%20não%20achei%20a%20calculadora,%20gostaria%20de%20um%20orçamento!', '_blank');
-                }
-            }
+        // Lógica Interna da Calculadora
+        const els = {
+            modal: document.getElementById('atomic-calc-modal'),
+            close: document.getElementById('btn-close-calc'),
+            model: document.getElementById('at-calc-model'),
+            service: document.getElementById('at-calc-service'),
+            result: document.getElementById('at-calc-result'),
+            submit: document.getElementById('at-btn-finish'),
+            name: document.getElementById('at-calc-name')
         };
 
-        document.getElementById('atomic-budget-modal').addEventListener('click', (e) => { if(e.target.id === 'atomic-budget-modal') e.target.classList.remove('active'); });
+        // Estimativas (Simplificadas para UX rápida)
+        const prices = {
+            'clean': { min: 100, max: 180 },
+            'drift': { min: 80, max: 120 },
+            'hdmi': { min: 250, max: 450 },
+            'power': { min: 300, max: 800 },
+            'other': { min: 0, max: 0 } // A combinar
+        };
+
+        function updatePrice() {
+            const s = els.service.value;
+            const m = els.model.value;
+            let p = prices[s] || { min: 0, max: 0 };
+            
+            // Pequeno ajuste por modelo
+            if (m === 'ps5' || m === 'xboxss') { p.min += 50; p.max += 50; }
+            if (m === 'control') { p = { min: 60, max: 150 }; } // Override pra controle
+
+            if (s === 'other') {
+                els.result.innerText = "A Combinar";
+                els.result.style.color = "#aaa";
+            } else {
+                els.result.innerText = `R$ ${p.min} - R$ ${p.max}`;
+                els.result.style.color = "#ffc107";
+            }
+        }
+
+        // Listeners
+        els.model.addEventListener('change', updatePrice);
+        els.service.addEventListener('change', updatePrice);
+        els.close.addEventListener('click', () => els.modal.classList.remove('active'));
+        els.modal.addEventListener('click', (e) => { if(e.target === els.modal) els.modal.classList.remove('active'); });
+
+        // AÇÃO FINAL: ENVIAR PARA O BOT
+        els.submit.addEventListener('click', async () => {
+            const name = els.name.value.trim() || "Cliente Amigo";
+            const model = els.model.options[els.model.selectedIndex].text;
+            const service = els.service.options[els.service.selectedIndex].text;
+            const price = els.result.innerText;
+            const logistics = document.querySelector('input[name="at_logistics"]:checked').value;
+
+            // 1. Fecha Modal
+            els.modal.classList.remove('active');
+
+            // 2. Abre Bot (se estiver fechado)
+            updateChatUI(true);
+            
+            // 3. Feedback visual imediato
+            renderMessage('bot', `Só um segundo, ${name}... processando seu agendamento.`);
+
+            // 4. Envia para o Backend (Simulação de Order)
+            try {
+                const payload = { name, model, service, priceMin: price, priceMax: "", logistics };
+                
+                const res = await fetch(CONFIG.ORDER_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                
+                if(data.success) {
+                    renderMessage('bot', data.reply, [], data.actions);
+                } else {
+                    renderMessage('bot', "Tive um erro ao gerar o link, mas me chama no Zap assim mesmo!");
+                }
+            } catch (err) {
+                console.error(err);
+                renderMessage('bot', "Sem internet? Pode me chamar no WhatsApp direto que a gente resolve.");
+            }
+        });
+
+        // Init
+        updatePrice();
     }
 
     function showMapModal() { createMapModal(); document.getElementById('atomic-map-modal').classList.add('active'); }
-    function showBudgetModal() { createBudgetModal(); document.getElementById('atomic-budget-modal').classList.add('active'); }
+    function showCalculatorModal() { 
+        createCalculatorModal(); 
+        document.getElementById('atomic-calc-modal').classList.add('active'); 
+        // Fecha o chat para dar foco no modal, se quiser. Ou mantém aberto. 
+        // O usuário pediu "pop-up, pum, abrisse". Vamos manter o chat aberto atrás ou fechar?
+        // Geralmente modais cobrem tudo. Vamos manter o estado atual.
+    }
 
     // ==========================================================================
     // 0.2 TEST ENVIRONMENT MOCKS
@@ -305,89 +424,6 @@
             HISTORY: 'atomic_chat_history_v2' 
         }
     };
-
-    // ==========================================================================
-    // 1.1 CALCULATOR HOOK INTERCEPTOR (BUTTON HIJACK MODE)
-    // ==========================================================================
-    function setupCalculatorHook() {
-        const btn = document.getElementById('btn-submit-calc');
-        const form = document.getElementById('serviceForm');
-        
-        // Verifica existência e se já foi modificado (flag data-atomic-hooked)
-        if (!btn || !form || btn.getAttribute('data-atomic-hooked') === 'true') return;
-
-        // Clona o botão para eliminar TODOS os listeners nativos ou de outros scripts
-        const newBtn = btn.cloneNode(true);
-        
-        // CRÍTICO: Muda o type para 'button' para impedir que o formulário seja submetido
-        // Isso mata qualquer tentativa de redirecionamento via 'submit' do form
-        newBtn.type = 'button';
-        newBtn.setAttribute('data-atomic-hooked', 'true');
-
-        newBtn.onclick = async (e) => {
-            e.preventDefault(); 
-            e.stopPropagation();
-
-            // Validação manual (já que desligamos o submit nativo)
-            if (!form.checkValidity()) {
-                form.reportValidity(); // Mostra os balões de erro do navegador
-                return;
-            }
-
-            // Captura os dados do DOM
-            const model = document.getElementById('calc-model')?.value || 'Não informado';
-            const service = document.getElementById('calc-service')?.value || 'Não informado';
-            const priceMin = document.getElementById('price-min')?.innerText || '?';
-            const priceMax = document.getElementById('price-max')?.innerText || '?';
-            const name = document.getElementById('calc-name')?.value || 'Cliente';
-            const logistics = document.querySelector('input[name="logistics"]:checked')?.value || 'shop';
-
-            const payload = { model, service, priceMin, priceMax, name, logistics };
-
-            // 1. Abre o Chatbot e bloqueia interação
-            updateChatUI(true);
-            
-            // 2. Mensagem de processamento
-            renderMessage('bot', `Só um instante, ${name}! Tô pegando os dados do seu orçamento...`);
-
-            try {
-                // 3. Envia para o Backend
-                const res = await fetch(CONFIG.ORDER_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-                
-                // 4. Exibe a resposta final do bot com o botão de Zap
-                if(data.success) {
-                    renderMessage('bot', data.reply, [], data.actions);
-                } else {
-                    renderMessage('bot', "Opa, deu um erro ao gerar o link. Mas pode me chamar direto no Zap!");
-                }
-
-            } catch (err) {
-                console.error("Erro no Hook da Calculadora:", err);
-                renderMessage('bot', "Tive um problema de conexão, mas recebi seus dados. Vamos finalizar no WhatsApp?");
-            }
-        };
-        
-        // Substitui o botão original pelo nosso "sequestrado"
-        btn.parentNode.replaceChild(newBtn, btn);
-        
-        console.log("🧮 Calculator Hook Activated (Button Hijack Mode)!");
-    }
-
-    // Tenta ativar o hook ao carregar
-    setTimeout(setupCalculatorHook, 2000);
-    
-    // Observer para garantir que se a section aparecer depois (SPA), o hook pega
-    const observer = new MutationObserver((mutations) => {
-        setupCalculatorHook();
-    });
-    
-    if(document.body) observer.observe(document.body, { childList: true, subtree: true });
 
     if (!els.bubble || !els.win) {
         console.error('AtomicChat: Critical elements missing. Widget disabled.');
@@ -515,15 +551,15 @@
                 btn.className = 'atomic-action-btn';
                 btn.innerText = act.label;
                 
-                // LÓGICA DE AÇÃO ROBUSTA (MAPA E CALCULADORA)
+                // --- LÓGICA DE ACTIONS ATUALIZADA ---
                 btn.onclick = () => {
-                    // Ação 1: Abrir Mapa (MODAL INTERNO)
+                    // Ação 1: Abrir Mapa
                     if (act.type === 'OPEN_MAP') {
                         showMapModal();
                     } 
-                    // Ação 2: Calculadora / Orçamento (MODAL INTERNO)
+                    // Ação 2: Calculadora (AGORA MODAL DEDICADO)
                     else if (act.type === 'OPEN_BUDGET') {
-                        showBudgetModal();
+                        showCalculatorModal();
                     }
                     else if (act.type === 'OPEN_PRODUCT') window.showProductDetail(act.payload);
                     else if (act.url) window.open(act.url, '_blank');
