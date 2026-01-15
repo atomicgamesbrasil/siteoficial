@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.4 (Choice Modal & CSS Fix) Initializing...');
+    console.log('Atomic Chatbot v5.6 (Map Route Button) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
@@ -401,7 +401,7 @@
             .atomic-calc-close { color: var(--at-text-sec); font-size: 24px; background: none; border: none; cursor: pointer; }
             .atomic-calc-close:hover { color: var(--at-text); }
 
-            .atomic-calc-body { padding: 20px; color: var(--at-text); }
+            .atomic-calc-body { padding: 20px; color: var(--at-text); max-height: 80vh; overflow-y: auto; }
             
             .atomic-field-group { margin-bottom: 15px; text-align: left; }
             .atomic-field-group label { display: block; font-size: 12px; color: var(--at-text-sec); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
@@ -480,12 +480,23 @@
                     <div style="height:350px;">
                         <iframe src="https://maps.google.com/maps?q=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81&t=&z=15&ie=UTF8&iwloc=&output=embed" style="width:100%; height:100%; border:0;" allowfullscreen></iframe>
                     </div>
+                    <div class="atomic-calc-body" style="padding: 15px; flex: 0 0 auto;">
+                        <button id="btn-map-route" class="atomic-calc-btn">
+                            🗺️ Traçar Rota (Google Maps)
+                        </button>
+                    </div>
                 </div>
             </div>`;
         document.body.insertAdjacentHTML('beforeend', html);
+
+        // Logic for Route Button
+        document.getElementById('btn-map-route').onclick = () => {
+             // Link universal para traçar rota
+             window.open('https://www.google.com/maps/dir/?api=1&destination=Atomic+Games+Madureira', '_blank');
+        };
     }
 
-    // MODAL DE ESCOLHA (NOVO RECURSO RESTAURADO)
+    // MODAL DE ESCOLHA
     function createBudgetChoiceModal() {
         if (document.getElementById('atomic-choice-modal')) return;
         
@@ -545,11 +556,17 @@
                             <input type="text" id="at-calc-name" class="atomic-input" placeholder="Como te chamamos?">
                         </div>
 
+                        <!-- NOVO CAMPO: TELEFONE -->
+                        <div class="atomic-field-group">
+                            <label>Seu WhatsApp (Obrigatório)</label>
+                            <input type="tel" id="at-calc-phone" class="atomic-input" placeholder="(21) 9....">
+                        </div>
+
                         <!-- ETAPA 1: CATEGORIA -->
                         <div class="atomic-field-group">
                             <label>Tipo de Aparelho</label>
                             <select id="at-calc-cat" class="atomic-select">
-                                <option value="" disabled selected>Selecione...</option>
+                                <option value="" disabled selected>Selecione a categoria...</option>
                                 <!-- Populated by JS -->
                             </select>
                         </div>
@@ -613,6 +630,7 @@
             modal: document.getElementById('atomic-calc-modal'),
             close: document.getElementById('btn-close-calc'),
             name: document.getElementById('at-calc-name'),
+            phone: document.getElementById('at-calc-phone'),
             cat: document.getElementById('at-calc-cat'),
             model: document.getElementById('at-calc-model'),
             service: document.getElementById('at-calc-service'),
@@ -629,7 +647,17 @@
 
         let currentSelection = { cat: null, model: null, service: null };
 
-        // 1. Popular Categorias
+        // 0. Máscara de Telefone Simples
+        els.phone.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+            if (v.length > 10) v = `${v.slice(0,10)}-${v.slice(10)}`;
+            e.target.value = v;
+        });
+
+        // 1. Popular Categorias (Garante que drop não está vazio)
+        els.cat.innerHTML = '<option value="" disabled selected>Selecione a categoria...</option>';
         Object.keys(CALCULATOR_DATA).forEach(key => {
             const opt = document.createElement('option');
             opt.value = key;
@@ -735,6 +763,14 @@
         // Submit Logic
         els.submit.addEventListener('click', async () => {
             const name = els.name.value.trim() || "Cliente Amigo";
+            const phone = els.phone.value.trim();
+            
+            if (!phone || phone.length < 10) {
+                alert('Por favor, informe um WhatsApp válido para entrarmos em contato!');
+                els.phone.focus();
+                return;
+            }
+
             const cat = CALCULATOR_DATA[currentSelection.cat].label;
             const model = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].name;
             const svcData = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].services[currentSelection.service];
@@ -760,7 +796,8 @@
 
             try {
                 const payload = { 
-                    name, 
+                    name,
+                    phone,
                     model, 
                     service: currentSelection.service === 'custom_issue' ? `${serviceName}: ${customDesc}` : serviceName,
                     priceMin, 
