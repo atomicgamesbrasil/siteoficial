@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v4.0.0 (Atomic Gold Theme) Initializing...');
+    console.log('Atomic Chatbot v4.1.0 (Atomic Gold + Fixes) Initializing...');
 
     // ==========================================================================
     // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
@@ -71,6 +71,7 @@
             #chatMessages, .chat-body {
                 background-color: #09090b !important;
                 padding: 20px !important;
+                overflow-x: hidden !important; /* Previne scroll horizontal */
             }
             
             /* --- BALÕES DE MENSAGEM --- */
@@ -80,6 +81,12 @@
                 line-height: 1.5 !important;
                 max-width: 85% !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+                
+                /* CORREÇÃO DE QUEBRA DE LINHA */
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                word-break: break-word !important;
+                overflow-wrap: break-word !important;
             }
             
             /* BOT (Thiago) - Discreto */
@@ -151,6 +158,7 @@
                 color: #fff !important;
                 font-weight: 600;
                 font-size: 13px;
+                word-wrap: break-word !important;
             }
             .chat-product-price {
                 color: #ffc107 !important; /* Preço Amarelo */
@@ -202,8 +210,9 @@
         if (typeof window.showProductDetail !== 'function') {
             window.showProductDetail = (id) => console.log(`[Atomic Mock] Open Product: ${id}`);
         }
+        // Mock inteligente para rota: se não existir, loga
         if (typeof window.openRoutePopup !== 'function') {
-            window.openRoutePopup = () => console.log(`[Atomic Mock] Open Route Popup`);
+           // Não sobrescreve se já existir
         }
     }
     setupTestEnvironment();
@@ -362,8 +371,37 @@
                 const btn = document.createElement('button');
                 btn.className = 'atomic-action-btn';
                 btn.innerText = act.label;
+                
+                // LÓGICA DE AÇÃO ROBUSTA (MAPA E CALCULADORA)
                 btn.onclick = () => {
-                    if (act.type === 'OPEN_MAP') window.openRoutePopup();
+                    // Ação 1: Abrir Mapa
+                    if (act.type === 'OPEN_MAP') {
+                        // Tenta a função nativa do site
+                        if (typeof window.openRoutePopup === 'function') {
+                            window.openRoutePopup();
+                        } else {
+                            // Fallback: Abre Google Maps direto
+                            window.open('https://www.google.com/maps/search/?api=1&query=Atomic+Games+Madureira+Av+Ministro+Edgard+Romero+81', '_blank');
+                        }
+                    } 
+                    // Ação 2: Calculadora / Orçamento
+                    else if (act.type === 'OPEN_BUDGET') {
+                        // Tenta encontrar uma seção de orçamento/calculadora na página
+                        const targets = ['orcamento', 'budget', 'calculadora', 'assistencia', 'contact'];
+                        let found = false;
+                        for(const id of targets) {
+                            const el = document.getElementById(id);
+                            if(el) {
+                                el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                                found = true;
+                                break;
+                            }
+                        }
+                        // Se não achar nada, sugere abrir WhatsApp já pedindo orçamento
+                        if(!found) {
+                            window.open('https://wa.me/5521995969378?text=Olá,%20gostaria%20de%20fazer%20um%20orçamento%20online!', '_blank');
+                        }
+                    }
                     else if (act.type === 'OPEN_PRODUCT') window.showProductDetail(act.payload);
                     else if (act.url) window.open(act.url, '_blank');
                     else if (act.targetId) {
@@ -441,7 +479,6 @@
 
     function checkEmptyState() {
         if(els.msgs.children.length === 0) {
-            // MENSAGEM CORRIGIDA: Sem botão de endereço e texto convidativo.
             const msg = "Fala aí! Sou o Thiago da Atomic. Tô na área pra falar de Games, Consoles e PC. No que posso ajudar?";
             renderMessage('bot', msg, [], []);
         }
