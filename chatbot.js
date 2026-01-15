@@ -1,62 +1,319 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.0 (Integrated Modal) Initializing...');
+    console.log('Atomic Chatbot v5.1 (Chameleon & Enterprise Calc) Initializing...');
 
     // ==========================================================================
-    // 0. ATOMIC THEME INJECTION (CSS OVERRIDE)
+    // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
+    // ==========================================================================
+    const LOGISTICS_COST = { 
+        shop: 0, 
+        local: 15, 
+        interzonal: 35, 
+        remote: 50 
+    };
+
+    const CALCULATOR_DATA = {
+        console_modern: {
+            label: "Consoles Atuais (PS/Xbox)",
+            models: {
+                ps5: { 
+                    name: "PlayStation 5 (Fat / Slim / Pro)", 
+                    services: { 
+                        cleaning: { name: "Limpeza Preventiva (Metal Líquido)", min: 250, max: 400, note: "Risco Alto (Curto-circuito)" }, 
+                        hdmi: { name: "Troca de HDMI (2.1)", min: 350, max: 550, note: "Microsolda Avançada" },
+                        drive: { name: "Reparo Leitor de Disco", min: 300, max: 500, note: "Mecânica/Laser" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                xbox_series: {
+                    name: "Xbox Series X / S",
+                    services: {
+                        cleaning: { name: "Limpeza Completa", min: 200, max: 350, note: "Troca pasta térmica premium" },
+                        hdmi: { name: "Troca de HDMI", min: 300, max: 450, note: "Microsolda" },
+                        ssd_repair: { name: "Reparo Circuito SSD", min: 400, max: 600, note: "Nível 3 (Placa)" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                },
+                ps4: { 
+                    name: "PlayStation 4 (Fat / Slim / Pro)", 
+                    services: { 
+                        cleaning: { name: "Limpeza + Pasta Térmica Prata", min: 150, max: 250, note: "Manutenção Preventiva" }, 
+                        hdmi: { name: "Troca de HDMI", min: 200, max: 350, note: "Microsolda" },
+                        drive: { name: "Reparo Leitor de Disco", min: 180, max: 300, note: "+ Peça se necessário" },
+                        hd_upgrade: { name: "Troca de HD/SSD (Sistema)", min: 150, max: 250, note: "+ Valor da Peça" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                xbox_one: {
+                    name: "Xbox One (Fat / S / X)",
+                    services: {
+                        cleaning: { name: "Limpeza Geral", min: 150, max: 250, note: "Preventiva" },
+                        hdmi: { name: "Troca de HDMI (Retimer)", min: 250, max: 400, note: "Troca de CI frequente" },
+                        drive: { name: "Reparo Drive", min: 180, max: 300, note: "Mecânica" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                }
+            }
+        },
+        console_retro: {
+            label: "Consoles Retrô / Legados",
+            models: {
+                ps3: {
+                    name: "PlayStation 3 (Fat / Slim / Super)",
+                    services: {
+                        hen_unlock: { name: "Desbloqueio HEN/CFW", min: 100, max: 150, note: "Instalação Lojas" },
+                        cleaning: { name: "Limpeza + Pasta Térmica", min: 120, max: 180, note: "Essencial para Fat/Slim" },
+                        nec_tokin: { name: "Reparo NEC Tokin (YLOD)", min: 300, max: 500, note: "Capacitores de Tântalo" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                },
+                xbox_360: { 
+                    name: "Xbox 360 (Fat / Slim / E)", 
+                    services: { 
+                        rgh: { name: "Desbloqueio RGH 3.0", min: 150, max: 250, note: "Serviço Legado" },
+                        cleaning: { name: "Limpeza Geral", min: 100, max: 150, note: "Troca de pasta térmica" },
+                        red_ring: { name: "Luz Vermelha (Reballing)", min: 250, max: 450, note: "Procedimento de Risco" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                ps2: {
+                    name: "PlayStation 2 (Fat / Slim)",
+                    services: {
+                        opl: { name: "Instalação OPL (Jogos USB)", min: 80, max: 120, note: "Revitalização" },
+                        laser: { name: "Troca de Leitor Óptico", min: 120, max: 180, note: "Peça Nova" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                },
+                wii_u: {
+                    name: "Nintendo Wii / Wii U",
+                    services: {
+                        unlock: { name: "Desbloqueio Softmod", min: 100, max: 180, note: "Jogos no HD/SD" },
+                        gamepad: { name: "Reparo Gamepad Wii U", min: 200, max: 400, note: "Tela/Conexão" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                }
+            }
+        },
+        handheld: {
+            label: "Portáteis (Switch / Steam / Retrô)",
+            models: {
+                switch_v1: { 
+                    name: "Nintendo Switch V1 (Antigo)", 
+                    services: { 
+                        unlock_sw: { name: "Desbloqueio (Software)", min: 100, max: 180, note: "Sem abrir o console" },
+                        cleaning: { name: "Limpeza Interna", min: 100, max: 150, note: "Preventiva" },
+                        screen: { name: "Troca de Tela (Touch/LCD)", min: 250, max: 400, note: "Peça + Mão de obra" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                switch_v2_lite: { 
+                    name: "Switch V2 / Lite", 
+                    services: { 
+                        unlock_chip: { name: "Desbloqueio (ModChip)", min: 350, max: 550, note: "Microsolda (RP2040/Instinct)" },
+                        screen_lite: { name: "Troca de Tela (Lite)", min: 350, max: 500, note: "Desmontagem Completa" },
+                        usb_port: { name: "Troca Conector Carga (M92)", min: 250, max: 400, note: "Reparo de Carga" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                switch_oled: { 
+                    name: "Switch OLED", 
+                    services: { 
+                        unlock_chip: { name: "Desbloqueio (ModChip)", min: 500, max: 800, note: "Extrema Complexidade (Dat0)" },
+                        cleaning: { name: "Limpeza Interna", min: 150, max: 250, note: "Preventiva" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                steam_rog: {
+                    name: "Steam Deck / ROG Ally / Legion",
+                    services: {
+                        ssd_upgrade: { name: "Upgrade SSD (NVMe 2230)", min: 150, max: 250, note: "Clonagem Sistema + Mão de obra" },
+                        stick_replace: { name: "Instalação Hall Effect", min: 250, max: 400, note: "Analógicos Magnéticos" },
+                        cleaning: { name: "Limpeza Técnica", min: 150, max: 250, note: "Troca Pasta Térmica" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                },
+                retro_sony: {
+                    name: "PSP / PS Vita",
+                    services: {
+                        unlock: { name: "Desbloqueio Definitivo", min: 80, max: 120, note: "Infinity / Henkaku" },
+                        battery: { name: "Troca de Bateria", min: 100, max: 180, note: "Peça Nova" },
+                        screen: { name: "Troca de Tela", min: 150, max: 300, note: "LCD/OLED" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                },
+                retro_nintendo: {
+                    name: "3DS / 2DS / DS",
+                    services: {
+                        unlock: { name: "Desbloqueio Luma3DS", min: 100, max: 150, note: "Cartão SD Necessário" },
+                        screen: { name: "Troca de Tela (Superior/Inf)", min: 200, max: 350, note: "Risco Alto (Cabo Flat)" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                },
+                chinese_handhelds: {
+                    name: "Chineses (Anbernic/Miyoo/Retroid)",
+                    services: {
+                        system_config: { name: "Configuração Sistema (ArkOS/Onion)", min: 80, max: 150, note: "Otimização + Jogos" },
+                        buttons: { name: "Reparo Botões/Tela", min: 100, max: 250, note: "Peças Específicas" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                }
+            }
+        },
+        pc_notebook: {
+            label: "Computador / Notebook",
+            models: {
+                desktop: { 
+                    name: "Desktop Gamer / Office", 
+                    services: { 
+                        format_basic: { name: "Formatação (Sem Backup)", min: 80, max: 100, note: "Windows + Drivers" }, 
+                        format_pro: { name: "Formatação Completa (C/ Backup)", min: 150, max: 250, note: "Salva arquivos + Programas" },
+                        cleaning: { name: "Limpeza + Cable Management", min: 100, max: 200, note: "Organização Interna" },
+                        upgrade: { name: "Instalação Hardware (GPU/Fonte)", min: 80, max: 150, note: "Mão de obra" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                notebook: {
+                    name: "Notebook (Gamer / Comum)",
+                    services: {
+                        screen_replace: { name: "Troca de Tela", min: 150, max: 250, note: "+ Valor da Tela" },
+                        keyboard: { name: "Troca de Teclado", min: 100, max: 200, note: "Soldado ou Parafusado" },
+                        hinge: { name: "Reparo de Carcaça/Dobradiça", min: 200, max: 400, note: "Reconstrução com Resina" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                }
+            }
+        },
+        accessory: {
+            label: "Acessórios e Periféricos",
+            models: {
+                controllers_sony: { 
+                    name: "Controle PlayStation (DualSense/DS4)", 
+                    services: { 
+                        drift_simple: { name: "Reparo Drift (Potenciômetro)", min: 80, max: 120, note: "Troca do Sensor" }, 
+                        hall_effect: { name: "Upgrade Hall Effect", min: 160, max: 250, note: "Magnético (Nunca mais drift)" },
+                        battery: { name: "Troca de Bateria / USB", min: 80, max: 120, note: "Não carrega" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                controllers_ms: { 
+                    name: "Controle Xbox (Series/One)", 
+                    services: { 
+                        drift_simple: { name: "Reparo Drift (Analógico)", min: 80, max: 120, note: "Troca peça" }, 
+                        rb_lb: { name: "Troca Botão RB/LB", min: 60, max: 100, note: "Microswitch" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    } 
+                },
+                joycon: {
+                    name: "Nintendo Joy-Con",
+                    services: {
+                        drift: { name: "Troca Analógico (Par)", min: 100, max: 160, note: "Original ou Hall Effect" },
+                        slider: { name: "Troca Trilho Lateral", min: 60, max: 100, note: "Não conecta no tablet" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                },
+                peripherals: {
+                    name: "Mouse / Teclado / Headset",
+                    services: {
+                        mouse_switch: { name: "Troca Switch Mouse (Click)", min: 60, max: 120, note: "Omron/Kailh" },
+                        headset_cable: { name: "Reparo Cabo/Arco", min: 80, max: 150, note: "Mau contato" },
+                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                    }
+                }
+            }
+        }
+    };
+
+    // ==========================================================================
+    // 0. ATOMIC THEME INJECTION (CSS OVERRIDE) - AGORA COM DARK/LIGHT MODE
     // ==========================================================================
     function injectAtomicStyles() {
         const styleId = 'atomic-chat-styles';
         if (document.getElementById(styleId)) return;
 
-        // PALETA ATOMIC:
-        // Amarelo Principal: #ffc107 (Amber)
-        // Fundo Dark: #09090b
-        // Fundo Card: #18181b
-        // Texto: #e4e4e7
-        
+        // DEFINIÇÃO DE VARIÁVEIS CSS (THEMING)
+        // O :root define o modo CLARO por padrão.
+        // A classe html.dark sobrescreve para o modo ESCURO.
         const css = `
+            :root {
+                --at-bg: #ffffff;
+                --at-surface: #f4f4f5;
+                --at-border: #e4e4e7;
+                --at-text: #18181b;
+                --at-text-sec: #71717a;
+                --at-accent: #ffc107;
+                --at-accent-text: #000000;
+                --at-shadow: rgba(0,0,0,0.15);
+                --at-bubble-bg: #ffc107;
+                --at-bubble-text: #000;
+                --at-user-bg: #ffc107;
+                --at-user-text: #000;
+                --at-bot-bg: #f4f4f5;
+                --at-bot-text: #18181b;
+                --at-header-bg: #f4f4f5;
+                --at-overlay: rgba(0,0,0,0.5);
+            }
+
+            html.dark {
+                --at-bg: #09090b;
+                --at-surface: #18181b;
+                --at-border: #333;
+                --at-text: #e4e4e7;
+                --at-text-sec: #a1a1aa;
+                --at-accent: #ffc107;
+                --at-accent-text: #000000;
+                --at-shadow: rgba(0,0,0,0.8);
+                --at-bubble-bg: #ffc107;
+                --at-bubble-text: #000;
+                --at-user-bg: #ffc107;
+                --at-user-text: #000;
+                --at-bot-bg: #18181b;
+                --at-bot-text: #e4e4e7;
+                --at-header-bg: #18181b;
+                --at-overlay: rgba(0,0,0,0.85);
+            }
+
             /* --- JANELA PRINCIPAL --- */
             #chatWindow, #atomic-chat-window, .chat-window {
-                background-color: #09090b !important;
-                border: 1px solid #333 !important;
-                box-shadow: 0 20px 50px rgba(0,0,0,0.9) !important;
+                background-color: var(--at-bg) !important;
+                border: 1px solid var(--at-border) !important;
+                box-shadow: 0 20px 50px var(--at-shadow) !important;
                 font-family: 'Segoe UI', Roboto, sans-serif !important;
                 border-radius: 16px !important;
                 overflow: hidden !important;
                 z-index: 9999 !important;
+                color: var(--at-text) !important;
             }
 
             /* --- HEADER --- */
             .chat-header, #chatWindow header {
-                background: #18181b !important;
-                border-bottom: 2px solid #ffc107 !important;
-                color: #ffffff !important;
+                background: var(--at-header-bg) !important;
+                border-bottom: 2px solid var(--at-accent) !important;
+                color: var(--at-text) !important;
                 padding: 16px 20px !important;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
             }
             .chat-header h3 {
-                color: #ffffff !important; font-weight: 700 !important;
+                color: var(--at-text) !important; font-weight: 700 !important;
                 font-size: 15px !important; margin: 0 !important;
                 display: flex; align-items: center; gap: 10px; text-transform: uppercase;
             }
             .chat-header h3::before {
                 content: ''; display: block; width: 10px; height: 10px;
-                background-color: #ffc107; border-radius: 50%;
+                background-color: var(--at-accent); border-radius: 50%;
                 box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
             }
             .chat-header button {
-                color: #a1a1aa !important; background: none !important; border: none !important;
+                color: var(--at-text-sec) !important; background: none !important; border: none !important;
                 cursor: pointer; transition: color 0.2s; font-size: 18px;
             }
-            .chat-header button:hover { color: #ffc107 !important; }
+            .chat-header button:hover { color: var(--at-accent) !important; }
 
             /* --- MENSAGENS --- */
             #chatMessages, .chat-body {
-                background-color: #09090b !important;
+                background-color: var(--at-bg) !important;
                 padding: 20px !important;
                 overflow-x: hidden !important;
             }
@@ -65,18 +322,18 @@
                 font-size: 14px !important;
                 line-height: 1.5 !important;
                 max-width: 85% !important;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
                 white-space: pre-wrap !important;
                 word-wrap: break-word !important;
                 overflow-wrap: break-word !important;
             }
             .atomic-msg-bubble.bot {
-                background-color: #18181b !important; color: #e4e4e7 !important;
-                border: 1px solid #27272a !important;
+                background-color: var(--at-bot-bg) !important; color: var(--at-bot-text) !important;
+                border: 1px solid var(--at-border) !important;
                 border-radius: 16px 16px 16px 4px !important;
             }
             .atomic-msg-bubble.user {
-                background-color: #ffc107 !important; color: #000000 !important;
+                background-color: var(--at-user-bg) !important; color: var(--at-user-text) !important;
                 border-radius: 16px 16px 4px 16px !important;
                 font-weight: 600 !important;
                 border: none !important;
@@ -84,46 +341,46 @@
 
             /* --- FOOTER --- */
             .chat-footer {
-                background-color: #09090b !important; border-top: 1px solid #27272a !important;
+                background-color: var(--at-bg) !important; border-top: 1px solid var(--at-border) !important;
                 padding: 15px !important; position: relative;
             }
             #chatInput {
-                background: #18181b !important; border: 1px solid #333 !important;
-                color: #fff !important; border-radius: 8px !important;
+                background: var(--at-surface) !important; border: 1px solid var(--at-border) !important;
+                color: var(--at-text) !important; border-radius: 8px !important;
                 padding: 12px 15px !important; font-size: 14px !important;
                 width: 100%; box-sizing: border-box;
             }
-            #chatInput:focus { border-color: #ffc107 !important; outline: none !important; }
+            #chatInput:focus { border-color: var(--at-accent) !important; outline: none !important; }
             #sendBtn {
                 position: absolute; right: 25px; top: 50%; transform: translateY(-50%);
-                background: transparent !important; color: #ffc107 !important;
+                background: transparent !important; color: var(--at-accent) !important;
                 font-weight: bold !important; border: none !important; cursor: pointer;
             }
 
             /* --- AÇÕES & PRODUTOS --- */
             .chat-product-card {
-                background: #18181b !important; border: 1px solid #333 !important;
+                background: var(--at-surface) !important; border: 1px solid var(--at-border) !important;
                 border-radius: 8px !important; margin-top: 10px !important; padding: 12px !important;
-                border-left: 3px solid #ffc107 !important;
+                border-left: 3px solid var(--at-accent) !important;
             }
-            .chat-product-title { color: #fff; font-weight: 600; font-size: 13px; }
-            .chat-product-price { color: #ffc107; font-weight: bold; font-size: 14px; }
+            .chat-product-title { color: var(--at-text) !important; font-weight: 600; font-size: 13px; }
+            .chat-product-price { color: var(--at-accent) !important; font-weight: bold; font-size: 14px; }
             
             .chat-add-btn, .atomic-action-btn {
-                background: transparent !important; color: #ffc107 !important;
-                border: 1px solid #ffc107 !important; border-radius: 6px !important;
+                background: transparent !important; color: var(--at-accent) !important;
+                border: 1px solid var(--at-accent) !important; border-radius: 6px !important;
                 padding: 8px 14px !important; font-size: 12px !important; cursor: pointer !important;
                 margin-top: 6px; text-transform: uppercase; font-weight: 700;
                 transition: all 0.2s;
             }
             .chat-add-btn:hover, .atomic-action-btn:hover {
-                background: #ffc107 !important; color: #000 !important;
+                background: var(--at-accent) !important; color: var(--at-accent-text) !important;
             }
 
             /* --- MODAL GLOBAL (BASE) --- */
             .atomic-modal-overlay {
                 position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                background: rgba(0,0,0,0.9); z-index: 100000;
+                background: var(--at-overlay); z-index: 100000;
                 display: none; justify-content: center; align-items: center;
                 backdrop-filter: blur(8px);
                 animation: atomicFadeIn 0.3s ease;
@@ -131,61 +388,69 @@
             .atomic-modal-overlay.active { display: flex; }
             
             .atomic-modal-content {
-                background: #09090b; border: 1px solid #333; border-radius: 12px;
+                background: var(--at-bg); border: 1px solid var(--at-border); border-radius: 12px;
                 width: 90%; max-width: 450px;
                 display: flex; flex-direction: column; overflow: hidden;
-                box-shadow: 0 0 40px rgba(255, 193, 7, 0.15);
+                box-shadow: 0 0 40px var(--at-shadow);
                 animation: atomicSlideUp 0.3s ease;
             }
 
             /* --- CALCULATOR SPECIFIC --- */
             .atomic-calc-header {
-                background: #18181b; padding: 15px 20px; border-bottom: 2px solid #ffc107;
+                background: var(--at-header-bg); padding: 15px 20px; border-bottom: 2px solid var(--at-accent);
                 display: flex; justify-content: space-between; align-items: center;
             }
-            .atomic-calc-header h2 { color: #fff; font-size: 16px; margin: 0; text-transform: uppercase; display: flex; gap: 8px; align-items: center; }
-            .atomic-calc-close { color: #666; font-size: 24px; background: none; border: none; cursor: pointer; }
-            .atomic-calc-close:hover { color: #fff; }
+            .atomic-calc-header h2 { color: var(--at-text); font-size: 16px; margin: 0; text-transform: uppercase; display: flex; gap: 8px; align-items: center; }
+            .atomic-calc-close { color: var(--at-text-sec); font-size: 24px; background: none; border: none; cursor: pointer; }
+            .atomic-calc-close:hover { color: var(--at-text); }
 
-            .atomic-calc-body { padding: 20px; color: #e4e4e7; }
+            .atomic-calc-body { padding: 20px; color: var(--at-text); }
             
             .atomic-field-group { margin-bottom: 15px; text-align: left; }
-            .atomic-field-group label { display: block; font-size: 12px; color: #a1a1aa; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
+            .atomic-field-group label { display: block; font-size: 12px; color: var(--at-text-sec); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
             
-            .atomic-input, .atomic-select {
+            .atomic-input, .atomic-select, .atomic-textarea {
                 width: 100%; padding: 12px; border-radius: 8px;
-                background: #18181b; border: 1px solid #333;
-                color: #fff; font-family: inherit; font-size: 14px;
+                background: var(--at-surface); border: 1px solid var(--at-border);
+                color: var(--at-text); font-family: inherit; font-size: 14px;
                 box-sizing: border-box; outline: none; transition: border 0.3s;
             }
-            .atomic-input:focus, .atomic-select:focus { border-color: #ffc107; }
+            .atomic-textarea { resize: vertical; min-height: 80px; }
+            .atomic-input:focus, .atomic-select:focus, .atomic-textarea:focus { border-color: var(--at-accent); }
 
             .atomic-price-display {
-                background: #18181b; padding: 15px; border-radius: 8px;
-                text-align: center; margin: 20px 0; border: 1px dashed #444;
+                background: var(--at-surface); padding: 15px; border-radius: 8px;
+                text-align: center; margin: 20px 0; border: 1px dashed var(--at-border);
             }
-            .atomic-price-label { font-size: 12px; color: #888; text-transform: uppercase; }
-            .atomic-price-value { font-size: 24px; color: #ffc107; font-weight: 800; margin-top: 5px; }
+            .atomic-price-label { font-size: 12px; color: var(--at-text-sec); text-transform: uppercase; }
+            .atomic-price-value { font-size: 24px; color: var(--at-accent); font-weight: 800; margin-top: 5px; }
 
             .atomic-radio-group { display: flex; gap: 15px; margin-top: 5px; }
-            .atomic-radio-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
-            .atomic-radio-label input { accent-color: #ffc107; }
+            .atomic-radio-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: var(--at-text); }
+            .atomic-radio-label input { accent-color: var(--at-accent); }
+            
+            .atomic-note { font-size: 11px; color: var(--at-text-sec); margin-top: 5px; font-style: italic; }
 
             .atomic-calc-btn {
-                width: 100%; background: #ffc107; color: #000;
+                width: 100%; background: var(--at-accent); color: var(--at-accent-text);
                 padding: 14px; border: none; border-radius: 8px;
                 font-weight: 800; text-transform: uppercase; font-size: 14px;
                 cursor: pointer; transition: transform 0.2s;
             }
-            .atomic-calc-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(255, 193, 7, 0.4); }
+            .atomic-calc-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--at-accent); }
+            .atomic-calc-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
             /* --- BUBBLE --- */
             #chatBubble, #atomic-chat-trigger {
-                background-color: #ffc107 !important; box-shadow: 0 0 20px rgba(255, 193, 7, 0.4) !important;
+                background-color: var(--at-bubble-bg) !important; 
+                color: var(--at-bubble-text) !important;
+                box-shadow: 0 0 20px var(--at-accent) !important;
             }
 
             @keyframes atomicFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes atomicSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            
+            .hidden { display: none !important; }
         `;
 
         const styleEl = document.createElement('style');
@@ -200,7 +465,7 @@
     // 0.1 MODAL GENERATORS
     // ==========================================================================
     
-    // MAPA MODAL (Mantido simples)
+    // MAPA MODAL
     function createMapModal() {
         if (document.getElementById('atomic-map-modal')) return;
         const html = `
@@ -218,7 +483,7 @@
         document.body.insertAdjacentHTML('beforeend', html);
     }
 
-    // CALCULADORA INTEGRADA (O "CORAÇÃO" DA SOLUÇÃO)
+    // CALCULADORA INTEGRADA (ENTERPRISE EDITION)
     function createCalculatorModal() {
         if (document.getElementById('atomic-calc-modal')) return;
 
@@ -226,7 +491,7 @@
             <div id="atomic-calc-modal" class="atomic-modal-overlay">
                 <div class="atomic-modal-content">
                     <div class="atomic-calc-header">
-                        <h2>🧮 Calculadora Rápida</h2>
+                        <h2>🧮 Orçamento Rápido</h2>
                         <button class="atomic-calc-close" id="btn-close-calc">&times;</button>
                     </div>
                     <div class="atomic-calc-body">
@@ -236,50 +501,59 @@
                             <input type="text" id="at-calc-name" class="atomic-input" placeholder="Como te chamamos?">
                         </div>
 
+                        <!-- ETAPA 1: CATEGORIA -->
                         <div class="atomic-field-group">
-                            <label>Aparelho</label>
+                            <label>Tipo de Aparelho</label>
+                            <select id="at-calc-cat" class="atomic-select">
+                                <option value="" disabled selected>Selecione...</option>
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+
+                        <!-- ETAPA 2: MODELO (Depende da Categoria) -->
+                        <div class="atomic-field-group hidden" id="at-group-model">
+                            <label>Modelo</label>
                             <select id="at-calc-model" class="atomic-select">
-                                <option value="ps5">PlayStation 5</option>
-                                <option value="ps4">PlayStation 4</option>
-                                <option value="xboxss">Xbox Series S/X</option>
-                                <option value="xboxone">Xbox One</option>
-                                <option value="nswitch">Nintendo Switch</option>
-                                <option value="control">Controle (DualSense/Xbox)</option>
+                                <option value="" disabled selected>Selecione...</option>
                             </select>
                         </div>
 
-                        <div class="atomic-field-group">
-                            <label>Problema / Serviço</label>
+                        <!-- ETAPA 3: SERVIÇO (Depende do Modelo) -->
+                        <div class="atomic-field-group hidden" id="at-group-service">
+                            <label>Defeito / Serviço</label>
                             <select id="at-calc-service" class="atomic-select">
-                                <option value="clean">Limpeza Completa + Pasta Térmica</option>
-                                <option value="drift">Analógico puxando (Drift)</option>
-                                <option value="hdmi">Troca de HDMI / Não dá vídeo</option>
-                                <option value="power">Não Liga / Desliga Sozinho</option>
-                                <option value="other">Outro Defeito</option>
+                                <option value="" disabled selected>Selecione...</option>
                             </select>
                         </div>
 
-                        <div class="atomic-price-display">
+                        <!-- CAMPO EXTRA: DESCRIÇÃO (Se for 'custom_issue') -->
+                        <div class="atomic-field-group hidden" id="at-group-desc">
+                            <label>Descreva o Problema</label>
+                            <textarea id="at-calc-desc" class="atomic-textarea" placeholder="Ex: Caiu no chão e não liga mais..."></textarea>
+                        </div>
+
+                        <div class="atomic-price-display hidden" id="at-price-box">
                             <div class="atomic-price-label">Estimativa de Preço</div>
-                            <div class="atomic-price-value" id="at-calc-result">R$ 150,00</div>
+                            <div class="atomic-price-value" id="at-calc-result">R$ 0,00</div>
+                            <div class="atomic-note" id="at-calc-note"></div>
                         </div>
 
                         <div class="atomic-field-group">
                             <label>Logística</label>
                             <div class="atomic-radio-group">
                                 <label class="atomic-radio-label">
-                                    <input type="radio" name="at_logistics" value="Levarei na Loja" checked>
+                                    <input type="radio" name="at_logistics" value="shop" checked>
                                     Levo na Loja
                                 </label>
                                 <label class="atomic-radio-label">
-                                    <input type="radio" name="at_logistics" value="Motoboy">
-                                    Buscar de Motoboy
+                                    <input type="radio" name="at_logistics" value="local">
+                                    Motoboy
                                 </label>
                             </div>
                         </div>
 
-                        <button id="at-btn-finish" class="atomic-calc-btn">
-                            ✅ Finalizar e Agendar
+                        <button id="at-btn-finish" class="atomic-calc-btn" disabled>
+                            Preencha para Continuar
                         </button>
 
                     </div>
@@ -287,71 +561,168 @@
             </div>`;
         
         document.body.insertAdjacentHTML('beforeend', html);
+        initCalculatorLogic();
+    }
 
-        // Lógica Interna da Calculadora
+    function initCalculatorLogic() {
         const els = {
             modal: document.getElementById('atomic-calc-modal'),
             close: document.getElementById('btn-close-calc'),
+            name: document.getElementById('at-calc-name'),
+            cat: document.getElementById('at-calc-cat'),
             model: document.getElementById('at-calc-model'),
             service: document.getElementById('at-calc-service'),
+            desc: document.getElementById('at-calc-desc'),
             result: document.getElementById('at-calc-result'),
+            note: document.getElementById('at-calc-note'),
             submit: document.getElementById('at-btn-finish'),
-            name: document.getElementById('at-calc-name')
-        };
-
-        // Estimativas (Simplificadas para UX rápida)
-        const prices = {
-            'clean': { min: 100, max: 180 },
-            'drift': { min: 80, max: 120 },
-            'hdmi': { min: 250, max: 450 },
-            'power': { min: 300, max: 800 },
-            'other': { min: 0, max: 0 } // A combinar
-        };
-
-        function updatePrice() {
-            const s = els.service.value;
-            const m = els.model.value;
-            let p = prices[s] || { min: 0, max: 0 };
             
-            // Pequeno ajuste por modelo
-            if (m === 'ps5' || m === 'xboxss') { p.min += 50; p.max += 50; }
-            if (m === 'control') { p = { min: 60, max: 150 }; } // Override pra controle
+            groupModel: document.getElementById('at-group-model'),
+            groupService: document.getElementById('at-group-service'),
+            groupDesc: document.getElementById('at-group-desc'),
+            priceBox: document.getElementById('at-price-box')
+        };
 
-            if (s === 'other') {
-                els.result.innerText = "A Combinar";
-                els.result.style.color = "#aaa";
-            } else {
-                els.result.innerText = `R$ ${p.min} - R$ ${p.max}`;
-                els.result.style.color = "#ffc107";
+        let currentSelection = { cat: null, model: null, service: null };
+
+        // 1. Popular Categorias
+        Object.keys(CALCULATOR_DATA).forEach(key => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.text = CALCULATOR_DATA[key].label;
+            els.cat.appendChild(opt);
+        });
+
+        // Event: Categoria Mudou
+        els.cat.addEventListener('change', () => {
+            const catKey = els.cat.value;
+            currentSelection.cat = catKey;
+            
+            // Reset Downstream
+            els.model.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+            els.service.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+            els.groupModel.classList.add('hidden');
+            els.groupService.classList.add('hidden');
+            els.groupDesc.classList.add('hidden');
+            els.priceBox.classList.add('hidden');
+            els.submit.disabled = true;
+            els.submit.innerText = "Selecione o Modelo";
+
+            if (catKey && CALCULATOR_DATA[catKey]) {
+                const models = CALCULATOR_DATA[catKey].models;
+                Object.keys(models).forEach(mKey => {
+                    const opt = document.createElement('option');
+                    opt.value = mKey;
+                    opt.text = models[mKey].name;
+                    els.model.appendChild(opt);
+                });
+                els.groupModel.classList.remove('hidden');
             }
+        });
+
+        // Event: Modelo Mudou
+        els.model.addEventListener('change', () => {
+            const mKey = els.model.value;
+            currentSelection.model = mKey;
+
+            // Reset Downstream
+            els.service.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+            els.groupService.classList.add('hidden');
+            els.groupDesc.classList.add('hidden');
+            els.priceBox.classList.add('hidden');
+            els.submit.disabled = true;
+            els.submit.innerText = "Selecione o Serviço";
+
+            if (mKey && CALCULATOR_DATA[currentSelection.cat]) {
+                const services = CALCULATOR_DATA[currentSelection.cat].models[mKey].services;
+                Object.keys(services).forEach(sKey => {
+                    const opt = document.createElement('option');
+                    opt.value = sKey;
+                    opt.text = services[sKey].name;
+                    els.service.appendChild(opt);
+                });
+                els.groupService.classList.remove('hidden');
+            }
+        });
+
+        // Event: Serviço Mudou
+        els.service.addEventListener('change', updateCalculation);
+        
+        // Event: Logística Mudou
+        document.querySelectorAll('input[name="at_logistics"]').forEach(r => {
+            r.addEventListener('change', updateCalculation);
+        });
+
+        function updateCalculation() {
+            const sKey = els.service.value;
+            if (!sKey) return;
+            currentSelection.service = sKey;
+
+            const logKey = document.querySelector('input[name="at_logistics"]:checked').value;
+            const logCost = LOGISTICS_COST[logKey] || 0;
+
+            const svcData = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].services[sKey];
+
+            if (sKey === 'custom_issue') {
+                els.groupDesc.classList.remove('hidden');
+                els.priceBox.classList.add('hidden'); // Oculta preço em 'Outro Defeito'
+                els.submit.innerText = "Solicitar Análise";
+            } else {
+                els.groupDesc.classList.add('hidden');
+                els.priceBox.classList.remove('hidden');
+                
+                const min = svcData.min + logCost;
+                const max = svcData.max + logCost;
+                
+                els.result.innerText = `R$ ${min} - R$ ${max}`;
+                els.note.innerText = svcData.note || "";
+                
+                if (logCost > 0) els.note.innerText += " (Inclui taxa de busca)";
+                
+                els.submit.innerText = "✅ Agendar Agora";
+            }
+            els.submit.disabled = false;
         }
 
-        // Listeners
-        els.model.addEventListener('change', updatePrice);
-        els.service.addEventListener('change', updatePrice);
+        // Close Logic
         els.close.addEventListener('click', () => els.modal.classList.remove('active'));
         els.modal.addEventListener('click', (e) => { if(e.target === els.modal) els.modal.classList.remove('active'); });
 
-        // AÇÃO FINAL: ENVIAR PARA O BOT
+        // Submit Logic
         els.submit.addEventListener('click', async () => {
             const name = els.name.value.trim() || "Cliente Amigo";
-            const model = els.model.options[els.model.selectedIndex].text;
-            const service = els.service.options[els.service.selectedIndex].text;
-            const price = els.result.innerText;
-            const logistics = document.querySelector('input[name="at_logistics"]:checked').value;
-
-            // 1. Fecha Modal
-            els.modal.classList.remove('active');
-
-            // 2. Abre Bot (se estiver fechado)
-            updateChatUI(true);
+            const cat = CALCULATOR_DATA[currentSelection.cat].label;
+            const model = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].name;
+            const svcData = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].services[currentSelection.service];
+            const serviceName = svcData.name;
             
-            // 3. Feedback visual imediato
-            renderMessage('bot', `Só um segundo, ${name}... processando seu agendamento.`);
+            const logKey = document.querySelector('input[name="at_logistics"]:checked').value;
+            
+            let priceMin = "A Combinar";
+            let priceMax = "";
+            let customDesc = "";
 
-            // 4. Envia para o Backend (Simulação de Order)
+            if (currentSelection.service === 'custom_issue') {
+                customDesc = els.desc.value;
+            } else {
+                priceMin = (svcData.min + (LOGISTICS_COST[logKey]||0)).toString();
+                priceMax = (svcData.max + (LOGISTICS_COST[logKey]||0)).toString();
+            }
+
+            // UI Feedback
+            els.modal.classList.remove('active');
+            updateChatUI(true);
+            renderMessage('bot', `Só um instante, ${name}! Calculando e gerando seu agendamento...`);
+
             try {
-                const payload = { name, model, service, priceMin: price, priceMax: "", logistics };
+                const payload = { 
+                    name, 
+                    model, 
+                    service: currentSelection.service === 'custom_issue' ? `${serviceName}: ${customDesc}` : serviceName,
+                    priceMin, 
+                    priceMax, 
+                    logistics: logKey === 'shop' ? 'Levar na Loja' : 'Buscar de Motoboy'
+                };
                 
                 const res = await fetch(CONFIG.ORDER_ENDPOINT, {
                     method: 'POST',
@@ -364,25 +735,18 @@
                 if(data.success) {
                     renderMessage('bot', data.reply, [], data.actions);
                 } else {
-                    renderMessage('bot', "Tive um erro ao gerar o link, mas me chama no Zap assim mesmo!");
+                    renderMessage('bot', "Gerado! Me chama no Zap para confirmar.");
                 }
             } catch (err) {
-                console.error(err);
-                renderMessage('bot', "Sem internet? Pode me chamar no WhatsApp direto que a gente resolve.");
+                renderMessage('bot', "Tive um erro de conexão, mas vamos fechar no WhatsApp!");
             }
         });
-
-        // Init
-        updatePrice();
     }
 
     function showMapModal() { createMapModal(); document.getElementById('atomic-map-modal').classList.add('active'); }
     function showCalculatorModal() { 
         createCalculatorModal(); 
         document.getElementById('atomic-calc-modal').classList.add('active'); 
-        // Fecha o chat para dar foco no modal, se quiser. Ou mantém aberto. 
-        // O usuário pediu "pop-up, pum, abrisse". Vamos manter o chat aberto atrás ou fechar?
-        // Geralmente modais cobrem tudo. Vamos manter o estado atual.
     }
 
     // ==========================================================================
