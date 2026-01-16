@@ -1,7 +1,3 @@
-import { formatPrice, showToast, getCategoryClass } from './utils.js';
-import { API_ORDER_URL, trackAtomicEvent, submitOrderToAPI } from './api.js';
-import { initCalculator } from './calculator.js';
-
 // === GLOBAL PWA VARIABLES ===
 let deferredPrompt;
 
@@ -17,8 +13,105 @@ const CONFIG = {
     GITHUB_USER: "atomicgamesbrasil",
     GITHUB_REPO: "siteoficial",
     GITHUB_BRANCH: "main",
+    CHAT_API: 'https://atomic-thiago-backend.onrender.com/chat'
 };
 const BASE_IMG_URL = `https://raw.githubusercontent.com/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/${CONFIG.GITHUB_BRANCH}/`;
+
+// --- ANALYTICS & ORDERS CONFIGURATION (INTEGRAÇÃO PAINEL) ---
+const API_BASE_URL = "https://painel-atomic.onrender.com/api";
+const API_ANALYTICS_URL = `${API_BASE_URL}/public/visit`;
+const API_ORDER_URL = `${API_BASE_URL}/public/order`;
+
+/**
+ * Envia métricas para o Painel Administrativo
+ * Usa keepalive para garantir envio mesmo se a página fechar
+ */
+const trackAtomicEvent = (type) => {
+    // 1. Controle de Sessão para Visitas (Anti-Flood)
+    if (type === 'visit') {
+        if (sessionStorage.getItem('atomic_visited')) return;
+        sessionStorage.setItem('atomic_visited', 'true');
+    }
+
+    // 2. Envio Assíncrono Robusto
+    fetch(API_ANALYTICS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+        keepalive: true
+    }).catch(err => console.warn('[Atomic Analytics] Error:', err));
+};
+
+// ============================================================================
+// DATA LAYER: PREPARAÇÃO E ENVIO DE ORÇAMENTO (Fase 6)
+// ============================================================================
+
+/**
+ * CONTRATO DE DADOS (SCHEMA DEFINITION v1.0.0)
+ * Estrutura hierárquica do objeto de pedido para o Painel/GitHub.
+ * 
+ * @typedef {Object} AtomicOrderPayload
+ * @property {string} schema_version - Versão do contrato de dados (Ex: "1.0.0").
+ * @property {string} event_id - UUID v4 único para rastreio do evento.
+ * @property {string} timestamp - ISO 8601 da criação do orçamento.
+ * @property {string} source - Origem do dado (Ex: "web_calculator").
+ * @property {string} environment - Ambiente de execução ("production" | "dev").
+ * @property {Object} data - O núcleo do orçamento.
+ * @property {Object} data.customer - Dados do Cliente.
+ * @property {string} data.customer.name - Nome digitado (Input).
+ * @property {string} data.customer.phone - Telefone digitado (Input).
+ * @property {Object} data.device - Aparelho selecionado.
+ * @property {string} data.device.category_id - ID técnico da categoria (Ex: "console").
+ * @property {string} data.device.model_id - ID técnico do modelo (Ex: "ps5").
+ * @property {string} data.device.model_label - Nome amigável do modelo (Lookup).
+ * @property {Object} data.service - Serviço escolhido.
+ * @property {string} data.service.service_id - ID técnico do serviço (Ex: "cleaning").
+ * @property {string} data.service.name - Nome amigável do serviço (Lookup).
+ * @property {Object} data.financial - Valores calculados.
+ * @property {string} data.financial.currency - Moeda ("BRL").
+ * @property {number} data.financial.min_value - Valor mínimo calculado (Number).
+ * @property {number} data.financial.max_value - Valor máximo calculado (Number).
+ * @property {Object} data.logistics - Logística.
+ * @property {string} data.logistics.method_id - ID do método (Ex: "shop").
+ * @property {string} data.logistics.method_label - Nome amigável.
+ * @property {number} data.logistics.cost - Custo adicional (Number).
+ * @property {Object} data.meta - Metadados técnicos.
+ * @property {string} data.meta.user_agent - User Agent do navegador.
+ * @property {number} data.meta.screen_width - Largura da tela (Contexto Mobile/Desk).
+ */
+
+/**
+ * DATA LAYER: Função de Preparação e Serialização
+ * Prepara o payload final, valida versão e simula o envio para o endpoint.
+ * 
+ * @param {AtomicOrderPayload} payload - O objeto final estruturado.
+ */
+function prepareBudgetForPanel(payload) {
+    // 1. Endpoint Target (Mockado para ativação futura)
+    const ENDPOINT = `${API_BASE_URL}/public/budget`;
+    
+    // 2. Validação Básica de Integridade
+    if (!payload.schema_version || !payload.data) {
+        console.error("[Atomic Data Layer] Invalid Payload Schema");
+        return;
+    }
+
+    // 3. Serialização (Simulação de Rede)
+    const serializedData = JSON.stringify(payload);
+    
+    // 4. Log de Auditoria (Data Layer Output)
+    console.groupCollapsed(`🚀 [Atomic Data Layer] Event: ${payload.event_id}`);
+    console.log("Time:", payload.timestamp);
+    console.log("Schema:", payload.schema_version);
+    console.log("Customer:", payload.data.customer.name);
+    console.log("Value:", `${payload.data.financial.min_value} - ${payload.data.financial.max_value}`);
+    console.log("Full Payload:", payload);
+    console.groupEnd();
+}
+
+// ============================================================================
+// END DATA LAYER
+// ============================================================================
 
 // Initial Data
 const initialProducts = [
@@ -39,13 +132,253 @@ const faqs = [
     { q: "Entregam em todo o Rio de Janeiro?", a: "Sim, trabalhamos com entregas expressas. Consulte taxa no WhatsApp." }
 ];
 
+// --- CALCULATOR DATA (BASEADA NO RELATÓRIO TÉCNICO COMPLETO 2025/2026) ---
+// Cobertura: 100% das categorias solicitadas, incluindo Retrô, Modchips Switch, Portáteis Chineses, etc.
+const CALCULATOR_DATA = {
+    console_modern: {
+        label: "Consoles Atuais (PS/Xbox)",
+        models: {
+            ps5: { 
+                name: "PlayStation 5 (Fat / Slim / Pro)", 
+                services: { 
+                    cleaning: { name: "Limpeza Preventiva (Metal Líquido)", min: 250, max: 400, note: "Risco Alto (Curto-circuito)" }, 
+                    hdmi: { name: "Troca de HDMI (2.1)", min: 350, max: 550, note: "Microsolda Avançada" },
+                    drive: { name: "Reparo Leitor de Disco", min: 300, max: 500, note: "Mecânica/Laser" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            xbox_series: {
+                name: "Xbox Series X / S",
+                services: {
+                    cleaning: { name: "Limpeza Completa", min: 200, max: 350, note: "Troca pasta térmica premium" },
+                    hdmi: { name: "Troca de HDMI", min: 300, max: 450, note: "Microsolda" },
+                    ssd_repair: { name: "Reparo Circuito SSD", min: 400, max: 600, note: "Nível 3 (Placa)" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            },
+            ps4: { 
+                name: "PlayStation 4 (Fat / Slim / Pro)", 
+                services: { 
+                    cleaning: { name: "Limpeza + Pasta Térmica Prata", min: 150, max: 250, note: "Manutenção Preventiva" }, 
+                    hdmi: { name: "Troca de HDMI", min: 200, max: 350, note: "Microsolda" },
+                    drive: { name: "Reparo Leitor de Disco", min: 180, max: 300, note: "+ Peça se necessário" },
+                    hd_upgrade: { name: "Troca de HD/SSD (Sistema)", min: 150, max: 250, note: "+ Valor da Peça" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            xbox_one: {
+                name: "Xbox One (Fat / S / X)",
+                services: {
+                    cleaning: { name: "Limpeza Geral", min: 150, max: 250, note: "Preventiva" },
+                    hdmi: { name: "Troca de HDMI (Retimer)", min: 250, max: 400, note: "Troca de CI frequente" },
+                    drive: { name: "Reparo Drive", min: 180, max: 300, note: "Mecânica" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            }
+        }
+    },
+    console_retro: {
+        label: "Consoles Retrô / Legados",
+        models: {
+            ps3: {
+                name: "PlayStation 3 (Fat / Slim / Super)",
+                services: {
+                    hen_unlock: { name: "Desbloqueio HEN/CFW", min: 100, max: 150, note: "Instalação Lojas" },
+                    cleaning: { name: "Limpeza + Pasta Térmica", min: 120, max: 180, note: "Essencial para Fat/Slim" },
+                    nec_tokin: { name: "Reparo NEC Tokin (YLOD)", min: 300, max: 500, note: "Capacitores de Tântalo" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            },
+            xbox_360: { 
+                name: "Xbox 360 (Fat / Slim / E)", 
+                services: { 
+                    rgh: { name: "Desbloqueio RGH 3.0", min: 150, max: 250, note: "Serviço Legado" },
+                    cleaning: { name: "Limpeza Geral", min: 100, max: 150, note: "Troca de pasta térmica" },
+                    red_ring: { name: "Luz Vermelha (Reballing)", min: 250, max: 450, note: "Procedimento de Risco" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            ps2: {
+                name: "PlayStation 2 (Fat / Slim)",
+                services: {
+                    opl: { name: "Instalação OPL (Jogos USB)", min: 80, max: 120, note: "Revitalização" },
+                    laser: { name: "Troca de Leitor Óptico", min: 120, max: 180, note: "Peça Nova" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            },
+            wii_u: {
+                name: "Nintendo Wii / Wii U",
+                services: {
+                    unlock: { name: "Desbloqueio Softmod", min: 100, max: 180, note: "Jogos no HD/SD" },
+                    gamepad: { name: "Reparo Gamepad Wii U", min: 200, max: 400, note: "Tela/Conexão" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            }
+        }
+    },
+    handheld: {
+        label: "Portáteis (Switch / Steam / Retrô)",
+        models: {
+            switch_v1: { 
+                name: "Nintendo Switch V1 (Antigo)", 
+                services: { 
+                    unlock_sw: { name: "Desbloqueio (Software)", min: 100, max: 180, note: "Sem abrir o console" },
+                    cleaning: { name: "Limpeza Interna", min: 100, max: 150, note: "Preventiva" },
+                    screen: { name: "Troca de Tela (Touch/LCD)", min: 250, max: 400, note: "Peça + Mão de obra" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            switch_v2_lite: { 
+                name: "Switch V2 / Lite", 
+                services: { 
+                    unlock_chip: { name: "Desbloqueio (ModChip)", min: 350, max: 550, note: "Microsolda (RP2040/Instinct)" },
+                    screen_lite: { name: "Troca de Tela (Lite)", min: 350, max: 500, note: "Desmontagem Completa" },
+                    usb_port: { name: "Troca Conector Carga (M92)", min: 250, max: 400, note: "Reparo de Carga" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            switch_oled: { 
+                name: "Switch OLED", 
+                services: { 
+                    unlock_chip: { name: "Desbloqueio (ModChip)", min: 500, max: 800, note: "Extrema Complexidade (Dat0)" },
+                    cleaning: { name: "Limpeza Interna", min: 150, max: 250, note: "Preventiva" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            steam_rog: {
+                name: "Steam Deck / ROG Ally / Legion",
+                services: {
+                    ssd_upgrade: { name: "Upgrade SSD (NVMe 2230)", min: 150, max: 250, note: "Clonagem Sistema + Mão de obra" },
+                    stick_replace: { name: "Instalação Hall Effect", min: 250, max: 400, note: "Analógicos Magnéticos" },
+                    cleaning: { name: "Limpeza Técnica", min: 150, max: 250, note: "Troca Pasta Térmica" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            },
+            retro_sony: {
+                name: "PSP / PS Vita",
+                services: {
+                    unlock: { name: "Desbloqueio Definitivo", min: 80, max: 120, note: "Infinity / Henkaku" },
+                    battery: { name: "Troca de Bateria", min: 100, max: 180, note: "Peça Nova" },
+                    screen: { name: "Troca de Tela", min: 150, max: 300, note: "LCD/OLED" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            },
+            retro_nintendo: {
+                name: "3DS / 2DS / DS",
+                services: {
+                    unlock: { name: "Desbloqueio Luma3DS", min: 100, max: 150, note: "Cartão SD Necessário" },
+                    screen: { name: "Troca de Tela (Superior/Inf)", min: 200, max: 350, note: "Risco Alto (Cabo Flat)" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            },
+            chinese_handhelds: {
+                name: "Chineses (Anbernic/Miyoo/Retroid)",
+                services: {
+                    system_config: { name: "Configuração Sistema (ArkOS/Onion)", min: 80, max: 150, note: "Otimização + Jogos" },
+                    buttons: { name: "Reparo Botões/Tela", min: 100, max: 250, note: "Peças Específicas" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            }
+        }
+    },
+    pc_notebook: {
+        label: "Computador / Notebook",
+        models: {
+            desktop: { 
+                name: "Desktop Gamer / Office", 
+                services: { 
+                    format_basic: { name: "Formatação (Sem Backup)", min: 80, max: 100, note: "Windows + Drivers" }, 
+                    format_pro: { name: "Formatação Completa (C/ Backup)", min: 150, max: 250, note: "Salva arquivos + Programas" },
+                    cleaning: { name: "Limpeza + Cable Management", min: 100, max: 200, note: "Organização Interna" },
+                    upgrade: { name: "Instalação Hardware (GPU/Fonte)", min: 80, max: 150, note: "Mão de obra" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            notebook: {
+                name: "Notebook (Gamer / Comum)",
+                services: {
+                    screen_replace: { name: "Troca de Tela", min: 150, max: 250, note: "+ Valor da Tela" },
+                    keyboard: { name: "Troca de Teclado", min: 100, max: 200, note: "Soldado ou Parafusado" },
+                    hinge: { name: "Reparo de Carcaça/Dobradiça", min: 200, max: 400, note: "Reconstrução com Resina" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            }
+        }
+    },
+    accessory: {
+        label: "Acessórios e Periféricos",
+        models: {
+            controllers_sony: { 
+                name: "Controle PlayStation (DualSense/DS4)", 
+                services: { 
+                    drift_simple: { name: "Reparo Drift (Potenciômetro)", min: 80, max: 120, note: "Troca do Sensor" }, 
+                    hall_effect: { name: "Upgrade Hall Effect", min: 160, max: 250, note: "Magnético (Nunca mais drift)" },
+                    battery: { name: "Troca de Bateria / USB", min: 80, max: 120, note: "Não carrega" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            controllers_ms: { 
+                name: "Controle Xbox (Series/One)", 
+                services: { 
+                    drift_simple: { name: "Reparo Drift (Analógico)", min: 80, max: 120, note: "Troca peça" }, 
+                    rb_lb: { name: "Troca Botão RB/LB", min: 60, max: 100, note: "Microswitch" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                } 
+            },
+            joycon: {
+                name: "Nintendo Joy-Con",
+                services: {
+                    drift: { name: "Troca Analógico (Par)", min: 100, max: 160, note: "Original ou Hall Effect" },
+                    slider: { name: "Troca Trilho Lateral", min: 60, max: 100, note: "Não conecta no tablet" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            },
+            peripherals: {
+                name: "Mouse / Teclado / Headset",
+                services: {
+                    mouse_switch: { name: "Troca Switch Mouse (Click)", min: 60, max: 120, note: "Omron/Kailh" },
+                    headset_cable: { name: "Reparo Cabo/Arco", min: 80, max: 150, note: "Mau contato" },
+                    custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                }
+            }
+        }
+    }
+};
+
+// Custos Logísticos baseados na Tabela 2.4 e 7.2 (Geografia Econômica)
+const LOGISTICS_COST = { 
+    shop: 0, // Levar na Loja
+    local: 15, // Bairro vizinho
+    interzonal: 35, // Média entre 30 e 40 (Zona Norte <-> Centro)
+    remote: 50 // Niterói / Baixada (Piso inicial)
+};
+
 // State & DOM Elements Cache
 let allProducts = [...initialProducts];
 let cart = [];
 let currentFilter = 'all';
 let currentPage = 1;
+// REMOVED CONST: const itemsPerPage = 10; -> Logic moved to renderProducts
 let debounceTimer;
 let els = {}; // Cached DOM elements
+
+// Utils
+const formatPrice = p => typeof p === 'number' ? p.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (String(p).includes('R$') ? p : parseFloat(String(p).replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+
+const showToast = (msg, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const icon = document.createElement('i');
+    icon.className = `ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-xl`;
+    const text = document.createElement('span');
+    text.textContent = msg;
+    toast.appendChild(icon);
+    toast.appendChild(text);
+    els.toastContainer.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px) scale(0.8)'; setTimeout(() => toast.remove(), 300); }, 3000);
+};
+
+const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
 
 // --- PWA LOGIC (VISIBLE BY DEFAULT STRATEGY) ---
 function detectPlatform() {
@@ -64,11 +397,16 @@ function updateInstallButtons() {
     
     const installBtnDesktop = document.getElementById('installAppBtnDesktop');
     const installBtnMobile = document.getElementById('installAppBtnMobile');
+    const platform = detectPlatform();
 
+    // Se já estiver instalado (Standalone), ESCONDE os botões
     if (isInStandaloneMode) {
         if (installBtnDesktop) installBtnDesktop.style.display = 'none';
         if (installBtnMobile) installBtnMobile.style.display = 'none';
     } else {
+        // Se NÃO estiver instalado (Navegador)
+        // Mostra o botão SEMPRE (Visible by default strategy)
+        // A lógica do clique vai decidir se abre o Prompt (Android/Chrome) ou o Guia Manual (iOS/Outros)
         if (installBtnDesktop) installBtnDesktop.style.display = '';
         if (installBtnMobile) installBtnMobile.style.display = '';
     }
@@ -77,15 +415,20 @@ function updateInstallButtons() {
 function handleInstallClick() {
     const platform = detectPlatform();
 
+    // 1. Tenta usar o Prompt Nativo (Android / Desktop Chrome)
     if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') { console.log('User accepted install'); }
             deferredPrompt = null;
         });
-    } else if (platform === 'ios') {
+    } 
+    // 2. Se for iOS, força o Guia Manual (iPhone não suporta prompt automático)
+    else if (platform === 'ios') {
         showManualGuide();
-    } else {
+    }
+    // 3. Fallback: Se não tiver prompt e não for iOS explícito, mas o usuário clicou, mostra o guia
+    else {
         showManualGuide();
     }
 }
@@ -198,14 +541,19 @@ async function loadBannersFromGitHub() {
     renderPromos();
 }
 
+// NEW: Data Layer Stats Sync
 async function loadStatsFromGitHub() {
     try {
         const res = await fetch(`${BASE_IMG_URL}stats.json?t=${Date.now()}`);
         if (res.ok) {
             const stats = await res.json();
+            // Data Layer Sync Log (Validação da Fonte Oficial)
             console.groupCollapsed("[Atomic Data Layer] Stats Synced");
             console.log("Source:", "stats.json (GitHub Repo)");
             console.log("Visits:", stats.total_visits);
+            console.log("Carts:", stats.total_carts);
+            console.log("WhatsApp:", stats.total_whatsapp);
+            console.log("Last Updated:", stats.last_updated);
             console.groupEnd();
         }
     } catch (e) { console.warn("Stats sync failed"); }
@@ -258,25 +606,31 @@ function renderProducts(filter, term = "", forceAll = false) {
         (!term || p.name.toLowerCase().includes(lowerTerm) || (p.desc && p.desc.toLowerCase().includes(lowerTerm)))
     );
 
+    // --- PAGINATION LOGIC UPDATE: MOBILE HARMONY ---
+    // Detecta se é mobile (menos de 768px). Se sim, usa 6 itens. Desktop usa 10.
     const isMobile = window.innerWidth < 768;
     const itemsPerPage = isMobile ? 6 : 10;
 
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
     
+    // Safety check for current page
     if (currentPage > totalPages) currentPage = 1;
     if (currentPage < 1) currentPage = 1;
 
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     
+    // Slice array for current page
     const toShow = filtered.slice(start, end);
     
+    // Hide old "Load More" completely
     if (els.loadMore) els.loadMore.classList.add('hidden');
     
     els.noResults.classList.toggle('hidden', filtered.length > 0);
     els.productGrid.innerHTML = '';
     
     if (!filtered.length) {
+        // Clear pagination if no results
         const pagContainer = document.getElementById('paginationContainer');
         if(pagContainer) pagContainer.innerHTML = '';
         return;
@@ -336,6 +690,7 @@ function renderProducts(filter, term = "", forceAll = false) {
     });
     els.productGrid.appendChild(frag);
 
+    // Render Pagination Controls
     renderPaginationControls(totalPages);
 }
 
@@ -344,7 +699,9 @@ function renderPaginationControls(totalPages) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'paginationContainer';
+        // REMOVED 'reveal' class to ensure visibility immediately upon creation
         container.className = 'flex flex-wrap justify-center items-center gap-2 mt-12';
+        // Insert after grid, before hidden load more
         els.productGrid.parentNode.insertBefore(container, els.loadMore); 
     }
     container.innerHTML = '';
@@ -367,9 +724,10 @@ function renderPaginationControls(totalPages) {
             btn.onclick = () => {
                 currentPage = page;
                 renderProducts(currentFilter, els.searchInput.value);
+                // Scroll to top of store smoothly
                 const storeSection = document.getElementById('store');
                 if(storeSection) {
-                    const yOffset = -100;
+                    const yOffset = -100; // Navbar offset
                     const y = storeSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
                     window.scrollTo({top: y, behavior: 'smooth'});
                 }
@@ -378,8 +736,10 @@ function renderPaginationControls(totalPages) {
         return btn;
     };
 
+    // Prev
     container.appendChild(createBtn('<i class="ph-bold ph-caret-left"></i>', currentPage - 1, false, currentPage === 1));
 
+    // Page Numbers logic
     const getRange = (current, total) => {
         if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
         const pages = new Set([1, total, current, current - 1, current + 1]);
@@ -400,6 +760,7 @@ function renderPaginationControls(totalPages) {
         last = p;
     });
 
+    // Next
     container.appendChild(createBtn('<i class="ph-bold ph-caret-right"></i>', currentPage + 1, false, currentPage === totalPages));
 }
 
@@ -424,9 +785,12 @@ function updateCartUI() {
         let rawPrice = item.price.replace('R$', '').trim();
         let itemPrice = 0;
 
+        // Heuristic to detect format:
+        // If it contains a comma, it's definitely PT-BR style (decimal separator)
         if (rawPrice.includes(',')) {
             itemPrice = parseFloat(rawPrice.replace(/\./g, '').replace(',', '.'));
         } else {
+            // Otherwise, assume it's US style or plain number (890.00 or 890)
             itemPrice = parseFloat(rawPrice);
         }
         total += itemPrice || 0;
@@ -485,12 +849,81 @@ function toggleMobileMenu() {
     document.body.style.overflow = open ? 'hidden' : ''; 
 }
 
+// --- CHECKOUT & ORDERS LOGIC (ENTERPRISE GRADE) ---
+// Função de envio robusta e reutilizável que não bloqueia a UI
+function submitOrderToAPI(customerName, customItems = null, customTotal = null, contactInfo = null) {
+    let finalItems = [];
+    let finalTotal = "";
+
+    // Lógica para decidir se é Carrinho ou Item Avulso (Calculadora)
+    if (customItems && customTotal) {
+        finalItems = customItems;
+        finalTotal = customTotal;
+    } else {
+        if (!cart.length) return Promise.resolve(); // Return empty promise if no cart
+        
+        // Agrega itens iguais do carrinho (Quantidade)
+        const itemsMap = new Map();
+        cart.forEach(item => {
+            if (itemsMap.has(item.id)) {
+                itemsMap.get(item.id).quantity += 1;
+            } else {
+                itemsMap.set(item.id, {
+                    id: item.id,
+                    name: item.name,
+                    image: item.image, // Snapshot da imagem no momento da compra
+                    price: item.price,
+                    quantity: 1
+                });
+            }
+        });
+        finalItems = Array.from(itemsMap.values());
+        finalTotal = els.cartTotal.textContent;
+    }
+
+    // Processamento de Metadados (Telefone e Origem)
+    let finalCustomerName = customerName;
+    let phone = "";
+    let source = "Site Order";
+
+    if (contactInfo) {
+        if (contactInfo.phone && contactInfo.phone !== "Não informado") {
+            phone = contactInfo.phone;
+            // Hack para exibir telefone no painel atual sem alterar o código do painel
+            finalCustomerName = `${customerName} [${phone}]`; 
+        }
+        if (contactInfo.source) source = contactInfo.source;
+    }
+    
+    // Cria Payload Rico e Compatível com 'orders.json' do Repositório
+    const orderData = {
+        id: Math.floor(Math.random() * 900000 + 100000).toString(), // Simulação de ID 6 dígitos
+        customer: finalCustomerName,
+        phone: phone, // Campo explícito para JSON
+        source: source, // Campo explícito para rastreio
+        items: finalItems,
+        total: finalTotal,
+        status: 'pending',
+        date: new Date().toLocaleString('pt-BR') // Formato local compatível com origem
+    };
+
+    // CRUCIAL: 'keepalive: true' garante que o browser termine essa request
+    // Retornamos a Promise para permitir que quem chamou espere (await) se necessário
+    return fetch(API_ORDER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+        keepalive: true 
+    }).catch(e => console.error("Erro ao salvar pedido (keepalive)", e));
+}
+
 // Criação do Modal de Checkout (Identificação)
 function createCheckoutModal() {
     if (document.getElementById('checkoutModal')) return;
 
     const overlay = document.createElement('div');
     overlay.id = 'checkoutModal';
+    // CSS Inline para garantir Z-Index máximo e evitar sobreposição com o carrinho
     overlay.style.cssText = "position: fixed; inset: 0; z-index: 2147483647; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);";
     
     const modal = document.createElement('div');
@@ -550,26 +983,11 @@ function createCheckoutModal() {
 
             // 2. Registra o Evento e o Pedido (Background)
             trackAtomicEvent('whatsapp');
-            // Helper para enviar o pedido
-            const orderItem = {
-                id: Math.floor(Math.random() * 900000 + 100000).toString(),
-                name: "Pedido via Site",
-                price: els.cartTotal.textContent,
-                quantity: cart.length
-            };
-            
-            submitOrderToAPI({
-                id: orderItem.id,
-                customer: `${name} [${phone}]`,
-                phone: phone,
-                source: 'Carrinho de Compras',
-                items: cart,
-                total: els.cartTotal.textContent,
-                status: 'pending',
-                date: new Date().toLocaleString('pt-BR')
-            });
+            // Mantém compatibilidade com chamada simples (sem telefone no carrinho por enquanto)
+            submitOrderToAPI(name, null, null, { source: 'Carrinho de Compras', phone: phone });
 
-            // 3. Redireciona
+            // 3. Redireciona IMEDIATAMENTE (Síncrono)
+            // Usar window.location.href é a forma mais segura para deep links em mobile
             window.location.href = waUrl;
             
             close();
@@ -579,16 +997,22 @@ function createCheckoutModal() {
 
 function checkoutWhatsApp() {
     if (!cart.length) return showToast('Carrinho vazio!', 'error');
+    
+    // Injeta o modal na DOM se não existir
     if (!document.getElementById('checkoutModal')) createCheckoutModal();
+    
+    // CRUCIAL: Fecha o carrinho lateral primeiro para evitar conflitos de Z-Index/Overlay em mobile
     if (els.cartModal.classList.contains('open')) toggleCart();
     
     const overlay = document.getElementById('checkoutModal');
     const input = document.getElementById('checkoutName');
     
+    // Exibe o modal
     overlay.style.display = 'flex';
     if(input) input.focus();
 }
 
+// Global exposure for Chatbot interactions
 window.showProductDetail = function(id) {
     const p = allProducts.find(x => x.id == id);
     if (!p) return;
@@ -606,13 +1030,16 @@ window.showProductDetail = function(id) {
     
     const waBtn = document.getElementById('modalWhatsappBtn');
     
+    // Botão "Negociar" agora segue o fluxo padrão de identificação
     waBtn.removeAttribute('href');
     waBtn.removeAttribute('target');
     waBtn.style.cursor = 'pointer';
     waBtn.onclick = (e) => {
         e.preventDefault();
+        // Garante que o item esteja no carrinho antes de ir para o checkout
         if (!cart.some(x => x.id == id)) addToCart(id);
         closeProductDetail();
+        // Pequeno delay visual para a transição de modais ser suave
         setTimeout(checkoutWhatsApp, 150);
     };
 
@@ -638,8 +1065,428 @@ function loadVideo() {
     f.style.display = 'none'; container.classList.remove('hidden');
 }
 
+// Charts (REMOVEDO PARA OTIMIZAÇÃO E REDESIGN)
+function initCharts(theme) {
+    // Função removida para atender nova solicitação de design
+}
+
+// --- NEW PROGRESSIVE CALCULATOR LOGIC (PREP PARA PAINEL/CHATBOT) ---
+function initCalculator() {
+    const form = document.getElementById('serviceForm');
+    if(!form) return;
+
+    // Elements
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
+    const resultArea = document.getElementById('result-area');
+    const customWrapper = document.getElementById('custom-issue-wrapper');
+    const customInput = document.getElementById('calc-issue');
+    
+    const catInputs = document.querySelectorAll('input[name="category"]');
+    const modelSelect = document.getElementById('calc-model');
+    const serviceSelect = document.getElementById('calc-service');
+    const serviceWrapper = document.getElementById('service-wrapper');
+    const logInputs = document.querySelectorAll('input[name="logistics"]');
+
+    // Progress Bar Elements
+    const progressFill = document.getElementById('calc-progress-fill');
+    const progressText = document.getElementById('calc-progress-text');
+
+    // Helper to update progress
+    const updateProgress = (percent) => {
+        if (progressFill) progressFill.style.width = `${percent}%`;
+        if (progressText) progressText.textContent = `${percent}%`;
+    };
+
+    // --- CONTEXTO UNIFICADO (Contrato Oficial para Integrações Futuras) ---
+    // Este objeto não é usado para renderizar a UI (ainda), mas corre em paralelo
+    // para garantir que tenhamos um estado limpo para exportação.
+    const budgetContext = {
+        status: 'draft',
+        timestamp: null,
+        customer: { name: '', phone: '' },
+        device: { category: '', model: '', modelLabel: '' },
+        service: { id: '', name: '', priceMin: 0, priceMax: 0, note: '', customDescription: '' },
+        logistics: { type: 'shop', label: '', cost: 0 },
+        financial: { totalMin: 0, totalMax: 0 },
+        meta: { source: 'web_calculator', userAgent: navigator.userAgent }
+    };
+
+    // State Local (UI Control)
+    let state = { category: null, model: null, service: null, logistics: 'shop' };
+
+    const updateCalc = () => {
+        let min = 0;
+        let max = 0;
+        let note = '';
+        const isCustom = state.service === 'custom_issue';
+
+        // Só exibe resultado se tiver todos os dados
+        if (state.category && state.model && state.service) {
+            const modelData = CALCULATOR_DATA[state.category].models[state.model];
+            const svcData = modelData.services[state.service];
+            
+            min = svcData.min;
+            max = svcData.max;
+            note = svcData.note;
+
+            const logisticCost = LOGISTICS_COST[state.logistics] || 0;
+            
+            // Se não for serviço personalizado, soma o frete
+            if (!isCustom) {
+                min += logisticCost;
+                max += logisticCost;
+            }
+
+            // --- ATUALIZAÇÃO DO CONTEXTO DE INTEGRAÇÃO ---
+            budgetContext.device.category = state.category;
+            budgetContext.device.model = state.model;
+            budgetContext.device.modelLabel = modelData.name;
+            
+            budgetContext.service.id = state.service;
+            budgetContext.service.name = svcData.name;
+            budgetContext.service.priceMin = svcData.min;
+            budgetContext.service.priceMax = svcData.max;
+            budgetContext.service.note = note;
+
+            const logisticTexts = {
+                'shop': 'Levar na Loja (Madureira)',
+                'local': 'Coleta Local (Bairro Vizinho)',
+                'interzonal': 'Coleta Interzonal (Zona Norte/Centro)',
+                'remote': 'Baixada / Niterói'
+            };
+
+            budgetContext.logistics.type = state.logistics;
+            budgetContext.logistics.label = logisticTexts[state.logistics];
+            budgetContext.logistics.cost = logisticCost;
+
+            budgetContext.financial.totalMin = min;
+            budgetContext.financial.totalMax = max;
+            // ----------------------------------------------
+
+            const pMinEl = document.getElementById('price-min');
+            const pMaxEl = document.getElementById('price-max');
+            const pSepEl = document.getElementById('price-separator');
+            const noteEl = document.getElementById('result-note');
+
+            if (isCustom) {
+                pMinEl.textContent = "Sob Análise";
+                pMaxEl.textContent = "";
+                if(pSepEl) pSepEl.textContent = "Técnica";
+                noteEl.textContent = "O valor será informado após avaliação presencial.";
+            } else {
+                pMinEl.textContent = formatPrice(min);
+                pMaxEl.textContent = formatPrice(max);
+                if(pSepEl) pSepEl.textContent = "a";
+                noteEl.textContent = note;
+            }
+            
+            resultArea.classList.add('active');
+            updateProgress(100);
+        } else {
+            resultArea.classList.remove('active');
+        }
+    };
+
+    // Step 1: Category Change
+    catInputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            state.category = e.target.value;
+            state.model = null;
+            state.service = null;
+            
+            // Reset UI
+            step2.classList.remove('active');
+            step3.classList.remove('active');
+            resultArea.classList.remove('active');
+            serviceWrapper.classList.add('hidden');
+            customWrapper.classList.add('hidden');
+            
+            // Populate Models
+            modelSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+            const models = CALCULATOR_DATA[state.category].models;
+            for (const [key, val] of Object.entries(models)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = val.name;
+                modelSelect.appendChild(opt);
+            }
+            
+            // Show Step 2
+            step2.classList.add('active');
+            updateProgress(35);
+        });
+    });
+
+    // Step 2: Model Change
+    modelSelect.addEventListener('change', (e) => {
+        state.model = e.target.value;
+        state.service = null;
+        
+        // Reset Service
+        serviceSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+        resultArea.classList.remove('active');
+        step3.classList.remove('active');
+        customWrapper.classList.add('hidden');
+        
+        // Populate Services
+        const services = CALCULATOR_DATA[state.category].models[state.model].services;
+        for (const [key, val] of Object.entries(services)) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = val.name;
+            serviceSelect.appendChild(opt);
+        }
+        
+        serviceWrapper.classList.remove('hidden');
+        updateProgress(65);
+    });
+
+    // Step 3: Service Change
+    serviceSelect.addEventListener('change', (e) => {
+        state.service = e.target.value;
+        step3.classList.add('active');
+        
+        // Custom Issue Logic
+        if (state.service === 'custom_issue') {
+            customWrapper.classList.remove('hidden');
+            customWrapper.classList.add('active'); // trigger animation
+            customInput.focus();
+        } else {
+            customWrapper.classList.add('hidden');
+            customWrapper.classList.remove('active');
+        }
+        
+        updateCalc();
+        // Note: updateCalc calls updateProgress(100) if valid
+    });
+
+    // Step 4: Logistics Change
+    logInputs.forEach(input => {
+        input.addEventListener('change', (e) => {
+            state.logistics = e.target.value;
+            updateCalc();
+        });
+    });
+
+    // Form Submit (AGORA ASYNC PARA GARANTIR GRAVAÇÃO ANTES DO REDIRECT)
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        trackAtomicEvent('whatsapp');
+        
+        const clientName = document.getElementById('calc-name').value || 'Cliente';
+        const clientPhone = document.getElementById('calc-phone').value || 'Não informado';
+        
+        // --- HARDENING: PHONE VALIDATION ---
+        // Basic Regex for Brazilian phone formats: (XX) 9XXXX-XXXX or (XX) XXXX-XXXX
+        const phoneRegex = /^(\(?\d{2}\)?\s?)?(9\d{4}[-\s]?\d{4}|\d{4}[-\s]?\d{4})$/;
+        if (clientPhone !== 'Não informado' && clientPhone !== '' && !phoneRegex.test(clientPhone.replace(/\D/g, ''))) {
+             alert('Por favor, insira um telefone válido com DDD (apenas números ou formato padrão).');
+             return;
+        }
+
+        // Finalize Context for Export
+        budgetContext.status = 'completed';
+        budgetContext.timestamp = new Date().toISOString();
+        budgetContext.customer.name = clientName;
+        budgetContext.customer.phone = clientPhone;
+        
+        // Capture custom description if applicable
+        if (state.service === 'custom_issue') {
+            budgetContext.service.customDescription = customInput.value || "Sem descrição";
+        }
+
+        if (!state.category || !state.model || !state.service) return;
+        
+        // --- DATA LAYER: CONSTRUÇÃO DO PAYLOAD (CONTRATO v1.0.0) ---
+        // Cria o envelope padrão para envio seguro ao backend
+        /** @type {AtomicOrderPayload} */
+        const finalPayload = {
+            schema_version: "1.0.0", // Contrato fixo
+            event_id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(), // ID Único do Evento
+            timestamp: new Date().toISOString(), // Hora exata (UTC)
+            source: "web_calculator", // Origem do Lead
+            environment: "production", // Flag de ambiente
+            data: {
+                customer: {
+                    name: String(budgetContext.customer.name).trim(),
+                    phone: String(budgetContext.customer.phone).trim()
+                },
+                device: {
+                    category_id: String(budgetContext.device.category),
+                    model_id: String(budgetContext.device.model),
+                    model_label: String(budgetContext.device.modelLabel)
+                },
+                service: {
+                    service_id: String(budgetContext.service.id),
+                    name: String(budgetContext.service.name),
+                    custom_desc: budgetContext.service.customDescription
+                },
+                financial: {
+                    currency: "BRL",
+                    min_value: Number(budgetContext.financial.totalMin),
+                    max_value: Number(budgetContext.financial.totalMax)
+                },
+                logistics: {
+                    method_id: String(budgetContext.logistics.type),
+                    method_label: String(budgetContext.logistics.label),
+                    cost: Number(budgetContext.logistics.cost)
+                },
+                meta: {
+                    user_agent: navigator.userAgent,
+                    screen_width: window.innerWidth
+                }
+            }
+        };
+        
+        // Dispara preparação de envio (Fire & Forget)
+        prepareBudgetForPanel(finalPayload);
+        // -----------------------------------------------------------
+
+        // Geração do Link WhatsApp
+        let priceStr = "";
+        let finalServiceName = budgetContext.service.name;
+
+        if (state.service === 'custom_issue') {
+            priceStr = "Sob Análise Técnica";
+            finalServiceName = `${budgetContext.service.name}: "${budgetContext.service.customDescription}"`;
+        } else {
+            priceStr = `${formatPrice(budgetContext.financial.totalMin)} a ${formatPrice(budgetContext.financial.totalMax)}`;
+        }
+        
+        // --- GRAVAÇÃO DE PEDIDO (ORDERS.JSON) ---
+        // Item virtual representando o serviço
+        const orderItem = {
+            id: budgetContext.event_id || Date.now().toString(),
+            name: `${budgetContext.device.modelLabel} - ${finalServiceName}`, // Descrição completa no nome para o painel
+            image: "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
+            price: priceStr,
+            quantity: 1
+        };
+
+        // Chama a função de criação de pedido antes do redirect
+        await submitOrderToAPI(clientName, [orderItem], priceStr, { 
+            phone: clientPhone,
+            source: 'Calculadora de Orçamento' 
+        });
+        // ----------------------------------------
+
+        // --- HOOKS PARA INTEGRAÇÃO FUTURA ---
+        if (window.AtomicChat && window.AtomicChat.processBudget) { 
+            window.AtomicChat.processBudget(budgetContext); 
+            return; 
+        }
+
+        const msg = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
+                    `👤 *${budgetContext.customer.name}*\n` +
+                    `📱 ${budgetContext.customer.phone}\n` +
+                    `--------------------------------\n` +
+                    `🎮 *Aparelho:* ${budgetContext.device.modelLabel}\n` +
+                    `🛠️ *Serviço:* ${finalServiceName}\n` +
+                    `📍 *Logística:* ${budgetContext.logistics.label}\n` +
+                    `💰 *Estimativa:* ${priceStr}\n` +
+                    `--------------------------------\n` +
+                    `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;
+
+        // Redirect Síncrono via Location
+        window.location.href = `https://wa.me/5521995969378?text=${encodeURIComponent(msg)}`;
+    });
+}
+
+// --- TEMA E ESTILIZAÇÃO DA CALCULADORA ---
+function injectThemeFixes() {
+    const css = `
+        /* SURGICAL THEME TRANSITION FIX */
+        body, .bg-card, .bg-base, .bento-card, input, select, textarea, button, .product-card {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease !important;
+        }
+
+        /* --- CALCULATOR LIGHT MODE FACELIFT --- */
+        
+        /* 1. Container: White background with DARK shadow */
+        html:not(.dark) .bento-card {
+            background-color: #ffffff !important;
+            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.1) !important; /* Dark shadow for depth */
+            border: 1px solid #e4e4e7 !important;
+        }
+
+        /* 2. Selection Cards (Buttons): Light Gray instead of Dark */
+        /* Targets the category cards inside the calculator */
+        html:not(.dark) #serviceForm label div[class*="bg-"] { 
+            background-color: #f3f4f6 !important; /* Light Gray */
+            color: #1f2937 !important; /* Dark Text */
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        }
+        
+        /* Hover State for Cards */
+        html:not(.dark) #serviceForm label:hover div[class*="bg-"] {
+            background-color: #e5e7eb !important;
+            border-color: #d1d5db !important;
+        }
+
+        /* Selected State for Cards */
+        html:not(.dark) #serviceForm label:has(input:checked) div[class*="bg-"] {
+            background-color: #fffbeb !important; /* Amber Light */
+            border-color: #f59e0b !important; /* Amber Border */
+            color: #000000 !important;
+            box-shadow: 0 0 0 2px #f59e0b !important;
+        }
+
+        /* Icons inside Cards */
+        html:not(.dark) #serviceForm label i,
+        html:not(.dark) #serviceForm label svg {
+            color: #d97706 !important; /* Amber Icon for contrast */
+        }
+
+        /* 3. Inputs: White background, clear borders */
+        html:not(.dark) #serviceForm select,
+        html:not(.dark) #serviceForm input[type="text"],
+        html:not(.dark) #serviceForm input[type="tel"],
+        html:not(.dark) #serviceForm textarea {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+            border: 1px solid #d1d5db !important;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05) !important;
+        }
+        
+        /* 4. Labels & Text */
+        html:not(.dark) #serviceForm label {
+            color: #374151 !important; /* Gray 700 */
+        }
+        
+        html:not(.dark) #serviceForm h3, 
+        html:not(.dark) #serviceForm h4 {
+            color: #111827 !important; /* Gray 900 */
+        }
+
+        /* 5. Result Area */
+        html:not(.dark) #result-area {
+            background-color: #f9fafb !important;
+            border: 1px dashed #d1d5db !important;
+        }
+        
+        html:not(.dark) #result-area span {
+            color: #111827 !important;
+        }
+        
+        /* 6. Muted Text */
+        html:not(.dark) .text-muted {
+            color: #6b7280 !important;
+        }
+    `;
+    const style = document.createElement('style');
+    style.id = 'atomic-theme-fix-main';
+    style.innerHTML = css;
+    document.head.appendChild(style);
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Injeta correção de tema imediatamente
+    injectThemeFixes();
+    
     trackAtomicEvent('visit');
 
     if ('serviceWorker' in navigator) {
@@ -706,6 +1553,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    initCharts(theme); // Mantido por compatibilidade, mas vazio
     loadGamesFromGitHub();
     loadBannersFromGitHub();
     loadStatsFromGitHub(); 
@@ -756,9 +1604,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const y = window.scrollY;
                 const backToTopBtn = document.getElementById('backToTop');
                 
+                // MUDANÇA: Verifica se o chat está aberto
+                // Se o chat estiver aberto, força a remoção da classe 'show' para garantir que não apareça
                 if (document.body.classList.contains('chat-open')) {
                     if (backToTopBtn) backToTopBtn.classList.remove('show');
                 } else {
+                    // Comportamento normal
                     document.getElementById('navbar').classList.toggle('nav-hidden', y > lastY && y > 80);
                     if (backToTopBtn) backToTopBtn.classList.toggle('show', y > 400);
                 }
