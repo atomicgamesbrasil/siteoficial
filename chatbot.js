@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.8 (Gender Neutral & Adaptive Tone) Initializing...');
+    console.log('Atomic Chatbot v5.9 (Textarea Support & Gender Neutral) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
@@ -371,6 +371,14 @@
                 padding: 12px 15px !important; font-size: 14px !important;
                 width: 100%; box-sizing: border-box;
                 transition: var(--at-transition);
+                
+                /* TEXTAREA SPECIFIC FIXES */
+                resize: none;
+                overflow-y: hidden;
+                min-height: 44px; 
+                max-height: 120px;
+                line-height: 1.4;
+                font-family: inherit;
             }
             #chatInput:focus { border-color: var(--at-accent) !important; outline: none !important; }
             #sendBtn {
@@ -1065,6 +1073,7 @@
         const txt = els.input.value.trim();
         if(!txt) return;
         els.input.value = '';
+        els.input.style.height = 'auto'; // Reset textarea height
         
         renderMessage('user', txt);
         saveHistory('user', txt);
@@ -1105,7 +1114,23 @@
     }
 
     if(els.sendBtn) els.sendBtn.onclick = handleSend;
-    if(els.input) els.input.onkeydown = (e) => { if(e.key === 'Enter') handleSend(); };
+    
+    // --- TEXTAREA LOGIC: Auto-Grow & Enter Send ---
+    if(els.input) {
+        // Auto-Grow
+        els.input.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Enter to Send, Shift+Enter for Newline
+        els.input.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+    }
 
     function saveHistory(role, text, prods, acts) {
         const h = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.HISTORY) || '[]');

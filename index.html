@@ -148,7 +148,7 @@
             </header>
             <div id="chatMessages" class="chat-messages"></div>
             <footer class="chat-input-area">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off">
+                <textarea id="chatInput" class="chat-input" placeholder="Digite sua dúvida..." rows="1" autocomplete="off"></textarea>
                 <button id="sendBtn" class="chat-send-btn" aria-label="Enviar"><i class="ph-fill ph-paper-plane-right"></i></button>
             </footer>
         </div>
@@ -691,6 +691,6 @@
 
     <!-- Scripts Logic Split with new cache busters -->
     <script src="main.js?v=2025.02.04-neutral" defer></script>
-    <script src="chatbot.js?v=2025.02.04-neutral" defer></script>
+    <script src="chatbot.js?v=2025.02.04-textarea-fix" defer></script>
 </body>
 </html>
