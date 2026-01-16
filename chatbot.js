@@ -1,7 +1,8 @@
+
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.9 (Textarea Support & Gender Neutral) Initializing...');
+    console.log('Atomic Chatbot v5.9.1 (Xiaomi/Redmi Fixes) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
@@ -300,7 +301,8 @@
                 font-family: 'Segoe UI', Roboto, sans-serif !important;
                 border-radius: 16px !important;
                 overflow: hidden !important;
-                z-index: 9999 !important;
+                /* Z-INDEX EXTREMO PARA EVITAR SOBREPOSIÇÃO */
+                z-index: 2147483647 !important;
                 color: var(--at-text) !important;
                 transition: var(--at-transition);
             }
@@ -337,6 +339,8 @@
                 background-color: var(--at-bg) !important;
                 padding: 20px !important;
                 overflow-x: hidden !important;
+                /* Melhoria de scroll mobile */
+                overscroll-behavior: contain;
             }
             .atomic-msg-bubble {
                 padding: 12px 18px !important;
@@ -410,7 +414,7 @@
             /* --- MODAL GLOBAL (BASE) --- */
             .atomic-modal-overlay {
                 position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                background: var(--at-overlay); z-index: 100000;
+                background: var(--at-overlay); z-index: 2147483647;
                 display: none; justify-content: center; align-items: center;
                 backdrop-filter: blur(8px);
                 animation: atomicFadeIn 0.3s ease;
@@ -478,18 +482,36 @@
             .atomic-calc-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--at-accent); }
             .atomic-calc-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-            /* --- BUBBLE --- */
+            /* --- BUBBLE & FIXES --- */
             #chatBubble, #atomic-chat-trigger {
+                position: fixed !important;
+                bottom: 20px !important;
+                right: 20px !important;
                 background-color: var(--at-bubble-bg) !important; 
                 color: var(--at-bubble-text) !important;
                 box-shadow: 0 0 20px var(--at-accent) !important;
+                z-index: 2147483646 !important; /* Logo abaixo do modal, acima do BackToTop */
             }
 
             @keyframes atomicFadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes atomicSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             
-            /* -- RENOMEADO PARA EVITAR CONFLITO COM O SITE -- */
             .at-hidden { display: none !important; }
+
+            /* --- XIAOMI / REDMI BROWSER FIXES --- */
+            @media (max-width: 768px) {
+                #chatWindow, #atomic-chat-window, .chat-window {
+                    width: 100% !important;
+                    /* 'dvh' resolve o problema da barra de navegação flutuante nos browsers chineses */
+                    height: 90dvh !important; 
+                    max-height: 90dvh !important;
+                    bottom: 0 !important;
+                    right: 0 !important;
+                    border-radius: 16px 16px 0 0 !important;
+                    /* Garante que fique acima de tudo no mobile */
+                    z-index: 2147483647 !important;
+                }
+            }
         `;
 
         const styleEl = document.createElement('style');
@@ -957,6 +979,9 @@
 
     function updateChatUI(open) {
         state.isOpen = open;
+        const backToTop = document.getElementById('backToTop');
+        const installBtnMobile = document.getElementById('installAppBtnMobile');
+
         if (open) {
             els.win.classList.add('open');
             els.win.style.display = 'flex';
@@ -970,6 +995,10 @@
             els.bubble.style.pointerEvents = 'none';
             if(els.badge) els.badge.style.display = 'none';
             
+            // --- XIAOMI FIX: ESCONDER BACKTOTOP ---
+            if(backToTop) backToTop.style.display = 'none';
+            // -------------------------------------
+            
             scrollToBottom();
             if(window.innerWidth > 768 && els.input) setTimeout(() => els.input.focus(), 100);
             checkEmptyState();
@@ -981,6 +1010,10 @@
             els.bubble.style.pointerEvents = 'auto';
             if(els.badge) els.badge.style.display = 'flex';
             if(els.input) els.input.blur();
+
+            // --- RESTORE BACKTOTOP ---
+            if(backToTop) backToTop.style.display = '';
+            // -------------------------
         }
         document.body.classList.toggle('chat-open', open);
     }

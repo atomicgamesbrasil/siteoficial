@@ -358,7 +358,7 @@ let allProducts = [...initialProducts];
 let cart = [];
 let currentFilter = 'all';
 let currentPage = 1;
-const itemsPerPage = 10;
+// REMOVED CONST: const itemsPerPage = 10; -> Logic moved to renderProducts
 let debounceTimer;
 let els = {}; // Cached DOM elements
 
@@ -606,7 +606,11 @@ function renderProducts(filter, term = "", forceAll = false) {
         (!term || p.name.toLowerCase().includes(lowerTerm) || (p.desc && p.desc.toLowerCase().includes(lowerTerm)))
     );
 
-    // --- PAGINATION LOGIC START ---
+    // --- PAGINATION LOGIC UPDATE: MOBILE HARMONY ---
+    // Detecta se é mobile (menos de 768px). Se sim, usa 6 itens. Desktop usa 10.
+    const isMobile = window.innerWidth < 768;
+    const itemsPerPage = isMobile ? 6 : 10;
+
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
     
     // Safety check for current page
@@ -1598,8 +1602,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!ticking) {
             window.requestAnimationFrame(() => {
                 const y = window.scrollY;
-                document.getElementById('backToTop').classList.toggle('show', y > 400);
-                document.getElementById('navbar').classList.toggle('nav-hidden', y > lastY && y > 80);
+                const backToTopBtn = document.getElementById('backToTop');
+                
+                // MUDANÇA: Verifica se o chat está aberto
+                // Se o chat estiver aberto, força a remoção da classe 'show' para garantir que não apareça
+                if (document.body.classList.contains('chat-open')) {
+                    if (backToTopBtn) backToTopBtn.classList.remove('show');
+                } else {
+                    // Comportamento normal
+                    document.getElementById('navbar').classList.toggle('nav-hidden', y > lastY && y > 80);
+                    if (backToTopBtn) backToTopBtn.classList.toggle('show', y > 400);
+                }
+                
                 lastY = y; ticking = false;
             });
             ticking = true;
