@@ -1,97 +1,58 @@
-const CACHE_NAME = 'atomic-pwa-v2025.02.02-fix2'; // VERSÃO ATUALIZADA (Força a limpeza do cache antigo)
-
-// Arquivos que devem ser cacheados imediatamente na instalação
-const STATIC_ASSETS = [
+const CACHE_NAME = 'atomic-pwa-v2-dynamic'; // MUDANÇA CRÍTICA: Nome novo força a atualização
+const URLS_TO_CACHE = [
   './',
   './index.html',
-  './styles.css',
   './main.js',
-  './chatbot.js',
-  './manifest.json',
-  'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://unpkg.com/@phosphor-icons/web',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap'
+  './chatbot.js'
 ];
 
-// Instalação: Cacheia assets críticos
+// Install Event: Initialize Cache
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Força o SW a assumir o controle imediatamente
+  self.skipWaiting(); // Força o novo SW a assumir o controle imediatamente
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching static assets');
-      return cache.addAll(STATIC_ASSETS);
+      console.log('Opened cache:', CACHE_NAME);
+      return cache.addAll(URLS_TO_CACHE).catch(err => console.warn('PWA Cache Warning:', err));
     })
   );
 });
 
-// Ativação: Limpa caches antigos (Isso resolve o problema dos usuários recorrentes)
+// Activate Event: Clean up old caches (CRUCIAL PARA REMOVER A VERSÃO ANTIGA)
 self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[SW] Clearing old cache:', cache);
-            return caches.delete(cache);
+        cacheNames.map((cacheName) => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName); // Apaga a versão v1 ou anterior
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Assume o controle de todas as abas abertas
   );
-  self.clients.claim(); // Controla todos os clientes imediatamente
 });
 
-// Fetch: Estratégia Inteligente
+// Fetch Event: Network First Strategy
+// Tenta buscar na rede. Se der certo, atualiza o cache. Se falhar, usa o cache.
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // 1. Arquivos Core (HTML, JS, CSS, JSON de Dados) -> NETWORK FIRST (Rede Primeiro)
-  // Garante que o usuário sempre veja a versão mais recente do site/preços
-  if (
-      url.origin === location.origin && 
-      (url.pathname.endsWith('.html') || 
-       url.pathname.endsWith('/') || 
-       url.pathname.endsWith('.js') || 
-       url.pathname.endsWith('.css') || 
-       url.pathname.endsWith('.json'))
-  ) {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          // Se deu certo, atualiza o cache e retorna a versão nova
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
-        })
-        .catch(() => {
-          // Se falhar (offline), retorna o que tem no cache
-          return caches.match(event.request);
-        })
-    );
-    return;
-  }
-
-  // 2. Assets Estáticos Externos (Fontes, Libs, Imagens) -> CACHE FIRST (Cache Primeiro)
-  // Melhora performance e economiza dados, pois mudam pouco
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        // Não cacheia respostas inválidas
-        if (!response || response.status !== 200 || response.type !== 'basic' && response.type !== 'cors') {
+    fetch(event.request)
+      .then((response) => {
+        // Se a resposta for válida, clonamos ela para atualizar o cache "em segundo plano"
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-        // Cacheia novos assets dinamicamente
         const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
+        caches.open(CACHE_NAME)
+          .then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         return response;
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
