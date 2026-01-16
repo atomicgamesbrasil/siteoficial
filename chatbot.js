@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.6 (Map Route Button) Initializing...');
+    console.log('Atomic Chatbot v5.8 (Gender Neutral & Adaptive Tone) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
@@ -249,6 +249,28 @@
                 --at-bot-text: #18181b;
                 --at-header-bg: #f4f4f5;
                 --at-overlay: rgba(0,0,0,0.5);
+                /* Transição suave para tema */
+                --at-transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            /* GARANTIA DE MODO CLARO EXPLICITO */
+            html.light {
+                --at-bg: #ffffff;
+                --at-surface: #f4f4f5;
+                --at-border: #e4e4e7;
+                --at-text: #18181b;
+                --at-text-sec: #71717a;
+                --at-accent: #ffc107;
+                --at-accent-text: #000000;
+                --at-shadow: rgba(0,0,0,0.15);
+                --at-bubble-bg: #ffc107;
+                --at-bubble-text: #000;
+                --at-user-bg: #ffc107;
+                --at-user-text: #000;
+                --at-bot-bg: #f4f4f5;
+                --at-bot-text: #18181b;
+                --at-header-bg: #f4f4f5;
+                --at-overlay: rgba(0,0,0,0.5);
             }
 
             html.dark {
@@ -280,6 +302,7 @@
                 overflow: hidden !important;
                 z-index: 9999 !important;
                 color: var(--at-text) !important;
+                transition: var(--at-transition);
             }
 
             /* --- HEADER --- */
@@ -291,6 +314,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                transition: var(--at-transition);
             }
             .chat-header h3 {
                 color: var(--at-text) !important; font-weight: 700 !important;
@@ -346,6 +370,7 @@
                 color: var(--at-text) !important; border-radius: 8px !important;
                 padding: 12px 15px !important; font-size: 14px !important;
                 width: 100%; box-sizing: border-box;
+                transition: var(--at-transition);
             }
             #chatInput:focus { border-color: var(--at-accent) !important; outline: none !important; }
             #sendBtn {
@@ -381,6 +406,7 @@
                 display: none; justify-content: center; align-items: center;
                 backdrop-filter: blur(8px);
                 animation: atomicFadeIn 0.3s ease;
+                transition: background-color 0.3s ease;
             }
             .atomic-modal-overlay.active { display: flex; }
             
@@ -390,18 +416,20 @@
                 display: flex; flex-direction: column; overflow: hidden;
                 box-shadow: 0 0 40px var(--at-shadow);
                 animation: atomicSlideUp 0.3s ease;
+                transition: var(--at-transition);
             }
 
             /* --- CALCULATOR & BUDGET CHOICE --- */
             .atomic-calc-header {
                 background: var(--at-header-bg); padding: 15px 20px; border-bottom: 2px solid var(--at-accent);
                 display: flex; justify-content: space-between; align-items: center;
+                transition: var(--at-transition);
             }
             .atomic-calc-header h2 { color: var(--at-text); font-size: 16px; margin: 0; text-transform: uppercase; display: flex; gap: 8px; align-items: center; }
             .atomic-calc-close { color: var(--at-text-sec); font-size: 24px; background: none; border: none; cursor: pointer; }
             .atomic-calc-close:hover { color: var(--at-text); }
 
-            .atomic-calc-body { padding: 20px; color: var(--at-text); max-height: 80vh; overflow-y: auto; }
+            .atomic-calc-body { padding: 20px; color: var(--at-text); max-height: 80vh; overflow-y: auto; transition: var(--at-transition); }
             
             .atomic-field-group { margin-bottom: 15px; text-align: left; }
             .atomic-field-group label { display: block; font-size: 12px; color: var(--at-text-sec); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
@@ -410,7 +438,7 @@
                 width: 100%; padding: 12px; border-radius: 8px;
                 background: var(--at-surface); border: 1px solid var(--at-border);
                 color: var(--at-text); font-family: inherit; font-size: 14px;
-                box-sizing: border-box; outline: none; transition: border 0.3s;
+                box-sizing: border-box; outline: none; transition: border 0.3s, background-color 0.3s, color 0.3s;
             }
             .atomic-textarea { resize: vertical; min-height: 80px; }
             .atomic-input:focus, .atomic-select:focus, .atomic-textarea:focus { border-color: var(--at-accent); }
@@ -418,12 +446,13 @@
             .atomic-price-display {
                 background: var(--at-surface); padding: 15px; border-radius: 8px;
                 text-align: center; margin: 20px 0; border: 1px dashed var(--at-border);
+                transition: var(--at-transition);
             }
             .atomic-price-label { font-size: 12px; color: var(--at-text-sec); text-transform: uppercase; }
             .atomic-price-value { font-size: 24px; color: var(--at-accent); font-weight: 800; margin-top: 5px; }
 
             .atomic-radio-group { display: flex; gap: 15px; margin-top: 5px; }
-            .atomic-radio-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: var(--at-text); }
+            .atomic-radio-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; color: var(--at-text); transition: color 0.3s; }
             .atomic-radio-label input { accent-color: var(--at-accent); }
             
             .atomic-note { font-size: 11px; color: var(--at-text-sec); margin-top: 5px; font-style: italic; }
@@ -437,8 +466,8 @@
             .atomic-calc-btn.secondary {
                 background: transparent; border: 2px solid var(--at-accent); color: var(--at-accent);
             }
-            .atomic-calc-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--at-accent); }
             .atomic-calc-btn.secondary:hover { background: var(--at-accent); color: var(--at-accent-text); }
+            .atomic-calc-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--at-accent); }
             .atomic-calc-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
             /* --- BUBBLE --- */
@@ -1092,7 +1121,7 @@
 
     function checkEmptyState() {
         if(els.msgs.children.length === 0) {
-            const msg = "Fala aí! Sou o Thiago da Atomic. Tô na área pra falar de Games, Consoles e PC. No que posso ajudar?";
+            const msg = "Olá! Sou o Thiago da Atomic. Estou aqui para falar de Games, Consoles e PC. Como posso ajudar você hoje?";
             renderMessage('bot', msg, [], []);
         }
     }
