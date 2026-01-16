@@ -1,50 +1,32 @@
 [
   {
-    "id": "141753",
-    "customer": "thiago [83981181907]",
+    "id": "974195",
+    "customer": "teste thiago",
     "items": [
       {
-        "id": "1768439106917",
-        "name": "Desktop Gamer / Office - Instalação Hardware (GPU/Fonte)",
-        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-        "price": "R$ 80,00 a R$ 150,00",
+        "id": "1765402139133",
+        "name": "Processador AMD Ryzen 7 7700X",
+        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1765409146861-Processador-AMD-Ryzen-7-7700X.webp",
+        "price": "R$ 1.950,00",
+        "quantity": 1
+      },
+      {
+        "id": "1765402139132",
+        "name": "Placa de Vídeo RTX 4070 12GB",
+        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1765408913059-Placa-de-V-deo-RTX-4070-12GB.webp",
+        "price": "R$ 4.599,99",
+        "quantity": 1
+      },
+      {
+        "id": "1765402139140",
+        "name": "Monitor Gamer Curvo AOC Hero 32' 144Hz",
+        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1765410126551-Monitor-Gamer-Curvo-AOC-Hero-32--144Hz.webp",
+        "price": "R$ 899,90",
         "quantity": 1
       }
     ],
-    "total": "R$ 80,00 a R$ 150,00",
+    "total": "R$ 7.449,89",
     "status": "pending",
-    "date": "15/01/2026, 01:05:41"
-  },
-  {
-    "id": "604784",
-    "customer": "thiago [83981181907]",
-    "items": [
-      {
-        "id": "1768350602844",
-        "name": "Controle Xbox (Series/One) - Troca Botão RB/LB",
-        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-        "price": "R$ 75,00 a R$ 115,00",
-        "quantity": 1
-      }
-    ],
-    "total": "R$ 75,00 a R$ 115,00",
-    "status": "pending",
-    "date": "14/01/2026, 00:30:04"
-  },
-  {
-    "id": "603902",
-    "customer": "thiago [83981181907]",
-    "items": [
-      {
-        "id": "1768350601944",
-        "name": "Controle Xbox (Series/One) - Troca Botão RB/LB",
-        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
-        "price": "R$ 75,00 a R$ 115,00",
-        "quantity": 1
-      }
-    ],
-    "total": "R$ 75,00 a R$ 115,00",
-    "status": "pending",
-    "date": "14/01/2026, 00:30:03"
+    "date": "04/01/2026, 23:56:14"
   }
 ]

@@ -93,15 +93,15 @@
     "price": "R$ 130,00",
     "category": "hardware",
     "desc": "HDMI 4K, 2x USB 3.0, SD/MicroSD, PD 100W.",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768436387710-Hub-Md9-8-Portas-Usb-3-0-HDMI-Usb-Tipo-C-Rj45-Micro-Sd-Tf-Card-9561_1748315083.webp"
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Hub+USBC+para+7+Portas+MultiFuno"
   },
   {
     "id": "1765402139144",
-    "name": "Placa de Som Externa USB Creative Sounad Blaster",
-    "price": "R$ 188,00",
+    "name": "Placa de Som Externa USB Creative Sound Blaster",
+    "price": "R$ 399,00",
     "category": "hardware",
-    "desc": "laca de som portátil Sound BlasterX G1 com áudio 7.1 e amplificador para auscultadores, ideal para gamers que procuram uma experiência de som envolvente e de alta resolução. Compatível com PC, Mac e PS4, oferece som surround posicional 7.1 HD, amplificação para auscultadores de até 300Ω e otimizações avançadas através do BlasterX Acoustic Engine Pro.\n\n\nÁudio surround:\n.1 canais para virtualização realista de efeitos sonoros\n\nAmplificação:\nSuporta auscultadores de alta impedância até 300Ω\n\nBlasterX Acoustic Engine Pro:\nSoftware avançado de personalização sonora para Windows\n\nModo X-Plus:\nSom ajustado para jogos competitivos (requer auscultadores Sound BlasterX H5)\n\nScout Mode:\nDestaca sinais sonoros importantes para uma vantagem táctica\n\nCompatibilidade:\nPC, Mac e PlayStation 4™\n\nInterface:\nUSB (Plug and Play)\n\nQualidade de áudio:\n24-bit\n\nRelação sinal/ruído:\n93 dB\n\nConectividade:\nSaída combinada de 4 polos para auscultadores com microfone integrado",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768436980191-12967_1.webp"
+    "desc": "Áudio 7.1 de alta fidelidade para PC.",
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=Placa+de+Som+Externa+USB+Creative+Sound+Blaster"
   },
   {
     "id": "1765402139145",
@@ -121,27 +121,27 @@
   },
   {
     "id": "1765402139147",
-    "name": "Console Sony PlayStation 5, Com Leitor de Discos, SSD 1TB, Controle Sem Fio DualSense",
-    "price": "R$ 4.099,99",
+    "name": "PlayStation 5 Slim (Edição com Disco)",
+    "price": "R$ 4.299,00",
     "category": "console",
-    "desc": "Design Elegante e Armazenamento Amplo\nCom o PS5, os jogadores obtêm tecnologia de jogo poderosa em um design de console compacto e elegante. Mantenha seus jogos favoritos prontos para jogar com 1TB de armazenamento SSD integrado e inicie suas sessões de jogo quase instantaneamente.\n\nRetrocompatibilidade e Game Boost\nO console PS5 pode reproduzir mais de 4.000 jogos do PS4. Com o recurso Game Boost, você pode aproveitar as taxas de quadros mais rápidas e suaves em alguns dos melhores jogos do console PS4",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768521682585-console-sony-playstation-5-com-leitor-de-discos-ssd-1tb-controle-sem-fio-dualsense-2-jogos_1760736613_gg.webp"
+    "desc": "Console de última geração, design compacto e elegante.",
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=PlayStation+5+Slim+Edio+com+Disco"
   },
   {
     "id": "1765402139148",
     "name": "Xbox Series X",
     "price": "R$ 4.150,00",
     "category": "console",
-    "desc": "O console mais rápido e poderoso da Microsoft. \n\nCaracterísticas:\n\n- Marca: Microsoft\n\nEspecificações:\n\n- Plataforma Xbox Series X\n- Espaço de armazenamento 1 TB\n- Conexões HDMI-In/Out, Wi-Fi embutido, Blu-ray\n- Voltagem Bivolt\n\nConteúdo da Embalagem:\n\n- Console Xbox Series X de 1TB\n- 1 controle sem fio Xbox\n- Cabo HDMI\n- Cabo de alimentação\n \n\nGarantia do Fornecedor\n\n6 Meses\n\n \n\nItens Inclusos\n\n1x console, 1x controle, 1x cabo HDMI, 1 cabo de alimentação.\n\n\nPeso:\n5962 gramas (bruto com embalagem)",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768521915357-Console-Xbox-Series-X-Microsoft-1Tb-Controle-Sem-Fio-Preto_1761156213.webp"
+    "desc": "O console mais rápido e poderoso da Microsoft.",
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Xbox+Series+X"
   },
   {
     "id": "1765402139150",
-    "name": "Console Nintendo Switch OLED, Branco + Mario Kart 8 Deluxe + 3 meses do Nintendo Switch Online",
-    "price": "R$ 2.700,00",
+    "name": "Nintendo Switch OLED - Modelo Edição Especial",
+    "price": "R$ 2.499,00",
     "category": "console",
-    "desc": "Tela OLED vibrante e dock revisado. Perfeito para jogar em qualquer lugar.\n\nAmplie O Mundo Do Mario E Amigos\nEste bundle tem tudo que você precisa para começar suas aventuras com o Super Mario, incluindo um console Nintendo Switch - Modelo OLED com controles Joy-Con. Grátis você ganha o download do jogo Mario Kart 8 Deluxe completo e uma Assinatura individual do Nintendo Switch Online de 3 meses. Você pode iniciar corridas no modo multijogador imediatamente: basta passar um controle Joy-Con para um amigo e jogar juntos no mesmo console. Ou compre mais controles, vendidos separadamente, e divirta-se com até 4 pessoas.\n\n ",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768522035847-console-nintendo-switch-modelo-oled-super-mario-kart-8-3-meses-do-nintendo-switch-online_1733945454_gg.webp"
+    "desc": "Tela OLED vibrante e dock revisado. Perfeito para jogar em qualquer lugar.",
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Nintendo+Switch+OLED++Modelo+Edio+Especial"
   },
   {
     "id": "1765402139151",
@@ -154,26 +154,26 @@
   {
     "id": "1765402139152",
     "name": "PlayStation VR2 (PS VR2)",
-    "price": "R$ 3.499,00",
+    "price": "R$ 4.499,00",
     "category": "console",
-    "desc": "Realidade virtual de próxima geração para PS5.\n\nO PlayStation VR2 (PS VR2) é um headset de realidade virtual de segunda geração para o console PS5 da Sony, oferecendo gráficos 4K HDR, rastreamento de movimento ocular e controles com feedback tátil avançado (PS VR2 Sense) para uma experiência imersiva, conectando-se com um único cabo USB-C ao console e dispensando câmeras externas, sendo uma evolução significativa em relação ao PS VR original. ",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768522397515-playstation-vr2-oculos-de-realidade-virtual-para-ps5-branco-e-preto_1763151265_gg.webp"
+    "desc": "Realidade virtual de próxima geração para PS5.",
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=PlayStation+VR2+PS+VR2"
   },
   {
     "id": "1765402139153",
     "name": "Xbox Series S Carbon Black 1TB",
     "price": "R$ 2.499,00",
     "category": "console",
-    "desc": "O Xbox Series S Carbon Black de 1 TB é uma versão do console totalmente digital que oferece o dobro de armazenamento da versão branca original, mantendo o mesmo desempenho de última geração. \nEspecificações Técnicas\nO console Xbox Series S - 1 TB Carbon Black Edition possui as seguintes características, de acordo com as informações da Microsoft Store e análises de mercado: \nAtributo \tDetalhes\nCor\tCarbon Black (Preto fosco)\nArmazenamento Interno\tSSD NVMe personalizado de 1 TB (cerca de 802 GB a 900 GB disponíveis para o usuário)\nMídia Física\tTotalmente digital, sem leitor de disco\nResolução de Jogo\t1440p (com upscaling para 4K para streaming e entretenimento)\nPerformance Alvo\tAté 120 FPS (quadros por segundo)\nCPU\tAMD Zen 2 personalizada de 8X Cores @ 3,8 GHz\nGPU\tAMD RDNA 2 personalizada de 4 TFLOPS\nMemória RAM\t10 GB GDDR6\nRecursos de Vídeo\tSuporte para HDMI 2.1, VRR (Taxa de atualização variável), ALLM (Modo automático de baixa latência) e AMD FreeSync\nÁudio\tDolby Digital 5.1, DTS 5.1, Dolby TrueHD com Atmos, até 7.1 L-PCM\nConectividade\tWi-Fi banda dupla (802.11ac), Ethernet, 3 portas USB 3.1 Gen 1",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768522538165-Console-Xbox-Series-X-Microsoft-1Tb-Controle-Sem-Fio-Preto_1761156213.webp"
+    "desc": "Desempenho da próxima geração no console totalmente digital.",
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Xbox+Series+S+Carbon+Black+1TB"
   },
   {
     "id": "1765402139154",
     "name": "Console Portátil Retro Anbernic RG35XX",
     "price": "R$ 499,90",
     "category": "console",
-    "desc": "O Anbernic RG35XX é um popular console portátil retrô conhecido por seu design compacto, tela de alta qualidade e capacidade de emular uma vasta gama de sistemas clássicos de jogos a um preço acessível. \nEspecificações Técnicas\nAs especificações do Anbernic RG35XX (modelo original) são as seguintes, de acordo com o site oficial da Anbernic e análises de usuários: \nAtributo \tDetalhes\nTela\tIPS de 3,5 polegadas com ângulo de visão total, laminação completa OCA/resolução 640x480.\nCPU\tQuad-core ARM Cortex-A9.\nRAM\t256 MB DDR3.\nArmazenamento\tSlot duplo para cartão TF/MicroSD, suporta expansão até 512GB.\nSistema\tLinux 32-bit (com opções para sistemas personalizados como GarlicOS).\nBateria\tLi-polímero 2600 mAh, com duração de cerca de 5-7 horas.",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768522765147-35XX_NEW_30a97293-f4b2-46ef-b23c-e1885a1282c8.webp"
+    "desc": "Reviva clássicos do PS1, GBA e mais. Design compacto.",
+    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Console+Porttil+Retro+Anbernic+RG35XX"
   },
   {
     "id": "1765402139155",
@@ -281,11 +281,11 @@
   },
   {
     "id": "1765402139168",
-    "name": "Controle Nintendo Switch Joy-Con, Vermelho e Azul - HBCAJAEA1",
-    "price": "R$ 499,90",
+    "name": "Controle Pro para Nintendo Switch PowerA",
+    "price": "R$ 329,90",
     "category": "acessorios",
-    "desc": "Design ergonômico, conexão sem fio e botões programáveis.\n\n\nControle Nintendo Switch Joy-Con\nO controle nintendo switch joy-con vermelho e azul possibilitam maneiras criativas de jogar. Os versáteis Joy-Con oferecem várias formas surpreendentes de diversão aos jogadores. Dois Joy-Con podem ser usados independentemente, um em cada mão, ou juntos encaixados em um suporte para Joy-Con, funcionando como um só controle. \n\n \n\nJogue da Forma que Quiser\nTambém é possível encaixá-los no console para jogar no modo portátil, ou compartilhá-los com amigos e desfrutar de uma ação para dois jogadores em jogos compatíveis. Cada Joy-Con conta com todos os botões de botões e pode servir como um controle individual. Cada um deles inclui um acelerômetro e giroscópio, possibilitando controle de movimento na direita e na esquerda.",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768522111021-controle-nintendo-switch-joy-con-vermelho-e-azul-hbcajaea1_1626895433_gg.webp"
+    "desc": "Design ergonômico, conexão sem fio e botões programáveis.",
+    "image": "https://placehold.co/1000x1000/3B82F6/FFFFFF?text=Controle+Pro+para+Nintendo+Switch+PowerA"
   },
   {
     "id": "1765402139169",
@@ -572,8 +572,8 @@
     "name": "SSD Interno SATA 3 500GB Western Digital Green",
     "price": "R$ 259,00",
     "category": "hardware",
-    "desc": "SSD WESTERN DIGITAL GREEN 2,5' SATA III 480GB \nCom o aumento de desempenho de um SSD SATA WD Green, você pode navegar na web, jogar um jogo ou simplesmente iniciar seu sistema rapidamente.  ",
-    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768435610585-SSD-480GB-WD-Green-SATA-3-2-5-Pol-Leitura-545-MBps-E-Grava-o-430MBps-Wds480g3g0a.webp"
+    "desc": "Ideal para notebooks e PCs de entrada. Velocidade de 545MB/s.",
+    "image": "https://placehold.co/1000x1000/DC2626/FFFFFF?text=SSD+Interno+SATA+3+500GB+Western+Digital+Green"
   },
   {
     "id": "1765402139205",
