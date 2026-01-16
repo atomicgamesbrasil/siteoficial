@@ -101,7 +101,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- Styles with NEW Cache Busting (FORCE UPDATE) -->
-    <link rel="stylesheet" href="styles.css?v=2025.02.04-hotfix-cache">
+    <link rel="stylesheet" href="styles.css?v=2025.02.04-refactor-css">
 <script type="importmap">
 {
   "imports": {
@@ -231,21 +231,6 @@
             </div>
         </div>
     </nav>
-
-    <!-- Install Guide Modal -->
-    <div id="installGuideModal" class="modal-overlay" aria-hidden="true">
-        <div class="modal-base w-11/12 max-w-sm bg-card-solid rounded-3xl shadow-2xl border border-base p-6 text-center relative">
-            <button id="closeGuideModal" class="absolute top-4 right-4 p-2 hover:bg-base rounded-full transition"><i class="ph-bold ph-x text-xl"></i></button>
-            <div class="mb-4 flex justify-center">
-                <div class="w-16 h-16 rounded-full bg-base flex items-center justify-center">
-                    <i id="guideMainIcon" class=""></i>
-                </div>
-            </div>
-            <h3 id="guideTitle" class="text-xl font-bold mb-2"></h3>
-            <p id="guideText" class="text-muted text-sm mb-6 leading-relaxed"></p>
-            <div id="guideSteps" class="flex justify-center items-center gap-4 bg-base p-4 rounded-xl border border-base"></div>
-        </div>
-    </div>
 
     <!-- Cart Overlay -->
     <div class="modal-overlay" id="cartOverlay" aria-hidden="true"></div>
@@ -402,11 +387,13 @@
                     </p>
                     <div class="space-y-4">
                         <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-chart-line-up"></i></div>
+                            <!-- Mudança visual: Azul -> Dourado -->
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-black flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-chart-line-up"></i></div>
                             <div><h3 class="font-bold text-xl mb-1">Precificação Técnica</h3><p class="text-muted text-lg">Baseada na complexidade e risco.</p></div>
                         </div>
                         <div class="service-feature flex gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-scooter"></i></div>
+                            <!-- Mudança visual: Verde -> Preto com ícone Dourado -->
+                            <div class="w-16 h-16 rounded-2xl bg-zinc-800 text-yellow-400 border border-yellow-500/20 flex items-center justify-center text-2xl shadow-lg flex-shrink-0"><i class="ph-fill ph-scooter"></i></div>
                             <div><h3 class="font-bold text-xl mb-1">Logística Flexível</h3><p class="text-muted text-lg">Leve na loja ou solicite coleta.</p></div>
                         </div>
                     </div>
@@ -697,7 +684,7 @@
     </footer>
 
     <!-- Scripts Logic Split with new cache busters -->
-    <script src="main.js?v=2025.02.04-neutral" defer></script>
+    <script type="module" src="main.js?v=2025.02.04-neutral" defer></script>
     <script src="chatbot.js?v=2025.02.04-textarea-fix" defer></script>
 </body>
 </html>

@@ -72,7 +72,7 @@
                 xbox_360: { 
                     name: "Xbox 360 (Fat / Slim / E)", 
                     services: { 
-                        rgh: { name: "Desbloqueio RGH 3.0", min: 150, max: 250, note: "Serviço Legado" },
+                    rgh: { name: "Desbloqueio RGH 3.0", min: 150, max: 250, note: "Serviço Legado" },
                         cleaning: { name: "Limpeza Geral", min: 100, max: 150, note: "Troca de pasta térmica" },
                         red_ring: { name: "Luz Vermelha (Reballing)", min: 250, max: 450, note: "Procedimento de Risco" },
                         custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }

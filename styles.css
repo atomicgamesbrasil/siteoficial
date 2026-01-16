@@ -775,3 +775,83 @@ details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius
     .mobile-menu { width: 85%; max-width: 320px; }
     #backToTop { bottom: 20px; left: 20px; right: auto; width: 44px; height: 44px; }
 }
+
+/* === CALCULATOR THEME FIXES (Moved from JS) === */
+/* SURGICAL THEME TRANSITION FIX */
+body, .bg-card, .bg-base, .bento-card, input, select, textarea, button, .product-card {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* --- CALCULATOR LIGHT MODE FACELIFT --- */
+
+/* 1. Container: White background with DARK shadow */
+html:not(.dark) .bento-card {
+    background-color: #ffffff;
+    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.1); /* Dark shadow for depth */
+    border: 1px solid #e4e4e7;
+}
+
+/* 2. Selection Cards (Buttons): Light Gray instead of Dark */
+/* Targets the category cards inside the calculator */
+html:not(.dark) #serviceForm label div[class*="bg-"] { 
+    background-color: #f3f4f6; /* Light Gray */
+    color: #1f2937; /* Dark Text */
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Hover State for Cards */
+html:not(.dark) #serviceForm label:hover div[class*="bg-"] {
+    background-color: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+/* Selected State for Cards */
+html:not(.dark) #serviceForm label:has(input:checked) div[class*="bg-"] {
+    background-color: #fffbeb; /* Amber Light */
+    border-color: #f59e0b; /* Amber Border */
+    color: #000000;
+    box-shadow: 0 0 0 2px #f59e0b;
+}
+
+/* Icons inside Cards */
+html:not(.dark) #serviceForm label i,
+html:not(.dark) #serviceForm label svg {
+    color: #d97706; /* Amber Icon for contrast */
+}
+
+/* 3. Inputs: White background, clear borders */
+html:not(.dark) #serviceForm select,
+html:not(.dark) #serviceForm input[type="text"],
+html:not(.dark) #serviceForm input[type="tel"],
+html:not(.dark) #serviceForm textarea {
+    background-color: #ffffff;
+    color: #1f2937;
+    border: 1px solid #d1d5db;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* 4. Labels & Text */
+html:not(.dark) #serviceForm label {
+    color: #374151; /* Gray 700 */
+}
+
+html:not(.dark) #serviceForm h3, 
+html:not(.dark) #serviceForm h4 {
+    color: #111827; /* Gray 900 */
+}
+
+/* 5. Result Area */
+html:not(.dark) #result-area {
+    background-color: #f9fafb;
+    border: 1px dashed #d1d5db;
+}
+
+html:not(.dark) #result-area span {
+    color: #111827;
+}
+
+/* 6. Muted Text */
+html:not(.dark) .text-muted {
+    color: #6b7280;
+}
