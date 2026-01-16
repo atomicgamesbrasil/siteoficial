@@ -695,7 +695,8 @@ function renderPaginationControls(totalPages) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'paginationContainer';
-        container.className = 'flex flex-wrap justify-center items-center gap-2 mt-12 reveal';
+        // REMOVED 'reveal' class to ensure visibility immediately upon creation
+        container.className = 'flex flex-wrap justify-center items-center gap-2 mt-12';
         // Insert after grid, before hidden load more
         els.productGrid.parentNode.insertBefore(container, els.loadMore); 
     }
