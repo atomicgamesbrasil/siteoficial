@@ -172,8 +172,8 @@
     "name": "Console Portátil Retro Anbernic RG35XX",
     "price": "R$ 499,90",
     "category": "console",
-    "desc": "Reviva clássicos do PS1, GBA e mais. Design compacto.",
-    "image": "https://placehold.co/1000x1000/4C1D95/FFFFFF?text=Console+Porttil+Retro+Anbernic+RG35XX"
+    "desc": "O Anbernic RG35XX é um popular console portátil retrô conhecido por seu design compacto, tela de alta qualidade e capacidade de emular uma vasta gama de sistemas clássicos de jogos a um preço acessível. \nEspecificações Técnicas\nAs especificações do Anbernic RG35XX (modelo original) são as seguintes, de acordo com o site oficial da Anbernic e análises de usuários: \nAtributo \tDetalhes\nTela\tIPS de 3,5 polegadas com ângulo de visão total, laminação completa OCA/resolução 640x480.\nCPU\tQuad-core ARM Cortex-A9.\nRAM\t256 MB DDR3.\nArmazenamento\tSlot duplo para cartão TF/MicroSD, suporta expansão até 512GB.\nSistema\tLinux 32-bit (com opções para sistemas personalizados como GarlicOS).\nBateria\tLi-polímero 2600 mAh, com duração de cerca de 5-7 horas.",
+    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1768522765147-35XX_NEW_30a97293-f4b2-46ef-b23c-e1885a1282c8.webp"
   },
   {
     "id": "1765402139155",
