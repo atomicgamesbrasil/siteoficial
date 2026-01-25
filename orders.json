@@ -1,5 +1,21 @@
 [
   {
+    "id": "272492",
+    "customer": "thiago [83981181907]",
+    "items": [
+      {
+        "id": "1769385264295",
+        "name": "Xbox Series X / S - Troca de HDMI",
+        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
+        "price": "R$ 300,00 a R$ 450,00",
+        "quantity": 1
+      }
+    ],
+    "total": "R$ 300,00 a R$ 450,00",
+    "status": "pending",
+    "date": "25/01/2026, 23:54:32"
+  },
+  {
     "id": "180671",
     "customer": "thiago [83981181907]",
     "items": [
