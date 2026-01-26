@@ -1,46 +1,51 @@
-const CACHE_NAME = 'atomic-pwa-v2-dynamic'; // MUDANÇA CRÍTICA: Nome novo força a atualização
+const CACHE_NAME = 'atomic-pwa-v6.0.1-MIRROR'; // FORCE UPDATE - RESET TOTAL
 const URLS_TO_CACHE = [
   './',
   './index.html',
+  './styles.css',
   './main.js',
-  './chatbot.js'
+  './utils.js',
+  './api.js',
+  './calculator.js',
+  './chatbot.js',
+  './manifest.json'
 ];
 
-// Install Event: Initialize Cache
+// Install: Skip Waiting para assumir controle imediatamente
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Força o novo SW a assumir o controle imediatamente
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache:', CACHE_NAME);
-      return cache.addAll(URLS_TO_CACHE).catch(err => console.warn('PWA Cache Warning:', err));
+      console.log('[SW] Opened cache:', CACHE_NAME);
+      return cache.addAll(URLS_TO_CACHE).catch(err => console.warn('[SW] Cache Warning:', err));
     })
   );
 });
 
-// Activate Event: Clean up old caches (CRUCIAL PARA REMOVER A VERSÃO ANTIGA)
+// Activate: Remove caches antigos (Nuclear Option)
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName); // Apaga a versão v1 ou anterior
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => self.clients.claim()) // Assume o controle de todas as abas abertas
+    }).then(() => self.clients.claim())
   );
 });
 
-// Fetch Event: Network First Strategy
-// Tenta buscar na rede. Se der certo, atualiza o cache. Se falhar, usa o cache.
+// Fetch: Network First (Sempre tenta pegar fresco, fallback para cache)
 self.addEventListener('fetch', (event) => {
+  // Ignora requisições de outras origens (API, Analytics, etc) para não cachear erros
+  if (!event.request.url.startsWith(self.location.origin)) return;
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Se a resposta for válida, clonamos ela para atualizar o cache "em segundo plano"
         if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }

@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.9.1 (Xiaomi/Redmi Fixes) Initializing...');
+    console.log('Atomic Chatbot v5.9.3 (Full Integrity) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
@@ -1200,5 +1200,46 @@
 
     els.bubble.addEventListener('touchend', e => { if(!state.isDragging) openChat(); state.isDragging = false; });
     els.bubble.addEventListener('click', e => { if(!state.isDragging) state.isOpen ? closeChat() : openChat(); });
+
+    // === API PUBLICA DE INTEGRAÇÃO (FIX) ===
+    window.AtomicChat = {
+        open: () => updateChatUI(true),
+        close: () => updateChatUI(false),
+        processBudget: (ctx) => {
+            updateChatUI(true); // Garante que abre o chat
+
+            const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const range = `${fmt(ctx.financial.totalMin)} a ${fmt(ctx.financial.totalMax)}`;
+            const isCustom = ctx.service.id === 'custom_issue';
+            const displayPrice = isCustom ? "Sob Análise Técnica" : range;
+
+            const botMsg = `Recebi seu pedido de orçamento! 📝\n\n` +
+                           `👤 **${ctx.customer.name}**\n` +
+                           `📱 **${ctx.customer.phone}**\n` +
+                           `🎮 **Aparelho:** ${ctx.device.modelLabel}\n` +
+                           `🛠️ **Serviço:** ${ctx.service.name}\n` +
+                           `💰 **Estimativa:** ${displayPrice}\n\n` +
+                           `Tudo conferido? Posso encaminhar para o técnico agora?`;
+
+            const zapText = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
+                           `👤 *${ctx.customer.name}*\n` +
+                           `📱 ${ctx.customer.phone}\n` +
+                           `--------------------------------\n` +
+                           `🎮 *Aparelho:* ${ctx.device.modelLabel}\n` +
+                           `🛠️ *Serviço:* ${ctx.service.name}\n` +
+                           `📍 *Logística:* ${ctx.logistics.label}\n` +
+                           `💰 *Estimativa:* ${displayPrice}\n` +
+                           `--------------------------------\n` +
+                           `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;
+            
+            const waUrl = `https://wa.me/5521995969378?text=${encodeURIComponent(zapText)}`;
+
+            renderMessage('bot', botMsg, [], [{
+                label: "✅ Confirmar e Enviar no WhatsApp",
+                type: "LINK",
+                url: waUrl
+            }]);
+        }
+    };
 
 })();

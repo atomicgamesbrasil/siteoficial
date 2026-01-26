@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- Security: Adjusted CSP to ensure PWA and Scripts load correctly -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https:; worker-src 'self' blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https: http://localhost:3000; frame-src 'self' https:; worker-src 'self' blob:;">
     
     <!-- ANTI-CACHE META TAGS (CRÍTICO PARA ATUALIZAÇÃO DINÂMICA) -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -101,22 +101,17 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- Styles with NEW Cache Busting (FORCE UPDATE) -->
-    <link rel="stylesheet" href="styles.css?v=2025.02.04-hotfix-cache">
+    <link rel="stylesheet" href="styles.css?v=6.0.1-MIRROR">
 <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "recharts": "https://esm.sh/recharts@^3.6.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "@google/genai": "https://esm.sh/@google/genai@^0.2.1",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
     "express": "https://esm.sh/express@^5.2.1",
+    "cors": "https://esm.sh/cors@^2.8.5",
+    "dotenv": "https://esm.sh/dotenv@^17.2.3",
     "node-fetch": "https://esm.sh/node-fetch@^3.3.2",
     "path": "https://esm.sh/path@^0.12.7",
-    "url": "https://esm.sh/url@^0.11.4",
-    "cors": "https://esm.sh/cors@^2.8.5",
-    "dotenv": "https://esm.sh/dotenv@^17.2.3"
+    "url": "https://esm.sh/url@^0.11.4"
   }
 }
 </script>
@@ -226,7 +221,7 @@
                 <div class="flex justify-center gap-4 pt-4">
                     <a href="https://www.instagram.com/atomicgames.rj/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-pink-500 transition"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
                     <a href="https://www.facebook.com/AtomicGamesRj?locale=pt_BR" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-blue-500 transition"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
-                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
+                    <a href="https://www.tiktok.com/@atomic.games.bras" target="_blank" rel="noopener noreferrer" class="p-3 rounded-full bg-base hover:text-black dark:hover:text-white dark:hover:text-black transition"><i class="ph-fill ph-tiktok-logo text-xl"></i></a>
                 </div>
             </div>
         </div>
@@ -697,7 +692,7 @@
     </footer>
 
     <!-- Scripts Logic Split with new cache busters -->
-    <script src="main.js?v=2025.02.04-neutral" defer></script>
-    <script src="chatbot.js?v=2025.02.04-textarea-fix" defer></script>
+    <script type="module" src="main.js?v=6.0.1-MIRROR"></script>
+    <script src="chatbot.js?v=6.0.1-MIRROR" defer></script>
 </body>
 </html>

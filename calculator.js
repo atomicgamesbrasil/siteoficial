@@ -1,6 +1,7 @@
+
 // === CALCULATOR MODULE ===
 import { formatPrice } from './utils.js';
-import { trackAtomicEvent, submitOrderToAPI, prepareBudgetForPanel } from './api.js';
+import { trackAtomicEvent, submitOrderToAPI } from './api.js';
 
 // Custos Logísticos
 const LOGISTICS_COST = { 
