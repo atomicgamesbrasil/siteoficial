@@ -1,5 +1,21 @@
 [
   {
+    "id": "589126",
+    "customer": "thiago [83981181907]",
+    "items": [
+      {
+        "id": "1769403588294",
+        "name": "Xbox Series X / S - Limpeza Completa",
+        "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/atomiclogo.webp",
+        "price": "R$ 235,00 a R$ 385,00",
+        "quantity": 1
+      }
+    ],
+    "total": "R$ 235,00 a R$ 385,00",
+    "status": "pending",
+    "date": "26/01/2026, 04:59:49"
+  },
+  {
     "id": "270000",
     "customer": "thiago [83981181907]",
     "items": [
