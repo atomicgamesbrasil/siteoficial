@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.9.3 (Full Integrity) Initializing...');
+    console.log('Atomic Chatbot v5.9.5 (Unified, Symptom Based & Hidden Price) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
@@ -14,84 +14,92 @@
         remote: 50 
     };
 
+    // UPDATE 2025: Fusão de Categorias e Wording por Sintoma (ESPELHADO DO MAIN.JS)
     const CALCULATOR_DATA = {
         console_modern: {
-            label: "Consoles Atuais (PS/Xbox)",
+            label: "Consoles",
             models: {
                 ps5: { 
                     name: "PlayStation 5 (Fat / Slim / Pro)", 
                     services: { 
-                        cleaning: { name: "Limpeza Preventiva (Metal Líquido)", min: 250, max: 400, note: "Risco Alto (Curto-circuito)" }, 
-                        hdmi: { name: "Troca de HDMI (2.1)", min: 350, max: 550, note: "Microsolda Avançada" },
-                        drive: { name: "Reparo Leitor de Disco", min: 300, max: 500, note: "Mecânica/Laser" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        overheating: { name: "Está esquentando muito / Desliga sozinho", min: 250, max: 400, note: "Risco Alto (Curto-circuito)" },
+                        noise: { name: "Faz barulho muito alto durante o uso", min: 200, max: 350, note: "Preventiva" }, 
+                        no_image: { name: "Não aparece imagem na TV / Tela preta", min: 350, max: 550, note: "Microsolda Avançada" },
+                        glitch: { name: "Imagem falhando ou sumindo", min: 350, max: 550, note: "Microsolda" },
+                        disc_read: { name: "Não lê disco / Não puxa disco", min: 300, max: 500, note: "Mecânica/Laser" },
+                        crash: { name: "Jogo ou aplicativo trava com frequência", min: 0, max: 0, note: "Sob Análise" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 xbox_series: {
                     name: "Xbox Series X / S",
                     services: {
-                        cleaning: { name: "Limpeza Completa", min: 200, max: 350, note: "Troca pasta térmica premium" },
-                        hdmi: { name: "Troca de HDMI", min: 300, max: 450, note: "Microsolda" },
-                        ssd_repair: { name: "Reparo Circuito SSD", min: 400, max: 600, note: "Nível 3 (Placa)" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        overheating: { name: "Está esquentando muito / Desliga durante o jogo", min: 200, max: 350, note: "Troca pasta térmica premium" },
+                        no_image: { name: "Não aparece imagem na TV / Tela preta", min: 300, max: 450, note: "Microsolda" },
+                        startup_error: { name: "Console não liga ou trava na inicialização", min: 400, max: 600, note: "Reparo de Placa/SSD" },
+                        game_crash: { name: "Jogos fecham sozinhos ou travam", min: 0, max: 0, note: "Sob Análise" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 },
                 ps4: { 
                     name: "PlayStation 4 (Fat / Slim / Pro)", 
                     services: { 
-                        cleaning: { name: "Limpeza + Pasta Térmica Prata", min: 150, max: 250, note: "Manutenção Preventiva" }, 
-                        hdmi: { name: "Troca de HDMI", min: 200, max: 350, note: "Microsolda" },
-                        drive: { name: "Reparo Leitor de Disco", min: 180, max: 300, note: "+ Peça se necessário" },
-                        hd_upgrade: { name: "Troca de HD/SSD (Sistema)", min: 150, max: 250, note: "+ Valor da Peça" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        jet_noise: { name: "Faz barulho muito alto / Parece um jato", min: 150, max: 250, note: "Manutenção Preventiva" }, 
+                        overheating: { name: "Esquenta muito / Desliga sozinho", min: 150, max: 250, note: "Manutenção Preventiva" },
+                        no_video_on: { name: "Liga mas não aparece imagem", min: 200, max: 350, note: "Microsolda HDMI" },
+                        white_light: { name: "Luz branca acesa sem vídeo", min: 200, max: 350, note: "Microsolda HDMI/Encoder" },
+                        disc_issues: { name: "Não lê disco / Ejeta disco sozinho", min: 180, max: 300, note: "+ Peça se necessário" },
+                        slow_system: { name: "Sistema lento / Travando / Erro ao atualizar", min: 150, max: 250, note: "Possível troca de HD" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 xbox_one: {
                     name: "Xbox One (Fat / S / X)",
                     services: {
-                        cleaning: { name: "Limpeza Geral", min: 150, max: 250, note: "Preventiva" },
-                        hdmi: { name: "Troca de HDMI (Retimer)", min: 250, max: 400, note: "Troca de CI frequente" },
-                        drive: { name: "Reparo Drive", min: 180, max: 300, note: "Mecânica" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        overheating: { name: "Esquenta muito / Desliga sozinho", min: 150, max: 250, note: "Preventiva" },
+                        no_image: { name: "Não aparece imagem na TV", min: 250, max: 400, note: "Troca de CI/HDMI" },
+                        glitch: { name: "Imagem piscando ou falhando", min: 250, max: 400, note: "Troca de CI/HDMI" },
+                        disc_noise: { name: "Faz barulho ao tentar ler o disco", min: 180, max: 300, note: "Mecânica" },
+                        disc_read: { name: "Não reconhece jogos em disco", min: 180, max: 300, note: "Leitor Óptico" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
-                }
-            }
-        },
-        console_retro: {
-            label: "Consoles Retrô / Legados",
-            models: {
+                },
                 ps3: {
-                    name: "PlayStation 3 (Fat / Slim / Super)",
+                    name: "PlayStation 3 (Fat / Slim / Super Slim)",
                     services: {
-                        hen_unlock: { name: "Desbloqueio HEN/CFW", min: 100, max: 150, note: "Instalação Lojas" },
-                        cleaning: { name: "Limpeza + Pasta Térmica", min: 120, max: 180, note: "Essencial para Fat/Slim" },
-                        nec_tokin: { name: "Reparo NEC Tokin (YLOD)", min: 300, max: 500, note: "Capacitores de Tântalo" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        digital_games: { name: "Quero rodar jogos sem usar disco", min: 100, max: 150, note: "Instalação Lojas" },
+                        noise: { name: "Faz muito barulho / Ventoinha acelera", min: 120, max: 180, note: "Essencial para Fat/Slim" },
+                        shutdown: { name: "Desliga sozinho após alguns minutos", min: 120, max: 180, note: "Superaquecimento" },
+                        ylod: { name: "Luz amarela / Liga e desliga em seguida", min: 300, max: 500, note: "Reparo de Placa (NEC Tokin)" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 },
                 xbox_360: { 
                     name: "Xbox 360 (Fat / Slim / E)", 
                     services: { 
-                        rgh: { name: "Desbloqueio RGH 3.0", min: 150, max: 250, note: "Serviço Legado" },
-                        cleaning: { name: "Limpeza Geral", min: 100, max: 150, note: "Troca de pasta térmica" },
-                        red_ring: { name: "Luz Vermelha (Reballing)", min: 250, max: 450, note: "Procedimento de Risco" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        digital_games: { name: "Quero rodar jogos sem usar disco", min: 150, max: 250, note: "Desbloqueio RGH" },
+                        red_ring: { name: "Luz vermelha acesa / Superaquece", min: 250, max: 450, note: "Reballing/Erro Secundário" },
+                        noise: { name: "Faz muito barulho", min: 100, max: 150, note: "Limpeza Geral" },
+                        no_image: { name: "Não aparece imagem na TV", min: 250, max: 450, note: "Reballing/GPU" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 ps2: {
                     name: "PlayStation 2 (Fat / Slim)",
                     services: {
-                        opl: { name: "Instalação OPL (Jogos USB)", min: 80, max: 120, note: "Revitalização" },
-                        laser: { name: "Troca de Leitor Óptico", min: 120, max: 180, note: "Peça Nova" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        disc_read: { name: "Não lê CD ou DVD", min: 120, max: 180, note: "Troca de Leitor" },
+                        freeze: { name: "Trava durante jogos ou vídeos", min: 120, max: 180, note: "Troca de Leitor/Flat" },
+                        usb_games: { name: "Quero jogar sem usar disco", min: 80, max: 120, note: "Instalação OPL" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 },
                 wii_u: {
                     name: "Nintendo Wii / Wii U",
                     services: {
-                        unlock: { name: "Desbloqueio Softmod", min: 100, max: 180, note: "Jogos no HD/SD" },
-                        gamepad: { name: "Reparo Gamepad Wii U", min: 200, max: 400, note: "Tela/Conexão" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        install_games: { name: "Quero instalar jogos no console", min: 100, max: 180, note: "Desbloqueio" },
+                        controller_sync: { name: "Controle não conecta corretamente", min: 150, max: 250, note: "Módulo Bluetooth" },
+                        screen_gamepad: { name: "Tela do controle quebrada ou sem imagem", min: 200, max: 400, note: "Reparo Gamepad" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 }
             }
@@ -102,61 +110,69 @@
                 switch_v1: { 
                     name: "Nintendo Switch V1 (Antigo)", 
                     services: { 
-                        unlock_sw: { name: "Desbloqueio (Software)", min: 100, max: 180, note: "Sem abrir o console" },
-                        cleaning: { name: "Limpeza Interna", min: 100, max: 150, note: "Preventiva" },
-                        screen: { name: "Troca de Tela (Touch/LCD)", min: 250, max: 400, note: "Peça + Mão de obra" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        install_games: { name: "Quero instalar jogos no console", min: 100, max: 180, note: "Desbloqueio Software" },
+                        overheating: { name: "Esquenta muito", min: 100, max: 150, note: "Limpeza Interna" },
+                        fan_noise: { name: "Faz barulho na ventoinha", min: 100, max: 150, note: "Limpeza/Troca Cooler" },
+                        screen_touch: { name: "Tela quebrada ou sem toque", min: 250, max: 400, note: "Troca de Tela" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 switch_v2_lite: { 
                     name: "Switch V2 / Lite", 
                     services: { 
-                        unlock_chip: { name: "Desbloqueio (ModChip)", min: 350, max: 550, note: "Microsolda (RP2040/Instinct)" },
-                        screen_lite: { name: "Troca de Tela (Lite)", min: 350, max: 500, note: "Desmontagem Completa" },
-                        usb_port: { name: "Troca Conector Carga (M92)", min: 250, max: 400, note: "Reparo de Carga" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        unlock: { name: "Quero desbloquear o console", min: 350, max: 550, note: "Instalação ModChip" },
+                        screen_issue: { name: "Vidro quebrado / Imagem falhando", min: 350, max: 500, note: "Troca de Tela" },
+                        no_charge: { name: "Não carrega a bateria", min: 250, max: 400, note: "Reparo de Carga" },
+                        dock_issue: { name: "Não conecta na TV (Dock)", min: 250, max: 400, note: "Reparo de Imagem" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 switch_oled: { 
                     name: "Switch OLED", 
                     services: { 
-                        unlock_chip: { name: "Desbloqueio (ModChip)", min: 500, max: 800, note: "Extrema Complexidade (Dat0)" },
-                        cleaning: { name: "Limpeza Interna", min: 150, max: 250, note: "Preventiva" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        unlock: { name: "Quero desbloquear o console", min: 500, max: 800, note: "Instalação ModChip (Complexo)" },
+                        overheating: { name: "Esquenta muito", min: 150, max: 250, note: "Limpeza Interna" },
+                        fan_noise: { name: "Faz barulho na ventoinha", min: 150, max: 250, note: "Limpeza/Troca Cooler" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 steam_rog: {
                     name: "Steam Deck / ROG Ally / Legion",
                     services: {
-                        ssd_upgrade: { name: "Upgrade SSD (NVMe 2230)", min: 150, max: 250, note: "Clonagem Sistema + Mão de obra" },
-                        stick_replace: { name: "Instalação Hall Effect", min: 250, max: 400, note: "Analógicos Magnéticos" },
-                        cleaning: { name: "Limpeza Técnica", min: 150, max: 250, note: "Troca Pasta Térmica" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        storage: { name: "Falta espaço para jogos", min: 150, max: 250, note: "Upgrade SSD (Mão de Obra)" },
+                        drift: { name: "Analógico puxando sozinho (personagem anda sozinho)", min: 250, max: 400, note: "Instalação Hall Effect" },
+                        overheating: { name: "Esquenta muito", min: 150, max: 250, note: "Limpeza Técnica" },
+                        fan_noise: { name: "Ventoinha faz muito barulho", min: 150, max: 250, note: "Limpeza Técnica" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 },
                 retro_sony: {
                     name: "PSP / PS Vita",
                     services: {
-                        unlock: { name: "Desbloqueio Definitivo", min: 80, max: 120, note: "Infinity / Henkaku" },
-                        battery: { name: "Troca de Bateria", min: 100, max: 180, note: "Peça Nova" },
-                        screen: { name: "Troca de Tela", min: 150, max: 300, note: "LCD/OLED" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        install_games: { name: "Quero instalar jogos no console", min: 80, max: 120, note: "Desbloqueio" },
+                        battery: { name: "Bateria descarrega rápido", min: 100, max: 180, note: "Troca de Bateria" },
+                        shutdown: { name: "Desliga sozinho", min: 100, max: 180, note: "Bateria/Placa" },
+                        screen: { name: "Tela quebrada ou com manchas", min: 150, max: 300, note: "Troca de Tela" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 },
                 retro_nintendo: {
                     name: "3DS / 2DS / DS",
                     services: {
-                        unlock: { name: "Desbloqueio Luma3DS", min: 100, max: 150, note: "Cartão SD Necessário" },
-                        screen: { name: "Troca de Tela (Superior/Inf)", min: 200, max: 350, note: "Risco Alto (Cabo Flat)" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        install_games: { name: "Quero instalar jogos no console", min: 100, max: 150, note: "Desbloqueio" },
+                        screen_broken: { name: "Tela quebrada", min: 200, max: 350, note: "Risco Alto (Flat)" },
+                        touch_issue: { name: "Toque não funciona corretamente", min: 200, max: 350, note: "Troca Touch" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 },
                 chinese_handhelds: {
-                    name: "Chineses (Anbernic/Miyoo/Retroid)",
+                    name: "Portáteis Chineses (Anbernic/Miyoo/Retroid)",
                     services: {
-                        system_config: { name: "Configuração Sistema (ArkOS/Onion)", min: 80, max: 150, note: "Otimização + Jogos" },
-                        buttons: { name: "Reparo Botões/Tela", min: 100, max: 250, note: "Peças Específicas" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        no_power: { name: "Console não liga", min: 0, max: 0, note: "Sob Análise" },
+                        black_screen: { name: "Tela preta", min: 0, max: 0, note: "Sob Análise" },
+                        config: { name: "Sistema confuso / Precisa configurar", min: 80, max: 150, note: "Otimização" },
+                        buttons: { name: "Botões afundados ou não respondem", min: 100, max: 250, note: "Reparo" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 }
             }
@@ -167,20 +183,24 @@
                 desktop: { 
                     name: "Desktop Gamer / Office", 
                     services: { 
-                        format_basic: { name: "Formatação (Sem Backup)", min: 80, max: 100, note: "Windows + Drivers" }, 
-                        format_pro: { name: "Formatação Completa (C/ Backup)", min: 150, max: 250, note: "Salva arquivos + Programas" },
-                        cleaning: { name: "Limpeza + Cable Management", min: 100, max: 200, note: "Organização Interna" },
-                        upgrade: { name: "Instalação Hardware (GPU/Fonte)", min: 80, max: 150, note: "Mão de obra" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        slow_pc: { name: "Computador muito lento", min: 80, max: 100, note: "Otimização/Formatação" },
+                        crash_virus: { name: "Travando ou com vírus", min: 150, max: 250, note: "Formatação Completa" }, 
+                        format: { name: "Quero formatar o sistema", min: 150, max: 250, note: "Formatação Completa" },
+                        backup: { name: "Preciso salvar meus arquivos (backup)", min: 150, max: 250, note: "Formatação c/ Backup" },
+                        overheating: { name: "Esquentando muito", min: 100, max: 200, note: "Limpeza Interna" },
+                        performance: { name: "Quero melhorar o desempenho do PC", min: 80, max: 150, note: "Upgrade Hardware (Mão de Obra)" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 notebook: {
                     name: "Notebook (Gamer / Comum)",
                     services: {
-                        screen_replace: { name: "Troca de Tela", min: 150, max: 250, note: "+ Valor da Tela" },
-                        keyboard: { name: "Troca de Teclado", min: 100, max: 200, note: "Soldado ou Parafusado" },
-                        hinge: { name: "Reparo de Carcaça/Dobradiça", min: 200, max: 400, note: "Reconstrução com Resina" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        screen_broken: { name: "Tela quebrada ou com listras", min: 150, max: 250, note: "+ Valor da Tela" },
+                        screen_dark: { name: "Tela muito escura ou sem imagem", min: 150, max: 250, note: "+ Valor da Tela" },
+                        keys_fail: { name: "Teclas falhando", min: 100, max: 200, note: "Troca Teclado" },
+                        liquid: { name: "Molhou o teclado", min: 100, max: 200, note: "Troca Teclado" },
+                        hinge: { name: "Dobradiça quebrada / Tampa abrindo", min: 200, max: 400, note: "Reconstrução" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 }
             }
@@ -191,34 +211,37 @@
                 controllers_sony: { 
                     name: "Controle PlayStation (DualSense/DS4)", 
                     services: { 
-                        drift_simple: { name: "Reparo Drift (Potenciômetro)", min: 80, max: 120, note: "Troca do Sensor" }, 
-                        hall_effect: { name: "Upgrade Hall Effect", min: 160, max: 250, note: "Magnético (Nunca mais drift)" },
-                        battery: { name: "Troca de Bateria / USB", min: 80, max: 120, note: "Não carrega" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        drift: { name: "Personagem anda sozinho", min: 80, max: 120, note: "Troca Sensor" }, 
+                        analog_fail: { name: "Analógico não responde corretamente", min: 80, max: 120, note: "Troca Sensor" },
+                        no_charge: { name: "Não carrega", min: 80, max: 120, note: "Reparo Carga/Bateria" },
+                        battery_drain: { name: "Bateria acaba muito rápido", min: 80, max: 120, note: "Troca Bateria" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 controllers_ms: { 
                     name: "Controle Xbox (Series/One)", 
                     services: { 
-                        drift_simple: { name: "Reparo Drift (Analógico)", min: 80, max: 120, note: "Troca peça" }, 
-                        rb_lb: { name: "Troca Botão RB/LB", min: 60, max: 100, note: "Microswitch" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        drift: { name: "Personagem anda sozinho", min: 80, max: 120, note: "Troca Sensor" }, 
+                        buttons_fail: { name: "Botões não respondem (RB/LB)", min: 60, max: 100, note: "Troca Switch" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     } 
                 },
                 joycon: {
                     name: "Nintendo Joy-Con",
                     services: {
-                        drift: { name: "Troca Analógico (Par)", min: 100, max: 160, note: "Original ou Hall Effect" },
-                        slider: { name: "Troca Trilho Lateral", min: 60, max: 100, note: "Não conecta no tablet" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        drift: { name: "Personagem anda sozinho", min: 100, max: 160, note: "Troca Analógico (Par)" },
+                        loose: { name: "Joy-Con solta do console", min: 60, max: 100, note: "Troca Trilho" },
+                        no_charge: { name: "Não carrega quando encaixado", min: 60, max: 100, note: "Troca Trilho" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 },
                 peripherals: {
                     name: "Mouse / Teclado / Headset",
                     services: {
-                        mouse_switch: { name: "Troca Switch Mouse (Click)", min: 60, max: 120, note: "Omron/Kailh" },
-                        headset_cable: { name: "Reparo Cabo/Arco", min: 80, max: 150, note: "Mau contato" },
-                        custom_issue: { name: "Outro Defeito / Diagnóstico", min: 0, max: 0, note: "Sob Análise Técnica" }
+                        click_issue: { name: "Clique falhando ou clicando sozinho", min: 60, max: 120, note: "Troca Switch" },
+                        audio_fail: { name: "Um lado do fone não funciona", min: 80, max: 150, note: "Reparo Cabo/Jack" },
+                        connection_fail: { name: "Falha de conexão ou mau contato", min: 80, max: 150, note: "Reparo Cabo" },
+                        custom_issue: { name: "Outro problema (descrever abaixo)", min: 0, max: 0, note: "Sob Análise Técnica" }
                     }
                 }
             }
@@ -652,9 +675,10 @@
                             <textarea id="at-calc-desc" class="atomic-textarea" placeholder="Ex: Caiu no chão e não liga mais..."></textarea>
                         </div>
 
+                        <!-- HIDDEN PRICE IN UI (Update 2025) -->
                         <div class="atomic-price-display at-hidden" id="at-price-box">
-                            <div class="atomic-price-label">Estimativa de Preço</div>
-                            <div class="atomic-price-value" id="at-calc-result">R$ 0,00</div>
+                            <div class="atomic-price-label">Diagnóstico</div>
+                            <div class="atomic-price-value" id="at-calc-result">Pronto para Análise</div>
                             <div class="atomic-note" id="at-calc-note"></div>
                         </div>
 
@@ -790,27 +814,20 @@
             currentSelection.service = sKey;
 
             const logKey = document.querySelector('input[name="at_logistics"]:checked').value;
-            const logCost = LOGISTICS_COST[logKey] || 0;
-
-            const svcData = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].services[sKey];
+            // const logCost = LOGISTICS_COST[logKey] || 0; // Unused here in UI
 
             if (sKey === 'custom_issue') {
                 els.groupDesc.classList.remove('at-hidden');
-                els.priceBox.classList.add('at-hidden'); // Oculta preço em 'Outro Defeito'
+                els.priceBox.classList.add('at-hidden');
                 els.submit.innerText = "Solicitar Análise";
             } else {
                 els.groupDesc.classList.add('at-hidden');
+                // Don't show price in UI anymore, just show readiness
                 els.priceBox.classList.remove('at-hidden');
+                els.result.innerText = "Pronto para Análise";
+                els.note.innerText = "Valor será informado no Chat";
                 
-                const min = svcData.min + logCost;
-                const max = svcData.max + logCost;
-                
-                els.result.innerText = `R$ ${min} - R$ ${max}`;
-                els.note.innerText = svcData.note || "";
-                
-                if (logCost > 0) els.note.innerText += " (Inclui taxa de busca)";
-                
-                els.submit.innerText = "✅ Agendar Agora";
+                els.submit.innerText = "✅ Ver Diagnóstico";
             }
             els.submit.disabled = false;
         }
@@ -836,50 +853,32 @@
             const serviceName = svcData.name;
             
             const logKey = document.querySelector('input[name="at_logistics"]:checked').value;
+            const logCost = LOGISTICS_COST[logKey] || 0;
             
-            let priceMin = "A Combinar";
-            let priceMax = "";
+            let minPrice = svcData.min;
+            let maxPrice = svcData.max;
             let customDesc = "";
 
             if (currentSelection.service === 'custom_issue') {
                 customDesc = els.desc.value;
             } else {
-                priceMin = (svcData.min + (LOGISTICS_COST[logKey]||0)).toString();
-                priceMax = (svcData.max + (LOGISTICS_COST[logKey]||0)).toString();
+                minPrice += logCost;
+                maxPrice += logCost;
             }
 
-            // UI Feedback
+            // Close Modal & Trigger Chat Logic
             els.modal.classList.remove('active');
-            updateChatUI(true);
-            renderMessage('bot', `Só um instante, ${name}! Calculando e gerando seu agendamento...`);
+            
+            // Build Context for ProcessBudget
+            const ctx = {
+                customer: { name, phone },
+                device: { category: cat, modelLabel: model },
+                service: { id: currentSelection.service, name: serviceName, customDescription: customDesc },
+                financial: { totalMin: minPrice, totalMax: maxPrice },
+                logistics: { label: logKey === 'shop' ? 'Levar na Loja' : 'Buscar de Motoboy' }
+            };
 
-            try {
-                const payload = { 
-                    name,
-                    phone,
-                    model, 
-                    service: currentSelection.service === 'custom_issue' ? `${serviceName}: ${customDesc}` : serviceName,
-                    priceMin, 
-                    priceMax, 
-                    logistics: logKey === 'shop' ? 'Levar na Loja' : 'Buscar de Motoboy'
-                };
-                
-                const res = await fetch(CONFIG.ORDER_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const data = await res.json();
-                
-                if(data.success) {
-                    renderMessage('bot', data.reply, [], data.actions);
-                } else {
-                    renderMessage('bot', "Gerado! Me chama no Zap para confirmar.");
-                }
-            } catch (err) {
-                renderMessage('bot', "Tive um erro de conexão, mas vamos fechar no WhatsApp!");
-            }
+            window.AtomicChat.processBudget(ctx);
         });
     }
 
@@ -1049,7 +1048,13 @@
 
         const bubble = document.createElement('div');
         bubble.className = `atomic-msg-bubble ${role}`;
-        bubble.innerHTML = text.replace(/\n/g, '<br>');
+        
+        // SECURITY UPDATE: Sanitização via textContent para User, innerHTML controlado para Bot
+        if (role === 'user') {
+            bubble.textContent = text;
+        } else {
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+        }
 
         if (prods && prods.length) {
             const prodCont = document.createElement('div');
@@ -1186,11 +1191,15 @@
 
     if(!loadHistory()) checkEmptyState();
 
+    // BUBBLE DRAG FIX: ADDED THRESHOLD FOR CLICK
     els.bubble.addEventListener('touchstart', e => {
-        state.startX = e.touches[0].clientX; state.startY = e.touches[0].clientY; state.isDragging = false;
+        state.startX = e.touches[0].clientX; 
+        state.startY = e.touches[0].clientY; 
+        state.isDragging = false;
     }, {passive:true});
 
     els.bubble.addEventListener('touchmove', e => {
+        // Only consider dragging if moved more than 10px (DEADZONE)
         if(Math.hypot(e.touches[0].clientX - state.startX, e.touches[0].clientY - state.startY) > 10) {
             state.isDragging = true;
             els.bubble.style.left = e.touches[0].clientX + 'px'; els.bubble.style.top = e.touches[0].clientY + 'px';
@@ -1198,8 +1207,90 @@
         }
     }, {passive:false});
 
-    els.bubble.addEventListener('touchend', e => { if(!state.isDragging) openChat(); state.isDragging = false; });
-    els.bubble.addEventListener('click', e => { if(!state.isDragging) state.isOpen ? closeChat() : openChat(); });
+    els.bubble.addEventListener('touchend', e => { 
+        if(!state.isDragging) openChat(); 
+        state.isDragging = false; 
+    });
+    
+    // Click fallback for desktop mouse
+    els.bubble.addEventListener('click', e => { 
+        if(!state.isDragging) state.isOpen ? closeChat() : openChat(); 
+    });
+
+    // ==========================================================================
+    // 5. DIAGNOSIS LOGIC (NEW 2025)
+    // ==========================================================================
+    
+    function getDiagnosisText(symptomText) {
+        const s = symptomText.toLowerCase();
+        
+        if (s.match(/esquentando|aquecendo|desliga sozinho|superaquece/)) {
+            return {
+                expl: "Quando esse problema acontece, normalmente está ligado a acúmulo de poeira interna, pasta térmica ressecada ou falha no sistema de refrigeração, o que faz o aparelho se proteger desligando sozinho.",
+                sol: "Geralmente é necessário realizar limpeza interna completa, troca de pasta térmica e revisão do sistema de ventilação."
+            };
+        }
+        if (s.match(/barulho|jato|ventoinha/)) {
+            return {
+                expl: "Esse barulho excessivo costuma indicar que o sistema de refrigeração está trabalhando no limite, geralmente por poeira acumulada ou superaquecimento constante.",
+                sol: "O procedimento normalmente envolve limpeza técnica interna e manutenção preventiva, evitando danos maiores no futuro."
+            };
+        }
+        if (s.match(/imagem|tela preta|glitch|hdmi|luz branca/)) {
+            return {
+                expl: "Esse tipo de problema geralmente está relacionado a falha no circuito de vídeo, conector HDMI ou componente gráfico, impedindo a transmissão correta da imagem.",
+                sol: "A solução pode envolver reparo no HDMI, análise da GPU ou correção de solda, conforme o diagnóstico."
+            };
+        }
+        if (s.match(/disco|leitor|ejeta/)) {
+            return {
+                expl: "Quando o console não reconhece ou ejeta discos, normalmente o defeito está no leitor óptico, motor do drive ou lente desgastada.",
+                sol: "O reparo envolve manutenção ou substituição do conjunto do leitor, dependendo da condição encontrada."
+            };
+        }
+        if (s.match(/lento|travando|fecham sozinhos/)) {
+            return {
+                expl: "Travamentos frequentes costumam estar ligados a falhas de software, aquecimento excessivo ou problemas no armazenamento interno.",
+                sol: "A solução pode incluir manutenção interna, correção de sistema ou substituição de componentes, após análise."
+            };
+        }
+        if (s.match(/não liga|luz amarela|luz vermelha|desliga após/)) {
+            return {
+                expl: "Quando o aparelho não liga ou desliga rapidamente, geralmente há falha na alimentação elétrica, superaquecimento crítico ou defeito em componentes internos.",
+                sol: "O reparo exige diagnóstico técnico completo e correção do circuito afetado."
+            };
+        }
+        if (s.match(/drift|anda sozinho|analógico/)) {
+            return {
+                expl: "Esse problema é conhecido como drift, causado pelo desgaste interno do analógico, fazendo o controle enviar comandos sem toque.",
+                sol: "A solução envolve troca ou reparo do analógico, garantindo funcionamento correto novamente."
+            };
+        }
+        if (s.match(/carrega|bateria/)) {
+            return {
+                expl: "Esse sintoma geralmente indica bateria desgastada ou falha no circuito de carga, reduzindo a autonomia do aparelho.",
+                sol: "O procedimento costuma ser substituição da bateria ou reparo no sistema de carga."
+            };
+        }
+        if (s.match(/instalar jogos|desbloqueio|rodar sem disco/)) {
+            return {
+                expl: "Esse tipo de solicitação envolve configuração de sistema ou instalação personalizada, permitindo executar jogos sem mídia física.",
+                sol: "O processo varia conforme o modelo e estado do aparelho, podendo exigir ajustes adicionais."
+            };
+        }
+        if (s.match(/computador|lento|vírus|formatar/)) {
+            return {
+                expl: "Quando o computador apresenta lentidão ou vírus, normalmente é necessário limpeza de sistema, formatação ou otimização de software.",
+                sol: "O serviço pode incluir backup de arquivos e reinstalação do sistema operacional."
+            };
+        }
+        
+        // Default
+        return {
+            expl: "Vou analisar a descrição que você enviou para entender melhor o problema.",
+            sol: "Após essa análise, consigo te explicar exatamente o que pode estar acontecendo e informar o valor estimado do serviço."
+        };
+    }
 
     // === API PUBLICA DE INTEGRAÇÃO (FIX) ===
     window.AtomicChat = {
@@ -1213,13 +1304,19 @@
             const isCustom = ctx.service.id === 'custom_issue';
             const displayPrice = isCustom ? "Sob Análise Técnica" : range;
 
-            const botMsg = `Recebi seu pedido de orçamento! 📝\n\n` +
-                           `👤 **${ctx.customer.name}**\n` +
-                           `📱 **${ctx.customer.phone}**\n` +
-                           `🎮 **Aparelho:** ${ctx.device.modelLabel}\n` +
-                           `🛠️ **Serviço:** ${ctx.service.name}\n` +
-                           `💰 **Estimativa:** ${displayPrice}\n\n` +
-                           `Tudo conferido? Posso encaminhar para o técnico agora?`;
+            // GET EXPLANATION TEMPLATE
+            const diag = getDiagnosisText(ctx.service.name);
+
+            // MESSAGE STRUCTURE:
+            // 1. Confirmação
+            // 2. Explicação (Part 2)
+            // 3. Solução (Part 2)
+            // 4. Preço
+            
+            const botMsg = `Recebi seu pedido e vou te explicar rapidinho 👇\n\n` +
+                           `🛠️ **Sobre o problema:**\n${diag.expl}\n\n` +
+                           `✅ **Solução:**\n${diag.sol}\n\n` +
+                           `💰 **Valor Estimado:**\nPara esse tipo de situação, o valor normalmente fica entre **${displayPrice}**, dependendo do diagnóstico final.`;
 
             const zapText = `*ORÇAMENTO TÉCNICO (WEB)*\n\n` +
                            `👤 *${ctx.customer.name}*\n` +
@@ -1235,7 +1332,7 @@
             const waUrl = `https://wa.me/5521995969378?text=${encodeURIComponent(zapText)}`;
 
             renderMessage('bot', botMsg, [], [{
-                label: "✅ Confirmar e Enviar no WhatsApp",
+                label: "✅ Falar com Especialista Agora",
                 type: "LINK",
                 url: waUrl
             }]);

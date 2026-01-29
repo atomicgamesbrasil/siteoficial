@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" class="light scroll-smooth">
 <head>
@@ -435,16 +436,10 @@
                                     <input type="radio" name="category" value="console_modern" class="sr-only">
                                     <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
                                         <i class="ph-duotone ph-game-controller text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
-                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">Consoles Atuais</span>
+                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">Consoles</span>
                                     </div>
                                 </label>
-                                <label class="cursor-pointer group">
-                                    <input type="radio" name="category" value="console_retro" class="sr-only">
-                                    <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
-                                        <i class="ph-duotone ph-cassette-tape text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
-                                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">Consoles Retrô</span>
-                                    </div>
-                                </label>
+                                <!-- UNIFIED CATEGORY UPDATE: RETRO REMOVED -->
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="handheld" class="sr-only">
                                     <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
@@ -459,7 +454,7 @@
                                         <span class="text-xs font-bold uppercase tracking-wide text-gray-400 group-hover:text-white transition">PC / Notebook</span>
                                     </div>
                                 </label>
-                                <label class="cursor-pointer group col-span-2">
+                                <label class="cursor-pointer group">
                                     <input type="radio" name="category" value="accessory" class="sr-only">
                                     <div class="calc-radio-card p-4 flex flex-col items-center gap-2 text-center h-full">
                                         <i class="ph-duotone ph-headphones text-3xl text-gray-400 group-hover:text-yellow-500 transition"></i>
@@ -553,17 +548,18 @@
 
                         <!-- Resultado -->
                         <div id="result-area" class="calc-step mt-4 text-center">
-                            <span class="text-xs font-bold uppercase text-muted tracking-widest">Estimativa</span>
-                            <div class="flex justify-center items-baseline gap-2 mt-1 mb-2">
-                                <span id="price-min" class="text-2xl font-black text-base">R$ 000</span>
-                                <span id="price-separator" class="text-sm text-muted">a</span>
-                                <span id="price-max" class="text-2xl font-black text-yellow-600 dark:text-yellow-400">R$ 000</span>
+                            <!-- HIDDEN PRICE INITIAL STATE (Update 2025) -->
+                            <span class="text-xs font-bold uppercase text-muted tracking-widest">Diagnóstico</span>
+                            <div class="flex justify-center items-center gap-2 mt-1 mb-2">
+                                <span id="price-min" class="hidden"></span>
+                                <span id="price-separator" class="hidden"></span>
+                                <span id="price-max" class="text-2xl font-black text-yellow-600 dark:text-yellow-400">Pronto para Análise</span>
                             </div>
-                            <p id="result-note" class="text-xs font-medium text-red-500 mb-4"></p>
+                            <p id="result-note" class="text-xs font-medium text-muted mb-4">Valor será informado no Chat</p>
                             <button type="submit" id="btn-submit-calc" class="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 transform active:scale-98">
-                                <i class="ph-bold ph-whatsapp-logo text-xl"></i> Agendar Agora
+                                <i class="ph-bold ph-whatsapp-logo text-xl"></i> Ver Diagnóstico
                             </button>
-                            <p class="text-[10px] text-muted mt-3">*Valores sujeitos a análise presencial.</p>
+                            <p class="text-[10px] text-muted mt-3">*Análise preliminar via Chatbot.</p>
                         </div>
                     </form>
                 </div>
