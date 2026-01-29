@@ -1,5 +1,13 @@
 [
   {
+    "name": "Sony Playstation 5 1tb Slim Digital Edition Branco",
+    "price": "R$ 3.600,00",
+    "category": "seminovos",
+    "desc": "\nCapacidade 2 TB\n\n\nCom Wi-Fi Sim\n\n\nTipo de console De mesa\n\n\nQuantidade de controles incluídos 1",
+    "image": "https://raw.githubusercontent.com/atomicgamesbrasil/siteoficial/main/img%20site/1769704814361-ps5-seminovo.webp",
+    "id": "1769704815240"
+  },
+  {
     "id": "1765402139132",
     "name": "Placa de Vídeo RTX 4070 12GB",
     "price": "R$ 4.599,99",
