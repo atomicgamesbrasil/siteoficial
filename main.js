@@ -118,6 +118,7 @@ function prepareBudgetForPanel(payload) {
 const initialProducts = [
     { id: "1", name: "PlayStation 5 Slim", category: "console", price: "R$ 3.799,00", image: BASE_IMG_URL + "img%20site/console-ps5.webp", desc: "Digital Edition, 1TB SSD. O console mais rápido da Sony." },
     { id: "2", name: "Xbox Series S", category: "console", price: "R$ 2.699,00", image: BASE_IMG_URL + "img%20site/console-xbox-s.webp", desc: "512GB SSD, Compacto e 100% digital." },
+    { id: "99", name: "PlayStation 4 Slim (Seminovo)", category: "seminovos", price: "R$ 1.399,00", image: BASE_IMG_URL + "img%20site/console-ps4.webp", desc: "Console revisado, higienizado e com garantia de 3 meses. Acompanha 1 controle." },
     { id: "6", name: "God of War Ragnarok", category: "games", price: "R$ 299,00", image: BASE_IMG_URL + "img%20site/game-gow.webp", desc: "PS5 Mídia Física. Aventura épica." },
     { id: "12", name: "Controle DualSense", category: "acessorios", price: "R$ 449,00", image: BASE_IMG_URL + "img%20site/acessorio-dualsense.webp", desc: "Original Sony. Controle sem fio." },
     { id: "13", name: "Mouse Gamer Red Dragon", category: "acessorios", price: "R$ 149,90", image: "https://placehold.co/400x400/292524/FFD700?text=MOUSE", desc: "Mouse Redragon de alta precisão." }
@@ -402,7 +403,13 @@ const showToast = (msg, type = 'success') => {
     setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px) scale(0.8)'; setTimeout(() => toast.remove(), 300); }, 3000);
 };
 
-const getCategoryClass = cat => ({ console: 'category-console', games: 'category-games', acessorios: 'category-acessorios', hardware: 'category-hardware' }[cat] || 'category-games');
+const getCategoryClass = cat => ({
+    console: 'category-console',
+    games: 'category-games',
+    acessorios: 'category-acessorios',
+    hardware: 'category-hardware',
+    seminovos: 'category-seminovos'
+}[cat] || 'category-games');
 
 // --- PWA LOGIC (VISIBLE BY DEFAULT STRATEGY) ---
 function detectPlatform() {
@@ -544,14 +551,25 @@ async function loadGamesFromGitHub() {
         const res = await fetch(`${BASE_IMG_URL}produtos.json?t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();
-            if (data.length) allProducts = data.map(p => ({
-                id: (p.id || Date.now() + Math.random()).toString(),
-                name: p.name || "Produto",
-                category: p.category ? (p.category.toLowerCase().includes('console') ? 'console' : p.category.toLowerCase().includes('acess') ? 'acessorios' : p.category.toLowerCase().match(/pc|hardware/) ? 'hardware' : 'games') : 'games',
-                price: formatPrice(p.price),
-                image: (p.image || "").replace('/img/', '/img%20site/') || "https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC",
-                desc: p.desc || "Sem descrição."
-            }));
+            if (data.length) allProducts = data.map(p => {
+                let cat = p.category ? p.category.toLowerCase() : 'games';
+                
+                // Categoria Normalization
+                if (cat.match(/seminovo|usado/)) cat = 'seminovos';
+                else if (cat.includes('console')) cat = 'console';
+                else if (cat.includes('acess')) cat = 'acessorios';
+                else if (cat.match(/pc|hardware/)) cat = 'hardware';
+                else cat = 'games';
+
+                return {
+                    id: (p.id || Date.now() + Math.random()).toString(),
+                    name: p.name || "Produto",
+                    category: cat,
+                    price: formatPrice(p.price),
+                    image: (p.image || "").replace('/img/', '/img%20site/') || "https://placehold.co/400x400/e2e8f0/1e293b?text=ATOMIC",
+                    desc: p.desc || "Sem descrição."
+                };
+            });
         }
     } catch (e) { console.warn("Using fallback catalog"); }
     renderProducts(currentFilter, els.searchInput.value);
@@ -1502,6 +1520,18 @@ function injectThemeFixes() {
         /* 6. Muted Text */
         html:not(.dark) .text-muted {
             color: #6b7280 !important;
+        }
+
+        /* --- SEMINOVOS TAG STYLE --- */
+        .category-seminovos {
+            background-color: #cffafe; /* Cyan 100 */
+            color: #0891b2; /* Cyan 600 */
+            border: 1px solid #22d3ee;
+        }
+        html.dark .category-seminovos {
+            background-color: #164e63; /* Cyan 900 */
+            color: #22d3ee; /* Cyan 400 */
+            border-color: #0e7490;
         }
     `;
     const style = document.createElement('style');
