@@ -370,12 +370,12 @@ const CALCULATOR_DATA = {
     }
 };
 
-// Custos Logísticos baseados na Tabela 2.4 e 7.2 (Geografia Econômica)
+// Custos Logísticos - MANTIDO APENAS POR COMPATIBILIDADE, MAS NÃO USADO
 const LOGISTICS_COST = { 
     shop: 0, // Levar na Loja
-    local: 15, // Bairro vizinho
-    interzonal: 35, // Média entre 30 e 40 (Zona Norte <-> Centro)
-    remote: 50 // Niterói / Baixada (Piso inicial)
+    local: 15,
+    interzonal: 35,
+    remote: 50
 };
 
 // State & DOM Elements Cache
@@ -1122,7 +1122,6 @@ function initCalculator() {
     // Elements
     const step1 = document.getElementById('step-1');
     const step2 = document.getElementById('step-2');
-    const step3 = document.getElementById('step-3');
     const resultArea = document.getElementById('result-area');
     const customWrapper = document.getElementById('custom-issue-wrapper');
     const customInput = document.getElementById('calc-issue');
@@ -1131,7 +1130,7 @@ function initCalculator() {
     const modelSelect = document.getElementById('calc-model');
     const serviceSelect = document.getElementById('calc-service');
     const serviceWrapper = document.getElementById('service-wrapper');
-    const logInputs = document.querySelectorAll('input[name="logistics"]');
+    // REMOVED LOGISTICS INPUTS REFERENCE
 
     // Progress Bar Elements
     const progressFill = document.getElementById('calc-progress-fill');
@@ -1144,15 +1143,14 @@ function initCalculator() {
     };
 
     // --- CONTEXTO UNIFICADO (Contrato Oficial para Integrações Futuras) ---
-    // Este objeto não é usado para renderizar a UI (ainda), mas corre em paralelo
-    // para garantir que tenhamos um estado limpo para exportação.
     const budgetContext = {
         status: 'draft',
         timestamp: null,
         customer: { name: '', phone: '' },
         device: { category: '', model: '', modelLabel: '' },
         service: { id: '', name: '', priceMin: 0, priceMax: 0, note: '', customDescription: '' },
-        logistics: { type: 'shop', label: '', cost: 0 },
+        // LOGISTICS HARDCODED TO SHOP
+        logistics: { type: 'shop', label: 'Levar na Loja', cost: 0 },
         financial: { totalMin: 0, totalMax: 0 },
         meta: { source: 'web_calculator', userAgent: navigator.userAgent }
     };
@@ -1175,9 +1173,10 @@ function initCalculator() {
             max = svcData.max;
             note = svcData.note;
 
-            const logisticCost = LOGISTICS_COST[state.logistics] || 0;
+            // LOGISTICS COST REMOVED (ALWAYS 0)
+            const logisticCost = 0;
             
-            // Se não for serviço personalizado, soma o frete
+            // Se não for serviço personalizado, soma o frete (que agora é zero)
             if (!isCustom) {
                 min += logisticCost;
                 max += logisticCost;
@@ -1194,16 +1193,9 @@ function initCalculator() {
             budgetContext.service.priceMax = svcData.max;
             budgetContext.service.note = note;
 
-            const logisticTexts = {
-                'shop': 'Levar na Loja (Madureira)',
-                'local': 'Coleta Local (Bairro Vizinho)',
-                'interzonal': 'Coleta Interzonal (Zona Norte/Centro)',
-                'remote': 'Baixada / Niterói'
-            };
-
-            budgetContext.logistics.type = state.logistics;
-            budgetContext.logistics.label = logisticTexts[state.logistics];
-            budgetContext.logistics.cost = logisticCost;
+            budgetContext.logistics.type = 'shop';
+            budgetContext.logistics.label = 'Levar na Loja';
+            budgetContext.logistics.cost = 0;
 
             budgetContext.financial.totalMin = min;
             budgetContext.financial.totalMax = max;
@@ -1244,7 +1236,7 @@ function initCalculator() {
             
             // Reset UI
             step2.classList.remove('active');
-            step3.classList.remove('active');
+            // REMOVED step3 REFERENCE
             resultArea.classList.remove('active');
             serviceWrapper.classList.add('hidden');
             customWrapper.classList.add('hidden');
@@ -1273,7 +1265,7 @@ function initCalculator() {
         // Reset Service
         serviceSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
         resultArea.classList.remove('active');
-        step3.classList.remove('active');
+        // REMOVED step3 REFERENCE
         customWrapper.classList.add('hidden');
         
         // Populate Services
@@ -1292,7 +1284,7 @@ function initCalculator() {
     // Step 3: Service Change
     serviceSelect.addEventListener('change', (e) => {
         state.service = e.target.value;
-        step3.classList.add('active');
+        // REMOVED step3.classList.add('active');
         
         // Custom Issue Logic
         if (state.service === 'custom_issue') {
@@ -1308,13 +1300,7 @@ function initCalculator() {
         // Note: updateCalc calls updateProgress(100) if valid
     });
 
-    // Step 4: Logistics Change
-    logInputs.forEach(input => {
-        input.addEventListener('change', (e) => {
-            state.logistics = e.target.value;
-            updateCalc();
-        });
-    });
+    // REMOVED LOGISTICS EVENT LISTENER
 
     // Form Submit (AGORA ASYNC PARA GARANTIR GRAVAÇÃO ANTES DO REDIRECT)
     form.addEventListener('submit', async (e) => {
@@ -1375,9 +1361,9 @@ function initCalculator() {
                     max_value: Number(budgetContext.financial.totalMax)
                 },
                 logistics: {
-                    method_id: String(budgetContext.logistics.type),
-                    method_label: String(budgetContext.logistics.label),
-                    cost: Number(budgetContext.logistics.cost)
+                    method_id: "shop",
+                    method_label: "Levar na Loja",
+                    cost: 0
                 },
                 meta: {
                     user_agent: navigator.userAgent,
@@ -1430,7 +1416,7 @@ function initCalculator() {
                     `--------------------------------\n` +
                     `🎮 *Aparelho:* ${budgetContext.device.modelLabel}\n` +
                     `🛠️ *Serviço:* ${finalServiceName}\n` +
-                    `📍 *Logística:* ${budgetContext.logistics.label}\n` +
+                    `📍 *Logística:* Levar na Loja (Madureira)\n` +
                     `💰 *Estimativa:* ${priceStr}\n` +
                     `--------------------------------\n` +
                     `*Obs:* Aceito a taxa de diagnóstico caso recuse o reparo.`;

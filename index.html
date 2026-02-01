@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" class="light scroll-smooth">
 <head>
@@ -102,7 +101,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- Styles with NEW Cache Busting (FORCE UPDATE) -->
-    <link rel="stylesheet" href="styles.css?v=6.0.1-MIRROR">
+    <link rel="stylesheet" href="styles.css?v=6.0.2-NO-LOGISTICS">
 <script type="importmap">
 {
   "imports": {
@@ -112,7 +111,10 @@
     "dotenv": "https://esm.sh/dotenv@^17.2.3",
     "node-fetch": "https://esm.sh/node-fetch@^3.3.2",
     "path": "https://esm.sh/path@^0.12.7",
-    "url": "https://esm.sh/url@^0.11.4"
+    "url": "https://esm.sh/url@^0.11.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4"
   }
 }
 </script>
@@ -489,52 +491,7 @@
                             </div>
                         </div>
 
-                        <!-- Passo 4: Logística -->
-                        <div id="step-3" class="calc-step mt-4">
-                            <label class="block text-sm font-bold mb-3 text-base">4. Logística</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
-                                    <input type="radio" name="logistics" value="shop" checked class="sr-only">
-                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
-                                        <div class="flex-grow">
-                                            <span class="block font-bold text-sm text-gray-300">Levar na Loja</span>
-                                            <span class="text-xs text-muted">Madureira (Sem custo)</span>
-                                        </div>
-                                        <i class="ph-bold ph-storefront text-xl text-muted"></i>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
-                                    <input type="radio" name="logistics" value="local" class="sr-only">
-                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
-                                        <div class="flex-grow">
-                                            <span class="block font-bold text-sm text-gray-300">Coleta Local</span>
-                                            <span class="text-xs text-muted">Bairro vizinho (Até 5km)</span>
-                                        </div>
-                                        <i class="ph-bold ph-moped text-xl text-muted"></i>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
-                                    <input type="radio" name="logistics" value="interzonal" class="sr-only">
-                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
-                                        <div class="flex-grow">
-                                            <span class="block font-bold text-sm text-gray-300">Coleta Interzonal</span>
-                                            <span class="text-xs text-muted">Zona Norte / Centro</span>
-                                        </div>
-                                        <i class="ph-bold ph-truck text-xl text-muted"></i>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-1 rounded-xl cursor-pointer group">
-                                    <input type="radio" name="logistics" value="remote" class="sr-only">
-                                    <div class="calc-radio-card w-full p-3.5 flex items-center gap-3">
-                                        <div class="flex-grow">
-                                            <span class="block font-bold text-sm text-gray-300">Baixada / Niterói</span>
-                                            <span class="text-xs text-muted">Logística Especializada</span>
-                                        </div>
-                                        <i class="ph-bold ph-map-pin-line text-xl text-muted"></i>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
+                        <!-- LOGISTICS STEP REMOVED (2025 UPDATE) -->
 
                         <!-- Dados do Cliente (Moved to bottom) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-base">
@@ -690,7 +647,7 @@
     </footer>
 
     <!-- Scripts Logic Split with new cache busters -->
-    <script type="module" src="main.js?v=6.0.1-MIRROR"></script>
-    <script src="chatbot.js?v=6.0.1-MIRROR" defer></script>
+    <script type="module" src="main.js?v=6.0.2-NO-LOGISTICS"></script>
+    <script src="chatbot.js?v=6.0.2-NO-LOGISTICS" defer></script>
 </body>
 </html>

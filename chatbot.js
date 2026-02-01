@@ -2,17 +2,12 @@
 (function() {
     'use strict';
 
-    console.log('Atomic Chatbot v5.9.5 (Unified, Symptom Based & Hidden Price) Initializing...');
+    console.log('Atomic Chatbot v5.9.6 (No Logistics) Initializing...');
 
     // ==========================================================================
     // 0. DADOS DA CALCULADORA (ESPELHO DO SITE)
     // ==========================================================================
-    const LOGISTICS_COST = { 
-        shop: 0, 
-        local: 15, 
-        interzonal: 35, 
-        remote: 50 
-    };
+    // LOGISTICS REMOVED
 
     // UPDATE 2025: Fusão de Categorias e Wording por Sintoma (ESPELHADO DO MAIN.JS)
     const CALCULATOR_DATA = {
@@ -682,19 +677,7 @@
                             <div class="atomic-note" id="at-calc-note"></div>
                         </div>
 
-                        <div class="atomic-field-group">
-                            <label>Logística</label>
-                            <div class="atomic-radio-group">
-                                <label class="atomic-radio-label">
-                                    <input type="radio" name="at_logistics" value="shop" checked>
-                                    Levo na Loja
-                                </label>
-                                <label class="atomic-radio-label">
-                                    <input type="radio" name="at_logistics" value="local">
-                                    Motoboy
-                                </label>
-                            </div>
-                        </div>
+                        <!-- LOGISTICS STEP REMOVED IN v5.9.6 -->
 
                         <button id="at-btn-finish" class="atomic-calc-btn" disabled>
                             Preencha para Continuar
@@ -803,18 +786,12 @@
         // Event: Serviço Mudou
         els.service.addEventListener('change', updateCalculation);
         
-        // Event: Logística Mudou
-        document.querySelectorAll('input[name="at_logistics"]').forEach(r => {
-            r.addEventListener('change', updateCalculation);
-        });
-
         function updateCalculation() {
             const sKey = els.service.value;
             if (!sKey) return;
             currentSelection.service = sKey;
 
-            const logKey = document.querySelector('input[name="at_logistics"]:checked').value;
-            // const logCost = LOGISTICS_COST[logKey] || 0; // Unused here in UI
+            // LOGISTICS COST REMOVED (Always 0)
 
             if (sKey === 'custom_issue') {
                 els.groupDesc.classList.remove('at-hidden');
@@ -852,8 +829,8 @@
             const svcData = CALCULATOR_DATA[currentSelection.cat].models[currentSelection.model].services[currentSelection.service];
             const serviceName = svcData.name;
             
-            const logKey = document.querySelector('input[name="at_logistics"]:checked').value;
-            const logCost = LOGISTICS_COST[logKey] || 0;
+            // LOGISTICS REMOVED: HARDCODED TO SHOP
+            const logCost = 0;
             
             let minPrice = svcData.min;
             let maxPrice = svcData.max;
@@ -875,7 +852,8 @@
                 device: { category: cat, modelLabel: model },
                 service: { id: currentSelection.service, name: serviceName, customDescription: customDesc },
                 financial: { totalMin: minPrice, totalMax: maxPrice },
-                logistics: { label: logKey === 'shop' ? 'Levar na Loja' : 'Buscar de Motoboy' }
+                // LOGISTICS HARDCODED
+                logistics: { label: 'Levar na Loja (Madureira)' }
             };
 
             window.AtomicChat.processBudget(ctx);
